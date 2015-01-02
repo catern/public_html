@@ -1,0 +1,265 @@
+#+title: Terminals Are Weird
+#+options: toc:0 num:nil
+#+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
+
+# TODO add examples to the tooling section
+
+Note: I'll use [[http://en.wikipedia.org/wiki/Octal][octal numerals]] to represent ASCII in this article.
+
+Terminals are quite weird.
+Most modern users assume that they can just have straightfoward keybindings. 
+Right?
+To bind Ctrl+i to something, they listen for Ctrl+i in their application.
+If they want to bind Ctrl+Shift+i to something different, they certainly can, they just listen for Ctrl+Shift+i as well.
+Naturally, they can rebind Tab without rebinding Ctrl+i/Shift+i.
+Of course, whether a keybinding like Alt+char is actually succesfully picked up by their terminal application 
+is entirely independent of the quality of their network connection.
+They know that Ctrl+char and Ctrl+Shift+char are distinct keybindings,
+and that if those aren't distinct keybindings, certainly Alt+char and Alt+Shift+char must not be distinct either.
+
+Sadly, this (sanity and straightforwardness) is a feature that terminals lack.
+
+* Tooling
+If you want to investigate how your terminal is interpreting a key combination,
+you have two good options.
+You can run =cat -v= and enter the key combination,
+or you can run =emacs=, hit Ctrl+h c, and enter the key combination.
+The latter is more descriptive and easier to understand, but they both work.
+
+=cat -v= will show variations on ^c for non-printable characters, 
+like the character received when holding Ctrl and typing c.
+It shows ^[ for Escape.
+The next sections explain why.
+
+* Ctrl
+The "Ctrl" or "Control" key is so called because it is used to send [[http://en.wikipedia.org/wiki/Control_character][control characters]].
+Control characters are not actual characters, but are rather used to control the terminal that they are "printed" on.
+This is an example of [[http://en.wikipedia.org/wiki/In-band_signaling][in-band signaling]].
+
+To see some control characters, look at [[http://man7.org/linux/man-pages/man7/ascii.7.html][man ascii]].
+All characters have a character code; 
+in ASCII, this is a 7-bit pattern, taking up 7 out of 8 bits in a byte.
+The characters with codes from 0000 to 0037 are control characters.
+
+To send a control character in a terminal, hold down Ctrl while pressing another character.
+This modifies the sent character code by clearing its 7th and 6th bits (indexed starting at 1).
+For reference, the 7th and 6th bits are the ones set in 0140.
+This is equivalent to bitwise anding the character code with 0037.
+Again, whenever you hold down Ctrl and press another character while in a terminal, 
+the 8-bit character code that represents that character is modified according to this scheme. 
+
+This scheme cleanly maps each ASCII character to a control character.
+In fact, each control character can be sent in multiple ways.
+Looking at [[http://man7.org/linux/man-pages/man7/ascii.7.html][man ascii]], we can see that 
+lower and upper case alphabetic characters (such as 'g', 0107, and 'G', 0147) differ only by the 6th bit.[fn:shift]
+The 6th bit is cleared by Ctrl,
+so the same alphabetic characters ('g' and 'G') get mapped to the same control character (BEL, 0007).
+
+Look again at [[http://man7.org/linux/man-pages/man7/ascii.7.html][man ascii]] to see all the mappings. 
+In GNU/Linux, the table is arranged so that the upper case alphabetic character and the control character it is mapped to are on the same row. [fn:lowerleft]
+
+As a result, the following triples of keys (among others) are equivalent and indistinguishable to a terminal: 
+- Ctrl+i, Ctrl+Shift+i, Tab
+- Ctrl+j, Ctrl+Shift+j, Enter
+- Ctrl+[, Ctrl+Shift+[, Escape 
+  
+These equivalences are useful.
+These control characters are heavily used,
+and the keys that directly send them
+are placed in unergonomic locations,
+so sending them with Ctrl can be useful.
+
+The last one in particular is very useful for vi/vim users.
+It is in fact emulated in gvim and other graphical vi-keybinding-using applications (at least, all the ones I've used),
+so you should be able to always use Ctrl+[ to go to normal mode.
+
+Some other useful control characters to send are:
+- Ctrl+d, Ctrl+Shift+d, EOF
+- Ctrl+g, Ctrl+Shift+g, BEL
+
+Key points:
+- When you rebind any one of those triples, you rebind all of them
+- You cannot have separate keybindings for any two or three members of a triple
+- Ctrl+char and Ctrl+Shift+char are not distinct.
+  
+* Flow Control
+  Ctrl+q and Ctrl+s send, respectively, 
+  DC1 (device control 1) and DC3 (device control 3).
+  As it happens, these are the control characters for [[http://en.wikipedia.org/wiki/Software_flow_control][software flow control]].
+
+  | Code | Meaning             | ASCII | Octal | Keyboard |
+  |------+---------------------+-------+-------+----------|
+  | XOFF | Pause transmission  | DC3   |   023 | Ctrl+s   |
+  | XON  | Resume transmission | DC1   |   021 | Ctrl+q   |
+
+  If you hit Ctrl+s while software flow control is enabled (like at a shell prompt), 
+  your terminal will freeze until you hit Ctrl+q.
+  Fortunately, console applications like vim and Emacs disable software flow control.
+  You can disable it in your shell by adding the following lines to your shell's rc file (~/.bashrc, for bash).
+
+#+begin_src sh
+stty -ixon 
+stty -ixoff
+#+end_src
+
+* Alt
+The keyboards of today inherit their "Alt" key from the [[http://en.wikipedia.org/wiki/IBM_PC_keyboard][IBM PC keyboard]],
+where it provided a feature now known as "[[http://en.wikipedia.org/wiki/Alt_code][Alt codes]]".
+By holding Alt and typing a decimal number, 
+you could directly enter the corresponding 8-bit character code,
+even if it there was no key for it on your keyboard.
+
+The IBM PC keyboard lacked another key which was present on [[http://deskthority.net/keyboards-f2/the-lisp-keyboards-t98.html][Unix keyboards]]: [[http://en.wikipedia.org/wiki/Meta_key][Meta]].
+Meta's original behavior was to set the /8th/ bit, 
+the value of which was left unspecified by 7-bit character specifications like ASCII.
+Every character thus had a Meta equivalent, 
+and detecting whether Meta was held while entering the character 
+could be done just by checking the value of the 8th bit.
+
+When Unices were ported to the PC, Alt was repurposed to serve as Meta.
+(Emacs users are already familiar with this story.)
+Unfortunately, by this point, networking was quite popular,
+and many networking programs (such as the Internet) were not [[http://en.wikipedia.org/wiki/8-bit_clean][8-bit clean]].
+They would put arbitrary data in the 8th bit, since they were never required not to.
+Thus the original behavior of Meta unconditionally setting the 8th bit,
+and Meta-aware applications checking the 8th bit to see if Meta was held,
+would cause problems.
+
+Thus, the following emulation method was chosen[fn:chosen]: 
+When Alt+char is pressed, send "ESC" before sending 'char'.
+ESC, of course, was already used for [[http://en.wikipedia.org/wiki/ANSI_escape_code][escape codes]].
+Up to this point, ESC usually wouldn't appear in user input.
+There would be no point,
+because user input was delivered to the application running in the terminal,
+rather than being printed on the terminal screen as would be necessary for the escape codes to have the appropriate effect.
+As a result, ESC could be reused to mean something different when it was present in user input.
+Now if it occurred in user input, it would mean "The character that follows was entered with Meta held down".
+
+Of course, some applications had already followed the same logic and were responding to ESC and the Escape key in a different way.
+But they wouldn't be running at the same time as ported Unix applications, 
+and they didn't make use of Meta/Alt,
+so the difference in behavior wasn't a problem.
+
+For example, ESC is used by vi/vim for mode switching.
+Try Alt+i while in insert mode in vi/vim.
+It sends Escape, then i, switching you out of insert mode and then right back in.
+This is why there are no Meta/Alt keybindings in vim.
+
+So, you can't robustly have separate keybindings for Escape and Alt+char, since they are the same thing.
+Sometimes you really want separate bindings, though.
+In Emacs evil-mode, for example, it is useful to simultaneously use Escape for vim emulation, 
+and use traditional emacs keybindings that make use of Meta/Alt.
+In this case, the keybindings are implemented by a timeout in the application every time you press Escape.
+If you press another key fast enough after Escape, 
+the application assumes what you actually pressed was Alt+char,
+and interprets it appropriately.
+
+This fails if you have a slow input connection,
+which you have if you are using the application over a slow network, often through ssh and screen/tmux. 
+This is generally fixed by increasing the Escape/Alt timeout in the specific application.
+[[https://mosh.mit.edu/][mosh]] doesn't have this problem, because it detects Alt+char vs. Escape locally, 
+and makes sure to send Escape+char together through the network when it recognizes the former.
+  
+Key points:
+- Alt+char and Alt+Shift+char *are* distinct, because they send Escape, then char or Shift+char.
+- Whether Alt+char is succesfully picked up by your terminal application is dependent on the quality of your connection.
+- In applications that don't listen for Escape on its own, you can send Alt+char by pressing Escape, then char
+  
+# * TODO Escape codes
+# Don't try to type these in yourself; 
+# they will be sent to the application that is running in terminal,
+# which will sanitize them before sending them forward.
+
+# 14:06 < jlf> catern: in case you haven't come across these, you might find them of interest: http://invisible-island.net/xterm/ctlseqs/ctlseqs.html ,
+#              http://ascii-table.com/ansi-escape-sequences-vt-100.php
+# 14:06 < jlf> ,xterm
+# 14:06 < fsbot> try:  ClavierEnFran?aisEtXterm ClavierEnFranÃ§aisEtXterm SrSpeedbarInXterm xterm-backspace xterm-title XTermColors XtermExtras
+#                xtermkeys XTermMouse
+# 14:07 < jlf> ,xtermkeys
+# 14:07 < fsbot> xtermkeys is, like, [0] at http://www.emacswiki.org/cgi-bin/wiki.pl?XTermKeys
+# 14:07 < fsbot> [1] for many more modifier options in -nw mode under xterm, see http://invisible-island.net/xterm/ctlseqs/ctlseqs.html and also do
+#                `man xterm' and search for `modifyOtherKeys', ..[Type ,more]
+# 14:07 < jlf> ,m
+# 14:07 < fsbot> [2] Emacs on a terminal emulator is generally limited to input in the form of ASCII printable characters and ASCII control codes; see
+#                https://en.wikipedia.org/wiki/C0_and_C1_control_codes#C0_.28ASCII_and_derivatives.29. anything else is not guaranteed to work.
+ 
+# Don't try to type these in yourself; 
+# they have to be sent to the STDOUT of the terminal, which is controlled by the application running inside it,
+# rather than the STDIN, which is routed to the application and not printed.
+# or something like that anyway, I asked about it in #ncurses 
+
+# * TODO Signals
+
+#   Talk about Ctrl+c sending a signal
+
+* A thought
+  I suspect these keybinding problems are a large part of why
+  vi/vim is modal and uses the alphabetic keys heavily,
+  and emacs uses key chords (sequences like Ctrl+x Ctrl+s to save).
+  Their set of available key bindings is reduced by the quirks of the terminal,
+  so they need to stretch them to fit their functionality.
+  
+* A caution
+
+  Terminals have a lot of quirks, but they are still very useful and widely used.
+  So a project Y to create a new and improved terminal,
+  where Y is to terminals as Wayland is to X11,
+  sounds like a pretty good and useful idea at first.
+  You could have a sane and modern keybinding schema, and a better display-control-interface too.
+
+  But the benefit of terminals is mainly the existing tooling support.
+  Your neo-terminal won't automatically work with ssh for remote work, 
+  nor tmux for detached running of applications.
+  Any applications written for it will only run on the platforms that you port your neo-terminal to;
+  they certainly won't have the wide support that the standard terminal has.
+  If you do make sure you're backwards-compatible,
+  you have to leave almost all of the cruft in place,
+  so the reinvention is only marginally useful. 
+  (although projects like [[https://github.com/breuleux/terminus][terminus]] might be a cool incremental improvement)
+  
+  In the end,
+  if you fully redesign the terminal and bring it up to modern standards,
+  you'll just have created a rather limited graphical toolkit focused on text-based applications,
+  without any of the advantages that terminals actually hold.
+  In which case, why not just write your application with a real graphical toolkit,
+  such as [[https://developer.gnome.org/][GTK]]?
+  It has a lot more features and better support.
+  Just make sure your application has good support for keyboard control.
+  If you want, run the application code as a daemon to support running detached from the UI,
+  make it network-transparent to support remote work,
+  and create a corresponding command line tool to integrate it with the shell and compose in a Unixy way.[fn:libvirt]
+
+* A recommendation
+
+  If you do still want or need to make a terminal application that is interactive rather than just being a command-line tool,
+  what is the best way to go about it?
+  You should write it inside Emacs, using Emacs Lisp,
+  and run it as an application by invoking Emacs to run the function that is the entry point for your application.
+  This way you can have legacy terminal support to make use of ssh and tmux, by running Emacs in a terminal,
+  and modern graphical support to display fancy graphics and use more keybindings, by running Emacs in a graphical environment.
+  And of course, you don't have to use Emacs as an editor just to run applications that use it.
+  In this context, it is an application toolkit, not an editor; 
+  your users don't have to interact with any other part of Emacs.
+
+* Footnotes
+
+[fn:lowerleft] 
+You may be wondering about the characters in the lower left column of [[http://man7.org/linux/man-pages/man7/ascii.7.html][man ascii]].
+Some of them work according to this scheme,
+some of them can only be entered by pressing Shift on your keyboard so there's some messup there,
+and some of them just have this "feature" turned off.
+Sorry, terminals aren't consistent.
+
+[fn:shift] 
+In fact, it used to be true that Shift in a terminal would just clear the 6th bit.
+This hasn't been true for a long time, though.
+The effect of Shift (to capitalize and otherwise change the letters entered) is now handled by X11
+(or the equivalent part of the desktop stack on other platforms)
+and so your terminal just ignores the actual Shift key.
+
+[fn:libvirt] 
+libvirt and its associated tools are a good example of what I recommend here.
+
+[fn:chosen] 
+Though I understand why this was chosen, I'm not really sure who chose this or when it was chosen;
+if you know, [[http://catern.com/contact.html][contact me]] and I can include that.
