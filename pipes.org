@@ -1,0 +1,250 @@
+#+title: Simple, Fast, Easy Parallelism in Shell Pipelines
+
+# TODO people think it might be slow - show it's faster than python
+# TODO people think they already know how to do parallel job processing with xargs or parallel
+# 01:52 < catern> it's line-based as is normal for pipelines, it's faster than xargs or parallel because it doesn't start new processses each time, it can maintain state between lines (including persistent 
+#                 network connections)
+# It's basically strictly more general.
+# include network connection example
+# 02:18 < catern> epitron: so did you find the article to move too slowly? or too quickly? or just right? did you learn a bit about the operation of a shell?
+# 02:19 < catern> i was hoping to write it in a bit of a pedagogical, educational way, but i guess i might have to just make it a big long argument and proof for why this technique is useful, and forget about 
+#                 noobs...
+# 02:20 < epitron> catern: it was way too wordy, imo... all i cared about was the code examples
+# 02:20 < epitron> and even then i was like, "what can i even use this for?"
+# 02:21 < Logos01> catern: You ever seen the debriefing email structure stuff?
+# 02:21 < epitron> it looked like it had some interesting bash tricks though
+# 02:22 < Logos01> You write <title> <takeaway> <synopsis> <body> <footnotes>
+# 02:22 < catern> thank you for sharing that, Logos01
+# 02:23 < Logos01> It gets really hard to write that way sometimes but it's huge.
+# 02:23 < catern> epitron: yes, well, okay
+# 02:23 < Logos01> blogpost writers tend to get stream-of-consciousness-ey which can result in what happened w/ epitron's interpretation, I suspect.
+# 02:23 < catern> it was literally my first draft anyway, without any proof-reading
+# 02:24 < catern> epitron: what exactly felt too wordy about it? did you not appreciate the coverage of shell basics?
+# 02:25 < epitron> catern: yeah. it didn't get to the point fast enough
+# 02:25 < epitron> it was quite a while before i saw parallel bash stuff
+
+
+Recently I was doing something that required parallelism, 
+and after some thought and the combination of several unrelated suggestions, 
+I eventually hit upon a clever way to get the task done with a short shell script, using a technique that I've never seen before.
+I used bash, and I'll describe bash in this article, but it should work with any Unix shell with the necessary features.
+
+The typical shell pipeline looks like this: 
+#+begin_src sh
+src | worker | sink
+#+end_src
+Here I show three commands, but there could be many more.
+To execute this pipeline, a shell forks three times to execute the three commands, creating three processes.
+The shell ensures that the output of =src= is sent to =worker=;
+=worker= reads that input, and generates output of its own;
+the output of =worker= is in turn sent to =sink=.
+The typical Unix command reads input line-by-line, processes each line, and outputs processed lines.
+
+The connection between the output of =src= and input of =worker=,
+and the connection between the output of =worker= and input of =worker=,
+is implemented with pipes.
+A pipe is something with two ends: a write end and a read end.
+The shell creates a pipe using pipe(3) for each vertical bar[fn:vertbar] in the pipeline.
+Then, after forking but before executing the command, the shell uses dup2(3) to change the stdin and/or stdout file descriptors of the process,
+depending on whether the command is on the right and/or left of a pipe.
+Then, when the process reads from its stdin or writes to its stdout,
+it is in fact reading or writing from the read or write end of a pipe,
+placed there by the shell,
+the other end of which is connected to the previous or next process in the pipeline.
+
+The pipes also handle shutting down the pipeline;
+when any command in the pipeline exits,
+it closes its stdin and stdout,
+meaning one half of each of the corresponding pipes is now closed.
+This causes the pipes corresponding to stdin and stdout to enter a special state; 
+now if the processes on the write or read ends of the pipes try to write or read, they will close too[fn:epipe].
+Thus a failure in the middle of the pipeline propagates automatically throughout the entire pipeline,
+but if the first process in the pipeline exit, perhaps because the first process has no more output left, that will only affect the next process when the next process tries to get more data from stdin.
+So if everything in the pipeline works properly, it will process all the data before exiting.
+Likewise, if the last process terminates, it will propagate backwards in the pipeline, stopping computation;
+the last process might have rules about how much input it wants to accept, so that is a desirable behavior.
+
+This is all straightforward, standard stuff, but I thought it was worth explaining.
+The parallelism we will achieve will involve *multiple* processes being executed at the same time,
+and having their stdin and stdout changed to point at the same file descriptors.
+That way, instead of each line of output going from =src= to the input of a single =worker=,
+each line can be handled by a different =worker=, all running in parallel.
+If you know a little about parallelism, you might wonder how this can possibly work;
+surely interleaving of input and output would screw up everything.
+There's a solution, but I want to give a bit more context about shell scripting first,
+now specifically about bash.
+
+OK, so we can execute processes and connect them together.
+But we can also insert snippets of shell script anywhere we want in the pipeline.
+Generally this is used to insert a loop,
+which constantly reads some input,
+does some specialized specific shell-scriptable thing with it,
+and writes some output.
+But here we won't be looking at anything so complicated;
+we'll just look first at two processes being executed in sequence.
+
+#+begin_src sh
+src | { prog1; prog2; } | sink
+#+end_src
+In this pipeline, first prog1 will be executed;
+it will read as much input from the input pipe as it wants,
+write as much out to the output pipe as it wants,
+and maybe at some point it will exit.
+If prog1 exits, it will not cause the pipeline as a whole to exit,
+because not all copies of the pipes that prog1 had as its stdin and stdout are closed:
+the shell kept copies of those ends of the pipe so it could later pass them to prog2.
+So now prog2 will run, 
+read from the input pipe where prog1 left off,
+write to the output pipe,
+and if prog2 exits it will close the whole pipeline.
+
+In fact, note that "prog1" and "prog2" don't actually have to be programs;
+they can be pipelines on their own.
+So we can have:
+#+begin_src sh
+src | { filter1 | prog1; prog2; } | sink
+#+end_src
+which will set up the filter1 | prog1 pipeline with pipes leading to =src= and =sink=,
+run it,
+and then if and when it exits, let prog2 run with pipes leading to =src= and =sink=.
+
+You can see an example of all this with this pipeline:
+#+begin_src sh
+yes | { tr y f | head -n 10; echo "switching"; cat; } | head -n 20
+#+end_src
+Try running this; hopefully the output makes sense.
+Note the following:
+- echo will just ignore its stdin, output a fixed string to stdout, and then exit
+- yes is like echo, in that it ignores its stdin and outputs a fixed string, but it doesn't exit - it just outputs the same string repeatedly forever
+- cat actually reads its stdin, and writes exactly what it sees to its stdout; like yes, it does this forever
+- "tr y f" is like cat, in that it reads its stdin, but it replaces all occurrences of the first character with the second character before writing things to stdout; again, it runs forever
+- "head -n" is like cat, in that it reads its stdin and writes exactly what it sees to its stdout; but it will actually exit after reading and copying the specified number of lines, it does not run forever
+
+So now we know how to insert multiple commands executing *in sequence* into the middle of a pipeline.
+But we want to move on to multiple commands executing *in parallel*,
+reading input at the same time,
+and writing output at the same time.
+Keep in mind that this doesn't mean these multiple commands will all get the same input.
+In fact it means exactly the opposite:
+It's a guarantee of Unix pipes that when one process reads data from a pipe,
+no other process can get that same data.
+They certainly could get *identical* data, but they won't get the same data.
+You can see this for yourself by replacing "yes" in the above example with "seq inf".
+And also keep in mind that which process gets which pieces of data is entirely random.
+The processes are "racing" to read each piece of data out, and only one of them can win,
+and the one that wins is just determined by which process is currently running on the CPU at any time,
+which is basically random, but fair - so the distribution of data will be random but fair as well.
+
+Well, running commands in parallel is not hard.
+Even basic users of the shell know how to execute two commands in parallel,
+when they're using their shell to run a graphical program:
+They use & at the end of a command.
+Then they can continue typing other commands in,
+and in the background, the program they started continues to run.
+When used "interactively" in this way, while typing single commands in at an interactive shell,
+the stdin of the started process is just connected to nothing, /dev/null.[fn:devnull].
+This is just a special-case behavior to avoid things being confusing, because, of course,
+the shell reads commands from stdin just as any other process does -
+it's just that the shell's stdin is connected to the terminal, 
+which is connected to you.
+So it would be quite confusing if the commands you typed in started going randomly to either the shell or a background process,
+as the two processes raced to get your input.
+
+But if we use =worker &= like this:
+#+begin_src sh
+src | { worker & worker & } | sink
+#+end_src
+The special case is now no longer applied, because the =worker= s would accept input from =src=, not from your terminal.
+We can run multiple processes in the background which are connected to the same input pipe and output pipe.
+Note here that "&" is used in the same way as ";" was in the sequential case: as a separator for independent commands.
+It's just that instead of ending our lines with ";", we end them with "&".
+
+You can try this out with the following pipeline.
+#+begin_src sh
+cat | { tr o z & tr o x & }
+#+end_src
+Type in a lot of "o", and press enter, and you will see them randomly translated to either "z" or "x".
+Note that cat here is taking input from you at your terminal;
+that's because it's running in the "foreground" rather than the background[fn:devnull], and for as long as it is running,
+it has control over your input to your terminal.
+Note also that if you try to run this without cat in front,
+you'll hit the special case, and the "tr" commands will not accept your input in parallel,
+as I mentioned in the previous paragraph.
+
+Did you try it and notice it doesn't actually randomly select "z" or "x"?
+Yes, unfortunately there's a bug in bash, 
+which causes the special-case to still apply to the first backgrounded process in that block.
+It will be fixed in the next release,
+but for now you'll need to do this instead to work around it:
+#+begin_src sh
+cat | { <&0 tr o z & tr o x & }
+#+end_src
+That =<&0= thing just explicitly says "change the stdin of this command to be the stdin of the entire block";
+the stdin of the entire block is the stdout of cat, so that's what you want.
+
+So! We can run multiple processes at once all getting input from the same pipes and sending output to the same pipes.
+That's parallelism!
+
+Not quite.
+We need to handle the fact that races might cause the parallel =worker= s input and output to be interleaved.
+
+Thankfully, Unix pipes (as standardized by POSIX) are capable of handling exactly this situation.
+When reading and writing data from a file in Unix, one specifies the size of the read or write,
+which describes how much data is to be read into the process or written out from the process.
+There is no guarantee that the full size of the read or write will be satisfied;
+the read/write system calls return how much was satisfied,
+and then usually process must check if it was only partially satisfied, and then retry.
+This is what might cause interleaving: 
+If a process reads only part of a line, then another process reads the rest of it before the first process can finish, that line will be split.
+
+However, for small enough reads or writes, with pipes, those operations are actually atomic!
+That is, as long as there's enough data or space available, they will never be partially completed.
+See [[http://www.gnu.org/software/libc/manual/html_node/Pipe-Atomicity.html][here]].
+If our read or write is less than =PIPE_BUF= size, it's atomic.
+
+Happily, =PIPE_BUF= is rather large; it's standardized by POSIX to be 512 bytes, and in practice on Linux it is 4096 bytes.
+This is larger than most data that we might need to pass around.
+Now, all we need to do is know the exact size of each line in advance so we can read it out.
+To make this easy, we'll just explicitly use fixed-size lines on each side of the pipe,
+with a =pad= command that will pad lines to a fixed size and write them atomically,
+and an =unpad= command that will read lines of a fixed size atomically and remove the padding.
+
+Our model is now like this:
+#+begin_src sh
+src | pad | { unpad | worker & unpad | worker } | sink
+#+end_src
+And in fact, that's all we have to do!
+There might still be an issue with the size of the output of the workers,
+but as long as they write out lines-at-a-time (which is typical),
+and those lines are less than =PIPE_BUF= long (which is likely),
+we're fine.
+(If that can't be guaranteed, 
+we can have the workers write some output to a file and just combine it later, 
+or just remove extraneous information with some commands at the end of each worker pipeline)
+
+I've written these pad and unpad programs (they're trivial to write in shell, but I've written them in C with error checking) and will put them here real soon...
+* Footnotes
+
+[fn:vertbar] 
+These vertical bar characters are sometimes called the "pipe" character, because of its standout role in the Unix shell.
+
+[fn:epipe] 
+A bit of a lie:
+- There might still be data in the pipe buffer that the kernel maintains, and only when that is exhausted will reads start to fail.
+- Reads or writes to closed pipes result in an EPIPE error code being returned, but more importantly result in - somewhat uniquely in Unix - a SIGPIPE signal being sent to the reading or writing process.
+  This will kill the process if it doesn't explicitly handle SIGPIPE; and most commands won't explicitly handle SIGPIPE, since that makes them work better in pipelines.
+
+[fn:devnull] 
+Commands that you run interactively and put in the background don't actually get connected to /dev/null.
+That's a "[[https://en.wikipedia.org/wiki/Lie-to-children][lie to children]]".
+In fact they actually really are connected to your terminal...
+but if they try to read while still in the background, the kernel's terminal driver sends them a SIGTTIN.
+This is necessary because it's useful to be able to background existing processes that are in the foreground,
+and foreground existing processes that are in the background,
+and be able to send input to processes even if they were previously backgrounded.
+(Since it's not possible to change the stdin of a process from the outside after it has been started.)
+Of course this is a gross hack, 
+because for proper support of pipelines it means the kernel not only needs to know which process is in the foreground,
+but keep track of groups of processes, called "jobs".
+This is why some people think job control is an over-complicated mess that should never have been introduced.
+
