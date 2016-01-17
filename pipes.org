@@ -23,22 +23,141 @@
 # 02:25 < epitron> catern: yeah. it didn't get to the point fast enough
 # 02:25 < epitron> it was quite a while before i saw parallel bash stuff
 
-
-Recently I was doing something that required parallelism, 
-and after some thought and the combination of several unrelated suggestions, 
-I eventually hit upon a clever way to get the task done with a short shell script, using a technique that I've never seen before.
-I used bash, and I'll describe bash in this article, but it should work with any Unix shell with the necessary features.
-
-The typical shell pipeline looks like this: 
+The typical shell[fn:shell] pipeline looks something like this: 
 #+begin_src sh
 src | worker | sink
 #+end_src
-Here I show three commands, but there could be many more.
-To execute this pipeline, a shell forks three times to execute the three commands, creating three processes.
-The shell ensures that the output of =src= is sent to =worker=;
-=worker= reads that input, and generates output of its own;
-the output of =worker= is in turn sent to =sink=.
-The typical Unix command reads input line-by-line, processes each line, and outputs processed lines.
+Usually src will output lines of data, 
+and worker acts as a filter, 
+processing each line and sending some transformed lines to sink.
+So there is a possibility of parallel processing on the basis of lines:
+We could have multiple workers which each process different lines of data and output transformed lines to sink.[fn:interleaving]
+
+Of course, there already exists =xargs= and GNU =parallel=,
+which have the ability to run multiple processes at once,
+what's the difference here?
+- When =xargs= and =parallel= run a process, they provide a line of input as an argument to that process.
+  But the typical data-processing command reads lines of input from stdin,
+  not from its arguments on the command line,
+  so many commands simply don't make sense to use with =xargs= and =parallel=.[fn:parallelpipe]
+- =xargs= and =parallel= start a new process for each line of input.
+  But that can be very inefficient and impractical for processes with a slow initialization;
+  for example, this is painful for processes that start up an encrypted network connection.
+- Because a new process is started for every line, workers can't keep state about the data they have seen.
+  For example, =uniq= cannot be done in parallel with =xargs= and =parallel=.
+  This ability to keep state as input is processed is useful for many, many data-processing tasks.
+
+Overall, =xargs= and =parallel= are mainly useful for executing many commands with many arguments, not processing a lot of data.
+A technique that allows a pool of workers execute in parallel to process incoming lines as they arrive on stdin
+would be strictly more general; 
+you could even nest =xargs= and =parallel= within such a technique, but you couldn't nest =xargs= and =parallel= within =xargs= or =parallel=.
+
+Writing a parallel pipeline in any shell looks like this:[fn:interleaving]
+#+begin_src sh
+src | { worker & worker & worker & } | sink
+#+end_src
+This will start up three workers in the background,
+which will all read data from src in parallel,
+and write output to sink.
+
+To deal with the issue of interleaving,
+we do need to make a small modification:
+#+begin_src sh
+src | pad | { unpad | worker & unpad | worker & unpad | worker & } | sink
+#+end_src
+=pad= will pad incoming lines of data to a fixed size,
+and =unpad= removes that padding.
+Communicating in fixed-size blocks causes =pad= and =unpad= to never interleave,
+due to [[http://www.gnu.org/software/libc/manual/html_node/Pipe-Atomicity.html][pipe atomicity]].
+This fixed size should be specified in advance on the command line,
+and should be at least as large as the largest possible line that =src= can emit.
+There is an upper limit on this fixed size;
+on Linux, it's 4096 bytes.
+But most people don't work with lines that are more than 4096 bytes long,
+and if you did work with such long lines then you could work around the limit in any number of ways.
+
+# do factoring example
+# then do network client example
+# do we need other examples?
+# maybe people don't use xargs' parallelism capabilities...
+# so I can trick them into thinking this is new...
+
+# what about product, median, mean, EMA
+# wordcount
+
+Let's look at some examples.
+First off, a simple example that doesn't require padding and unpadding.
+#+begin_src sh
+cat | { <&0 tr o z & tr o x & }
+#+end_src
+In bash, the =<&0= needs to be placed in front of the first background command.
+This is just to say "this command should read from stdin", which should happen anyway,
+but won't happen in bash due to a bug that will be fixed in the next release.
+Run this, type some "o", and press enter.
+You'll see it's random for each line whether your "o"s get translated to "z"s or "x"s.
+
+The lack of padding and unpadding means that interleaving could happen - but it probably won't.
+You can make interleaving more likely to happen at least once with something like:
+#+begin_src sh
+yes oooooooooooo | { <&0 tr o z & tr o x & tr o y & tr o m & } | head -n1000 | less
+#+end_src
+Feel free to insert still more "o" translators or increase the length of each line.
+
+Anyway, if we do:
+#+begin_src sh
+cat | pad | { <&0 unpad | tr o z & unpad | tr o x & }
+#+end_src
+We're guaranteed not to get interleaving.
+Now we can build up our pipelines however we want.
+
+Let's look at something that actually uses these capabilities maybe-productively.
+#+begin_src sh
+seqs=5000000000000000000
+seqe=18000000000000000000
+shufn=100000
+# generate lines containing numbers randomly selected from $seqs to $seqe, and pad them
+shuf -i $seqs-$seqe -n $shufn | pad | {
+    <&0 unpad | factor | pad &
+    unpad | factor | pad &
+    unpad | factor | pad &
+    unpad | factor | pad &
+} | unpad
+#+end_src
+
+Let's look at a more sophisticated example.
+I want to send a bunch of HTTPS requests to some server, perhaps for scraping or spidering.
+Python, the usual tool for something like this, is just too slow for my purposes;
+so I want to use something fast, like a shell script.[fn:fast]
+I can just do the following:
+#+begin_src sh
+# specify the server we're connecting to
+host="api.example.com"
+# We will produce our HTTP requests with printf; we will perform a
+# printf "$format" somenumber
+# for each input number, which outputs a complete HTTP request to send off
+format="GET /api/heartbeat/%d HTTP/1.1
+Host: $host
+
+"
+# generate an endless stream of increasing integers and pad them to a fixed size
+seq inf | pad | { 
+# unpad the input, pass each line to xargs for printf-formatting, and pass the resulting request to s_client
+<&0 unpad -t 2000 | xargs -n 1 printf "$format" | openssl s_client $host & 
+    unpad -t 2000 | xargs -n 1 printf "$format" | openssl s_client $host &
+    unpad -t 2000 | xargs -n 1 printf "$format" | openssl s_client $host &
+    unpad -t 2000 | xargs -n 1 printf "$format" | openssl s_client $host &
+}
+#+end_src
+=unpad= supports specifying with =-t usecs= a throttling sleep in microseconds to be performed between each line,
+which we use here to slow down our rate of requests.
+And that's all there is to it!
+=openssl s_client= establishes a TLS connection to the provided host,
+then sends stdin to the host and copies the host's replies to stdout.
+So this will endlessly send heartbeat GET requests to api.example.com, 
+in parallel over 4 TCP connections,
+and we'll get the results on stdout.
+
+
 
 The connection between the output of =src= and input of =worker=,
 and the connection between the output of =worker= and input of =worker=,
@@ -247,4 +366,24 @@ Of course this is a gross hack,
 because for proper support of pipelines it means the kernel not only needs to know which process is in the foreground,
 but keep track of groups of processes, called "jobs".
 This is why some people think job control is an over-complicated mess that should never have been introduced.
+
+[fn:parallelpipe] 
+GNU =parallel= does have the ability to pass input on stdin to commands,
+but it still starts a new process for each unit of input.
+
+[fn:interleaving] 
+If you're worried about interleaving, just read on.
+
+[fn:shell]
+Everything in this article applies to every normal, Bourne-shell-inspired shell, like bash or zsh.
+
+[fn:linux] 
+That's the limit for Linux; POSIX defines a minimum of 512 bytes, but that's still pretty long.
+
+[fn:fast] 
+This is sarcasm, and also mockery of Python.
+Shell scripts are notoriously slow...
+yet this shell script is way, way faster than the idiomatic Python solution here.
+Of course, all of the work here is being done by programs written in C,
+so it's cheating a bit, but that's what the shell is all about.
 
