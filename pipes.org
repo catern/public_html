@@ -1,13 +1,15 @@
 #+title: Simple, Fast, Easy Parallelism in Shell Pipelines
+#+options: toc:0 num:nil
+#+HTML_HEAD: <style type="text/css">body{ max-width:60em; margin-left:auto; margin-right:auto; }</style>
 
 # TODO people think it might be slow - show it's faster than python
 # TODO people think they already know how to do parallel job processing with xargs or parallel
-# 01:52 < catern> it's line-based as is normal for pipelines, it's faster than xargs or parallel because it doesn't start new processses each time, it can maintain state between lines (including persistent 
+# 01:52 < catern> it's line-based as is normal for pipelines, it's faster than xargs or parallel because it doesn't start new processes each time, it can maintain state between lines (including persistent
 #                 network connections)
 # It's basically strictly more general.
 # include network connection example
 # 02:18 < catern> epitron: so did you find the article to move too slowly? or too quickly? or just right? did you learn a bit about the operation of a shell?
-# 02:19 < catern> i was hoping to write it in a bit of a pedagogical, educational way, but i guess i might have to just make it a big long argument and proof for why this technique is useful, and forget about 
+# 02:19 < catern> i was hoping to write it in a bit of a pedagogical, educational way, but i guess i might have to just make it a big long argument and proof for why this technique is useful, and forget about
 #                 noobs...
 # 02:20 < epitron> catern: it was way too wordy, imo... all i cared about was the code examples
 # 02:20 < epitron> and even then i was like, "what can i even use this for?"
@@ -23,34 +25,37 @@
 # 02:25 < epitron> catern: yeah. it didn't get to the point fast enough
 # 02:25 < epitron> it was quite a while before i saw parallel bash stuff
 
-The typical shell[fn:shell] pipeline looks something like this: 
+The typical shell[fn:shell] pipeline looks something like this:
 #+begin_src sh
 src | worker | sink
 #+end_src
-Usually src will output lines of data, 
-and worker acts as a filter, 
-processing each line and sending some transformed lines to sink.
+Usually =src= will output lines of data,
+and =worker= acts as a filter,
+processing each line and sending some transformed lines to =sink=.
 So there is a possibility of parallel processing on the basis of lines:
-We could have multiple workers which each process different lines of data and output transformed lines to sink.[fn:interleaving]
+We could have multiple =worker= tasks[fn:task] which each process different lines of data from =src= and output transformed lines to =sink=.[fn:interleaving]
 
 Of course, there already exists =xargs= and GNU =parallel=,
-which have the ability to run multiple processes at once,
-what's the difference here?
-- When =xargs= and =parallel= run a process, they provide a line of input as an argument to that process.
-  But the typical data-processing command reads lines of input from stdin,
+which have the ability to run multiple tasks at once.
+What's the difference?
+- When =xargs= and =parallel= run a command, they provide a line of input as an argument to that command.
+  But the typical data-processing Unix command reads lines of input from stdin,
   not from its arguments on the command line,
   so many commands simply don't make sense to use with =xargs= and =parallel=.[fn:parallelpipe]
-- =xargs= and =parallel= start a new process for each line of input.
-  But that can be very inefficient and impractical for processes with a slow initialization;
-  for example, this is painful for processes that start up an encrypted network connection.
-- Because a new process is started for every line, workers can't keep state about the data they have seen.
+- =xargs= and =parallel= start a new task[fn:task] for each line of input.
+  That is impractical for programs with a slow initialization.
+  For example, this is painful for programs that open a network connection.
+- Because a new task is started for every line, workers can't keep state about the data they have seen.
   For example, =uniq= cannot be done in parallel with =xargs= and =parallel=.
   This ability to keep state as input is processed is useful for many, many data-processing tasks.
 
-Overall, =xargs= and =parallel= are mainly useful for executing many commands with many arguments, not processing a lot of data.
-A technique that allows a pool of workers execute in parallel to process incoming lines as they arrive on stdin
-would be strictly more general; 
-you could even nest =xargs= and =parallel= within such a technique, but you couldn't nest =xargs= and =parallel= within =xargs= or =parallel=.
+Overall, =xargs= and =parallel= are mainly useful for executing a command repeatedly with a varying set of arguments, not processing a lot of data.
+A technique that allows
+a pool of worker tasks[fn:task], executing in parallel,
+to process incoming lines as they arrive on stdin,
+would be strictly more general.
+You could even run =xargs= and =parallel= within such a technique, or nest such a technique within itself;
+you can't run =xargs= and =parallel= from =xargs= or =parallel=.
 
 Writing a parallel pipeline in any shell looks like this:[fn:interleaving]
 #+begin_src sh
@@ -59,73 +64,118 @@ src | { worker & worker & worker & } | sink
 This will start up three workers in the background,
 which will all read data from src in parallel,
 and write output to sink.
+The output of =src= is not copied to all the workers; each byte of output becomes input to exactly one worker.[fn:tee]
 
-To deal with the issue of interleaving,
-we do need to make a small modification:
+Since all the worker tasks are reading input at the same time,
+we might run into a common concurrency issue:
+one worker task might get the first part of a line, while the rest of the line goes to another worker task.
+This is called "interleaving", and if we allowed it to happen it would cause the input to the workers to be completely corrupt.
+
+# tr unpadded example
+Here's an example of using this parallel processing technique without protecting against interleaving.
+Note that in bash, we need to place =<&0= in front of the first background command.
+This just means "this command should read input from file descriptor 0; that is, stdin",
+which happens by default in most shells,
+but won't happen in bash due to a [[https://groups.google.com/forum/#!topic/gnu.bash.bug/bgTSFM8UAek][bug]] that will be fixed in the next release.
+#+begin_src sh :exports both
+yes ooo | head -n 8 | pv --quiet --rate-limit 4 | { <&0 tr o z & tr o x & }
+#+end_src
+
+#+RESULTS:
+|x|
+|x|
+|zzzzzz|
+|zzz|
+|zzz|
+|zzz|
+|x|
+|zzz|
+|xxx|
+
+Pretty severe interleaving! We used [[http://www.ivarch.com/programs/pv.shtml][pv]] to throttle the input going to the workers to increase the amount of interleaving that would happen.
+
+To deal with the issue of interleaving, we need to introduce two new commands.
+=pad= will pad incoming lines of data to a fixed size,
+and =unpad= removes that padding.
+Then we make the following small modification:
 #+begin_src sh
 src | pad | { unpad | worker & unpad | worker & unpad | worker & } | sink
 #+end_src
-=pad= will pad incoming lines of data to a fixed size,
-and =unpad= removes that padding.
-Communicating in fixed-size blocks causes =pad= and =unpad= to never interleave,
+Communicating with fixed-size blocks means that =pad= and =unpad= will never interleave,
 due to [[http://www.gnu.org/software/libc/manual/html_node/Pipe-Atomicity.html][pipe atomicity]].
-This fixed size should be specified in advance on the command line,
+This fixed size must be determined in advance,
 and should be at least as large as the largest possible line that =src= can emit.
-There is an upper limit on this fixed size;
-on Linux, it's 4096 bytes.
-But most people don't work with lines that are more than 4096 bytes long,
-and if you did work with such long lines then you could work around the limit in any number of ways.
+There is an upper limit[fn:pipebuf] on this fixed size;
+on Linux, it's 4096 bytes;
+and if a line is longer than that, it will be truncated to 4096 bytes.
+But most people don't work with lines that are anywhere close to 4096 bytes long,
+and if you did work with such long lines then you could work around the limit in any number of ways.[fn:workaround]
 
-# do factoring example
-# then do network client example
-# do we need other examples?
-# maybe people don't use xargs' parallelism capabilities...
-# so I can trick them into thinking this is new...
-
-# what about product, median, mean, EMA
-# wordcount
-
-Let's look at some examples.
-First off, a simple example that doesn't require padding and unpadding.
+=pad= and =unpad= can be defined as follows:[fn:trailing][fn:pipebuf]
 #+begin_src sh
-cat | { <&0 tr o z & tr o x & }
+# pad to the maximize size we can do and still be atomic
+pipe_buf=$(getconf PIPE_BUF /)
+function pad() {
+    # redirect stderr (file descriptor 2) to /dev/null to get rid of noise
+    dd conv=block cbs=$pipe_buf obs=$pipe_buf 2>/dev/null
+}
+function unpad() {
+    dd conv=unblock cbs=$pipe_buf ibs=$pipe_buf 2>/dev/null
+}
 #+end_src
-In bash, the =<&0= needs to be placed in front of the first background command.
-This is just to say "this command should read from stdin", which should happen anyway,
-but won't happen in bash due to a bug that will be fixed in the next release.
-Run this, type some "o", and press enter.
-You'll see it's random for each line whether your "o"s get translated to "z"s or "x"s.
+For convenience, you could insert this snippet into your =.bashrc=.
 
-The lack of padding and unpadding means that interleaving could happen - but it probably won't.
-You can make interleaving more likely to happen at least once with something like:
-#+begin_src sh
-yes oooooooooooo | { <&0 tr o z & tr o x & tr o y & tr o m & } | head -n1000 | less
+Let's look at a fixed version:
+#+begin_src sh :exports both
+yes ooo | head -n 8 | pv --quiet --rate-limit 4 | pad | { <&0 unpad | tr o z & unpad | tr o x & }
 #+end_src
-Feel free to insert still more "o" translators or increase the length of each line.
 
-Anyway, if we do:
-#+begin_src sh
-cat | pad | { <&0 unpad | tr o z & unpad | tr o x & }
-#+end_src
-We're guaranteed not to get interleaving.
-Now we can build up our pipelines however we want.
+#+RESULTS:
+| zzz |
+| zzz |
+| zzz |
+| xxx |
+| xxx |
+| xxx |
+| xxx |
+| xxx |
 
-Let's look at something that actually uses these capabilities maybe-productively.
+Great.
+
+# factoring example
+Now let's use these capabilities productively. To factor numbers!
 #+begin_src sh
+# define some giant constants
 seqs=5000000000000000000
 seqe=18000000000000000000
 shufn=100000
-# generate lines containing numbers randomly selected from $seqs to $seqe, and pad them
-shuf -i $seqs-$seqe -n $shufn | pad | {
+# generate lines containing $shufn numbers randomly selected from $seqs to $seqe
+shuf --input-range $seqs-$seqe -n $shufn | pad | {
+    # pad and unpad them, and factor each number
     <&0 unpad | factor | pad &
     unpad | factor | pad &
     unpad | factor | pad &
     unpad | factor | pad &
 } | unpad
 #+end_src
+Since =factor= is CPU-bound,
+we want to run it on multiple CPU cores at once.
+Since these worker tasks will be able to run simultaneously on different cores, this will be substantially faster than the single-worker case.[fn:cores]
+We =pad= and =unpad= the output as well to avoid it being interleaved,
+since factor could perform partial writes or writes over the maximum atomic size.[fn:padoutput]
 
-Let's look at a more sophisticated example.
-I want to send a bunch of HTTPS requests to some server, perhaps for scraping or spidering.
+Try comparing different numbers of workers to the single-worker case:
+#+begin_src sh
+# define some giant constants
+seqs=5000000000000000000
+seqe=18000000000000000000
+shufn=100000
+shuf --input-range $seqs-$seqe -n $shufn | factor
+#+end_src
+
+# network client example
+Now let's look at a more sophisticated example.
+I want to send a bunch of HTTPS requests to some server, perhaps for scraping or testing.
 Python, the usual tool for something like this, is just too slow for my purposes;
 so I want to use something fast, like a shell script.[fn:fast]
 I can just do the following:
@@ -139,251 +189,154 @@ format="GET /api/heartbeat/%d HTTP/1.1
 Host: $host
 
 "
-# generate an endless stream of increasing integers and pad them to a fixed size
-seq inf | pad | { 
-# unpad the input, pass each line to xargs for printf-formatting, and pass the resulting request to s_client
-<&0 unpad -t 2000 | xargs -n 1 printf "$format" | openssl s_client $host & 
-    unpad -t 2000 | xargs -n 1 printf "$format" | openssl s_client $host &
-    unpad -t 2000 | xargs -n 1 printf "$format" | openssl s_client $host &
-    unpad -t 2000 | xargs -n 1 printf "$format" | openssl s_client $host &
+function worker() {
+    # unpad the input, pass each line to xargs for printf-formatting, and pass the resulting request to s_client
+    # use pv to throttle our requests to 8 per second per worker.
+    unpad | pv --quiet --line-mode --rate-limit 8 | xargs -n 1 printf "$format" | openssl s_client $host | pad
 }
+# generate an endless stream of increasing integers and pad them to a fixed size
+seq inf | pad | {
+<&0 worker &
+    worker &
+    worker &
+    worker &
+} | unpad
 #+end_src
-=unpad= supports specifying with =-t usecs= a throttling sleep in microseconds to be performed between each line,
-which we use here to slow down our rate of requests.
 And that's all there is to it!
 =openssl s_client= establishes a TLS connection to the provided host,
 then sends stdin to the host and copies the host's replies to stdout.
-So this will endlessly send heartbeat GET requests to api.example.com, 
+So this will endlessly send heartbeat GET requests to api.example.com,
 in parallel over 4 TCP connections,
 and we'll get the results on stdout.
 
+One small caveat, which is unimportant for most usage.
+Note that a pipe doesn't *directly* connect one process to another.
+The kernel maintains a buffer for the pipe, called the pipe buffer.
+Writes go into the pipe buffer and reads come out of the pipe buffer.
+And since each process reads and writes data as quickly as possible,
+and =unpad= can read and write very quickly indeed,
+=unpad= might outpace the later parts of the worker pipeline.
+In that case, some lines of input would sit idle in the pipe buffer between =unpad= and the rest of the pipeline.
 
+This won't normally be a problem,
+but if you've exhausted all the input,
+then you might have one or several workers with full pipe buffers,
+while other workers don't have any more input to process.
+Thus at the end of the input, there might be less parallel processing going on than is possible.
+Again, only a small issue, but I thought it was best to mention it.
+A quick hack around this is to throttle (with =pv=) right after =unpad= in the worker pipeline,
+which limits the amount of pipe buffers that could be filled to just one;
+alternatively, throttle before =pad= when generating the input.
+Ideally, =dd= would have a throttling option built-in, which would allow wholly eliminating the problem... I'm working on a patch.
 
-The connection between the output of =src= and input of =worker=,
-and the connection between the output of =worker= and input of =worker=,
-is implemented with pipes.
-A pipe is something with two ends: a write end and a read end.
-The shell creates a pipe using pipe(3) for each vertical bar[fn:vertbar] in the pipeline.
-Then, after forking but before executing the command, the shell uses dup2(3) to change the stdin and/or stdout file descriptors of the process,
-depending on whether the command is on the right and/or left of a pipe.
-Then, when the process reads from its stdin or writes to its stdout,
-it is in fact reading or writing from the read or write end of a pipe,
-placed there by the shell,
-the other end of which is connected to the previous or next process in the pipeline.
+# do we need other examples?
+# maybe people don't use xargs' parallelism capabilities...
+# so I can trick them into thinking this is new...
 
-The pipes also handle shutting down the pipeline;
-when any command in the pipeline exits,
-it closes its stdin and stdout,
-meaning one half of each of the corresponding pipes is now closed.
-This causes the pipes corresponding to stdin and stdout to enter a special state; 
-now if the processes on the write or read ends of the pipes try to write or read, they will close too[fn:epipe].
-Thus a failure in the middle of the pipeline propagates automatically throughout the entire pipeline,
-but if the first process in the pipeline exit, perhaps because the first process has no more output left, that will only affect the next process when the next process tries to get more data from stdin.
-So if everything in the pipeline works properly, it will process all the data before exiting.
-Likewise, if the last process terminates, it will propagate backwards in the pipeline, stopping computation;
-the last process might have rules about how much input it wants to accept, so that is a desirable behavior.
+# what about product, median, mean, EMA
+# wordcount
 
-This is all straightforward, standard stuff, but I thought it was worth explaining.
-The parallelism we will achieve will involve *multiple* processes being executed at the same time,
-and having their stdin and stdout changed to point at the same file descriptors.
-That way, instead of each line of output going from =src= to the input of a single =worker=,
-each line can be handled by a different =worker=, all running in parallel.
-If you know a little about parallelism, you might wonder how this can possibly work;
-surely interleaving of input and output would screw up everything.
-There's a solution, but I want to give a bit more context about shell scripting first,
-now specifically about bash.
-
-OK, so we can execute processes and connect them together.
-But we can also insert snippets of shell script anywhere we want in the pipeline.
-Generally this is used to insert a loop,
-which constantly reads some input,
-does some specialized specific shell-scriptable thing with it,
-and writes some output.
-But here we won't be looking at anything so complicated;
-we'll just look first at two processes being executed in sequence.
-
-#+begin_src sh
-src | { prog1; prog2; } | sink
-#+end_src
-In this pipeline, first prog1 will be executed;
-it will read as much input from the input pipe as it wants,
-write as much out to the output pipe as it wants,
-and maybe at some point it will exit.
-If prog1 exits, it will not cause the pipeline as a whole to exit,
-because not all copies of the pipes that prog1 had as its stdin and stdout are closed:
-the shell kept copies of those ends of the pipe so it could later pass them to prog2.
-So now prog2 will run, 
-read from the input pipe where prog1 left off,
-write to the output pipe,
-and if prog2 exits it will close the whole pipeline.
-
-In fact, note that "prog1" and "prog2" don't actually have to be programs;
-they can be pipelines on their own.
-So we can have:
-#+begin_src sh
-src | { filter1 | prog1; prog2; } | sink
-#+end_src
-which will set up the filter1 | prog1 pipeline with pipes leading to =src= and =sink=,
-run it,
-and then if and when it exits, let prog2 run with pipes leading to =src= and =sink=.
-
-You can see an example of all this with this pipeline:
-#+begin_src sh
-yes | { tr y f | head -n 10; echo "switching"; cat; } | head -n 20
-#+end_src
-Try running this; hopefully the output makes sense.
-Note the following:
-- echo will just ignore its stdin, output a fixed string to stdout, and then exit
-- yes is like echo, in that it ignores its stdin and outputs a fixed string, but it doesn't exit - it just outputs the same string repeatedly forever
-- cat actually reads its stdin, and writes exactly what it sees to its stdout; like yes, it does this forever
-- "tr y f" is like cat, in that it reads its stdin, but it replaces all occurrences of the first character with the second character before writing things to stdout; again, it runs forever
-- "head -n" is like cat, in that it reads its stdin and writes exactly what it sees to its stdout; but it will actually exit after reading and copying the specified number of lines, it does not run forever
-
-So now we know how to insert multiple commands executing *in sequence* into the middle of a pipeline.
-But we want to move on to multiple commands executing *in parallel*,
-reading input at the same time,
-and writing output at the same time.
-Keep in mind that this doesn't mean these multiple commands will all get the same input.
-In fact it means exactly the opposite:
-It's a guarantee of Unix pipes that when one process reads data from a pipe,
-no other process can get that same data.
-They certainly could get *identical* data, but they won't get the same data.
-You can see this for yourself by replacing "yes" in the above example with "seq inf".
-And also keep in mind that which process gets which pieces of data is entirely random.
-The processes are "racing" to read each piece of data out, and only one of them can win,
-and the one that wins is just determined by which process is currently running on the CPU at any time,
-which is basically random, but fair - so the distribution of data will be random but fair as well.
-
-Well, running commands in parallel is not hard.
-Even basic users of the shell know how to execute two commands in parallel,
-when they're using their shell to run a graphical program:
-They use & at the end of a command.
-Then they can continue typing other commands in,
-and in the background, the program they started continues to run.
-When used "interactively" in this way, while typing single commands in at an interactive shell,
-the stdin of the started process is just connected to nothing, /dev/null.[fn:devnull].
-This is just a special-case behavior to avoid things being confusing, because, of course,
-the shell reads commands from stdin just as any other process does -
-it's just that the shell's stdin is connected to the terminal, 
-which is connected to you.
-So it would be quite confusing if the commands you typed in started going randomly to either the shell or a background process,
-as the two processes raced to get your input.
-
-But if we use =worker &= like this:
-#+begin_src sh
-src | { worker & worker & } | sink
-#+end_src
-The special case is now no longer applied, because the =worker= s would accept input from =src=, not from your terminal.
-We can run multiple processes in the background which are connected to the same input pipe and output pipe.
-Note here that "&" is used in the same way as ";" was in the sequential case: as a separator for independent commands.
-It's just that instead of ending our lines with ";", we end them with "&".
-
-You can try this out with the following pipeline.
-#+begin_src sh
-cat | { tr o z & tr o x & }
-#+end_src
-Type in a lot of "o", and press enter, and you will see them randomly translated to either "z" or "x".
-Note that cat here is taking input from you at your terminal;
-that's because it's running in the "foreground" rather than the background[fn:devnull], and for as long as it is running,
-it has control over your input to your terminal.
-Note also that if you try to run this without cat in front,
-you'll hit the special case, and the "tr" commands will not accept your input in parallel,
-as I mentioned in the previous paragraph.
-
-Did you try it and notice it doesn't actually randomly select "z" or "x"?
-Yes, unfortunately there's a bug in bash, 
-which causes the special-case to still apply to the first backgrounded process in that block.
-It will be fixed in the next release,
-but for now you'll need to do this instead to work around it:
-#+begin_src sh
-cat | { <&0 tr o z & tr o x & }
-#+end_src
-That =<&0= thing just explicitly says "change the stdin of this command to be the stdin of the entire block";
-the stdin of the entire block is the stdout of cat, so that's what you want.
-
-So! We can run multiple processes at once all getting input from the same pipes and sending output to the same pipes.
-That's parallelism!
-
-Not quite.
-We need to handle the fact that races might cause the parallel =worker= s input and output to be interleaved.
-
-Thankfully, Unix pipes (as standardized by POSIX) are capable of handling exactly this situation.
-When reading and writing data from a file in Unix, one specifies the size of the read or write,
-which describes how much data is to be read into the process or written out from the process.
-There is no guarantee that the full size of the read or write will be satisfied;
-the read/write system calls return how much was satisfied,
-and then usually process must check if it was only partially satisfied, and then retry.
-This is what might cause interleaving: 
-If a process reads only part of a line, then another process reads the rest of it before the first process can finish, that line will be split.
-
-However, for small enough reads or writes, with pipes, those operations are actually atomic!
-That is, as long as there's enough data or space available, they will never be partially completed.
-See [[http://www.gnu.org/software/libc/manual/html_node/Pipe-Atomicity.html][here]].
-If our read or write is less than =PIPE_BUF= size, it's atomic.
-
-Happily, =PIPE_BUF= is rather large; it's standardized by POSIX to be 512 bytes, and in practice on Linux it is 4096 bytes.
-This is larger than most data that we might need to pass around.
-Now, all we need to do is know the exact size of each line in advance so we can read it out.
-To make this easy, we'll just explicitly use fixed-size lines on each side of the pipe,
-with a =pad= command that will pad lines to a fixed size and write them atomically,
-and an =unpad= command that will read lines of a fixed size atomically and remove the padding.
-
-Our model is now like this:
-#+begin_src sh
-src | pad | { unpad | worker & unpad | worker } | sink
-#+end_src
-And in fact, that's all we have to do!
-There might still be an issue with the size of the output of the workers,
-but as long as they write out lines-at-a-time (which is typical),
-and those lines are less than =PIPE_BUF= long (which is likely),
-we're fine.
-(If that can't be guaranteed, 
-we can have the workers write some output to a file and just combine it later, 
-or just remove extraneous information with some commands at the end of each worker pipeline)
-
-I've written these pad and unpad programs (they're trivial to write in shell, but I've written them in C with error checking) and will put them here real soon...
 * Footnotes
 
-[fn:vertbar] 
+[fn:vertbar]
 These vertical bar characters are sometimes called the "pipe" character, because of its standout role in the Unix shell.
 
-[fn:epipe] 
+[fn:epipe]
 A bit of a lie:
 - There might still be data in the pipe buffer that the kernel maintains, and only when that is exhausted will reads start to fail.
-- Reads or writes to closed pipes result in an EPIPE error code being returned, but more importantly result in - somewhat uniquely in Unix - a SIGPIPE signal being sent to the reading or writing process.
-  This will kill the process if it doesn't explicitly handle SIGPIPE; and most commands won't explicitly handle SIGPIPE, since that makes them work better in pipelines.
+- Reads or writes to closed pipes result in an EPIPE error code being returned, but more importantly result in - somewhat uniquely in Unix - a SIGPIPE signal being sent to the reading or writing task.
+  This will kill the task if it doesn't explicitly handle SIGPIPE; and most commands won't explicitly handle SIGPIPE, since that makes them work better in pipelines.
 
-[fn:devnull] 
+[fn:devnull]
 Commands that you run interactively and put in the background don't actually get connected to /dev/null.
 That's a "[[https://en.wikipedia.org/wiki/Lie-to-children][lie to children]]".
 In fact they actually really are connected to your terminal...
 but if they try to read while still in the background, the kernel's terminal driver sends them a SIGTTIN.
-This is necessary because it's useful to be able to background existing processes that are in the foreground,
-and foreground existing processes that are in the background,
-and be able to send input to processes even if they were previously backgrounded.
-(Since it's not possible to change the stdin of a process from the outside after it has been started.)
-Of course this is a gross hack, 
-because for proper support of pipelines it means the kernel not only needs to know which process is in the foreground,
-but keep track of groups of processes, called "jobs".
+This is necessary because it's useful to be able to background existing tasks that are in the foreground,
+and foreground existing tasks that are in the background,
+and be able to send input to tasks even if they were previously backgrounded.
+(Since it's not possible to change the stdin of a task from the outside after it has been started.)
+Of course this is a gross hack,
+because for proper support of pipelines it means the kernel not only needs to know which task is in the foreground,
+but keep track of groups of tasks, called "jobs".
 This is why some people think job control is an over-complicated mess that should never have been introduced.
 
-[fn:parallelpipe] 
+[fn:parallelpipe]
 GNU =parallel= does have the ability to pass input on stdin to commands,
-but it still starts a new process for each unit of input.
+but it still starts a new task for each unit of input.
 
-[fn:interleaving] 
+[fn:interleaving]
 If you're worried about interleaving, just read on.
 
 [fn:shell]
 Everything in this article applies to every normal, Bourne-shell-inspired shell, like bash or zsh.
 
-[fn:linux] 
+[fn:linux]
 That's the limit for Linux; POSIX defines a minimum of 512 bytes, but that's still pretty long.
 
-[fn:fast] 
+[fn:fast]
 This is sarcasm, and also mockery of Python.
 Shell scripts are notoriously slow...
 yet this shell script is way, way faster than the idiomatic Python solution here.
 Of course, all of the work here is being done by programs written in C,
 so it's cheating a bit, but that's what the shell is all about.
 
+[fn:task]
+For the sake of clarity, in this article, I'm using the word "task" instead of "process" to refer to an operating-system process.
+
+[fn:workaround]
+For example, you could put the data in a temporary file and pass file paths on each line.
+Heck, you could even pass the path of a *named pipe* on each line, and communicate the data that way;
+that would be a wild hack.
+
+[fn:tee]
+If you want all output from =src= to be copied to all the workers,
+perhaps because you want to run several different commands on the input,
+you can use =tee= and "process substitution".
+#+BEGIN_SRC sh
+src | tee >(worker1) >(worker2) >(worker3) >/dev/null | sink
+#+END_SRC
+The output of each worker will go to =sink=.
+We send the output of =tee= to =/dev/null=,
+since tee will just ouptut the unprocessed data from =src=.
+
+You probably want to send the output of each worker to a different place,
+rather than all to the same sink.
+(If you do want to send them all to the same sink,
+you need to pad the output of the worker and unpad before the sink,
+as described in this article.)
+That kind of advanced redirection of process output is better described elsewhere,
+such as the Bash manual (available on your system through =info bash=) or
+the [[http://wiki.bash-hackers.org/syntax/redirection][Bash hackers wiki]].
+You may also want to look at [[http://unix.stackexchange.com/questions/136510/process-substitution-with-tee-and-paste][this StackOverflow question]] as an alternative way to combine the output of these parallel workers.
+
+[fn:padoutput]
+Using =pad= and =unpad= on the *output* of parallel workers is not strictly necessary,
+but it's always safe.
+We can control it with other techniques too,
+such as =stdbuf -oL=,
+to force output to be written in units of whole lines,
+which will be atomic as long as those lines are short enough,
+and won't cause any painful interleaving.
+
+[fn:cores]
+If you have multiple cores, anyway. But who doesn't, these days?
+
+[fn:trailing]
+Note that this implementation of =pad= and =unpad= will strip trailing spaces from lines.
+So if for some reason your input depends on the number of spaces at the end of each line,
+then you'll need different =pad= and =unpad= functions.
+
+[fn:pipebuf]
+From [[http://www.gnu.org/software/libc/manual/html_node/Pipe-Atomicity.html#Pipe-Atomicity][the glibc manual]]:
+#+BEGIN_QUOTE
+Reading or writing pipe data is atomic if the size of data written is not greater than =PIPE_BUF=.
+#+END_QUOTE
+So our upper limit for line length is =PIPE_BUF=.
+Keep in mind that =PIPE_BUF= is *completely different* from the size of kernel pipe buffer;
+the kernel pipe buffer is (presumably) much larger than =PIPE_BUF=.
+
+We can get a kernel-minimum value of =PIPE_BUF= with =getconf PIPE_BUF /=.
+We need to pass a path to =getconf= because this value can vary on a per-pipe basis,
+and =getconf= (or more specifically the underlying [[http://www.unix.com/man-page/posix/3p/fpathconf/][fpathconf(3p)]] system call)
+gives you the ability to specify the pipe that you are checking =PIPE_BUF= for.
