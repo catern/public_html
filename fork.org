@@ -1,4 +1,4 @@
-#+TITLE: The Linux process API is bad
+#+TITLE: The Linux process API is bad (DRAFT)
 #+options: num:nil
 #+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
 
@@ -194,7 +194,7 @@ until finally it is no longer able to fork any more, and we can kill the last co
 Preventing the reuse of process space while under possible attack
 can be done using a technique that I'll discuss at the end of this article.
 It's a key part of a robust solution to the process leaking problem.
-* It uses global, reusable process IDs
+* Processes have global, reusable IDs
 
 A process is identified using its 'pid'.
 A pid is an integer, frequently in the range 1 to 65536,
@@ -263,7 +263,7 @@ and then later decide that process B should live past process A's exit.
 Still, if we could find a way to rearrange the parent-child hierarchy,
 this technique would work very well.
 We will use this technique in combination with others as part of a full solution at the end of this article.
-* It uses signals to communicate process events
+* Process exit is communicated through signals
 Process exit is communicated to the parent of a process by SIGCHLD.
 If process A starts process B, and then process B exits,
 process A will be sent the SIGCHLD signal.
@@ -346,7 +346,7 @@ This is a major inconvenience for both the library developer and the user.
    It does this using the technique mentioned in the "Limit the number of processes that can exist on the system" section.
    If we don't free up pid space as a malicious process forks and exits,
    eventually the pid space will be exhausted and the malicious process can be cornered and killed.
-** Problem: It uses global, reusable process IDs
+** Problem: Processes have global, reusable IDs
    Solution: supervise gives you a file descriptor interface to signaling a process.
 
    To signal the process, you just write to the file descriptor.
@@ -361,7 +361,7 @@ This is a major inconvenience for both the library developer and the user.
 
    And just like all file descriptors, the supervise file descriptors can be inherited by children or passed over Unix sockets.
    This allows a supervision hierarchy to be rearranged at runtime.
-** Problem: It uses signals to communicate process events
+** Problem: Process exit is communicated through signals
    Solution: supervise gives you a file descriptor interface to monitor a process for exit.
 
    In addition to the file descriptor that supervise reads instructions from,
