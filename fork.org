@@ -18,6 +18,8 @@ So what is so bad about the Linux process API?
 - It uses signals to communicate process events, making libraries (which can't safely handle signals) unable to spawn processes, as well as inheriting all the other problems of Unix signals.
 
 I'll go into each of these in more depth.
+I'll explain the problem, as well as some solution that won't work out.
+At the end of the article, I'll go over my own solution and how it solves each problem.
 
 * It's easy for processes to leak
 
@@ -158,7 +160,8 @@ by having a privileged daemon create child processes inside a container on our b
 But having someone else fork on our behalf breaks a lot of traditional Unix features.
 For example, we can't easily have our child process inherit stdin/stdout/stderr from us,
 nor will it inherit environment variables or any ulimits we've placed on ourself.
-So that is not ultimately workable either.
+So as a general-purpose mechanism, this is not workable (the shell, for example, is completely dependent on those features),
+but it can work in certain constrained scenarios.
 *** Limit the number of processes that can exist on the system
 What if we limit the number of processes that can exist on the system,
 then we kill them all one by one?
@@ -233,15 +236,18 @@ The supervisor daemon cannot, for example, restart itself to upgrade,
 as all of its child processes will stop being its children.
 Nor can process A initially start up process B as process A's child,
 and then later decide that process B should live past process A's exit.
-*** TODO Don't reuse pids, use a UUID instead
+*** Don't reuse pids, use a UUID instead
 We could identify processes with some kind of truly globally unique identifier.
 Then we wouldn't have race conditions when we try to kill them,
 even if they were not our own children.
 
-This would work perfectly,
-but it would be very unusual for a Unix-like system.
-It would also be a fair bit slower,
-though I think correctness is much more important than performance.
+This would work,
+but it would be difficult to retrofit onto an existing Unix system:
+Many systems assume that pids are the same size as ints.
+
+We would also pay an efficiency cost.
+It's rather odd for an operating system to provide references to its internal structures with UUIDs,
+when it can use smaller identifiers and provide security through other means.
 * It uses signals to communicate process events
 Process exit is communicated to the parent of a process by SIGCHLD.
 If process A starts process B, and then process B exits,
@@ -270,28 +276,47 @@ and most library writers don't want to force their users to deal with their besp
 most libraries either decide to give up the ability to use child processes,
 or require that all child processes be spawned through the library.
 Of course, a process can only use one library that requires all child processes be spawned through the library.
+
+Furthermore, signals are in general painful to use and integrate into a program's event loop,
+even beyond the
 ** How not to fix
 *** Use signalfd
     While signalfd is certainly a great help in dealing with signals on Linux,
     it doesn't actually help deal with the problem of libraries receiving SIGCHLD.
-*** TODO Chain signal handlers
+    You could use signalfd to wait for the SIGCHLD signals,
+    but you still then need to forward the signals to each library.
+*** Chain signal handlers
     Can't we just have one library's signal handler call the next library's signal handler?
 
-    Won't work robustly, see
-    https://www.macieira.org/blog/2012/07/forkfd-part-2-finding-out-that-a-child-process-exited-on-unix/
-* TODO How to fix all these problems
-  Use my wrapper program, supervise, and its associate Python library!
-** It's easy for processes to leak
-   supervise kills all your transitive children when you exit.
-** It's impossible to prevent malicious processes leaks
-   supervise kills all your transitive children when you exit, securely and in a guaranteed-to-terminate way.
-   (By pid exhaustion)
-** It uses global, reusable, forgeable process IDs
-   supervise gives you a file descriptor interface to signaling a process.
-   File descriptors are local and unforgeable.
-** It uses signals to communicate process events
-   supervise gives you a file descriptor interface to monitor a process for exit.
-   File descriptors can be monitored by libraries without interfering with the rest of the program.
+    Rather than explain that in this article,
+    I'll merely refer the reader to [[https://www.macieira.org/blog/2012/07/forkfd-part-2-finding-out-that-a-child-process-exited-on-unix/][here]] where it's explained that this is not a robust solution.
+    Libraries have high standard for working, even in strange scenarios!
+* How to fix all these problems
+  Use my wrapper program, [[https://github.com/catern/supervise][supervise]], and its associated [[https://github.com/catern/supervise/blob/master/python/supervise_api/supervise.py][Python library]]!
+** Problem: It's easy for processes to leak
+   Solution: supervise kills all your transitive children when you exit.
+
+   It's able to find all transitive children by using PR_SET_CHILD_SUBREAPER, a Linux-specific feature.
+   If process A starts process B which starts process C,
+   and process B exits,
+   if process A set PR_SET_CHILD_SUBREAPER then process A will become the new parent of process C.
+** Problem: It's impossible to prevent malicious processes leaks
+   Solution: supervise kills all your transitive children when you exit, securely and in a guaranteed-to-terminate way.
+
+   It does this using the technique mentioned in the "Limit the number of processes that can exist on the system" section.
+   If we don't free up pid space as a malicious process forks and exits,
+   eventually the pid space will be exhausted and the malicious process will be cornered and killed.
+** Problem: It uses global, reusable process IDs
+   Solution: supervise gives you a file descriptor interface to signaling a process.
+
+   To signal the process, you just write to the file descriptor.
+   File descriptors are local and unforgeable,
+   so it's not possible for the file descriptor to suddenly start pointing at a different process.
+** Problem: It uses signals to communicate process events
+   Solution: supervise gives you a file descriptor interface to monitor a process for exit.
+
+   File descriptors can be monitored by a library without interfering with the rest of the program,
+   using a library's own private event loop or any number of other mechanisms.
 * Footnotes
 
 [fn:process_groups]
@@ -306,27 +331,7 @@ you will just leave your original process group,
 and no longer be killed when that group is killed.
 The same is true for the controlling tty.
 
-TODO: I seem to recall a mailing post by the Linux cgroups maintainer,
-lamenting the fact that cgroups were created as cgroups,
-instead of by reusing the existing process hierarchy,
-and just enforcing that it stays as a hierarchy.
-
-[fn:systemd-run] 
-systemd, for example, with its 'systemd-run' API, allows us to request that systemd start up a process for us.
-systemd runs every process in a separate cgroup (which is the underlying container mechanism that we would use),
-so it can protect against the malicious process leak problem.
-
-[fn:user_namespaces]
-User namespaces can be used without privileges,
-but they've had a lot of vulnerabilities,
-so most Linux distributions don't turn that feature on.
-
-[fn:killcontainer] 
-Is it possible to kill every process inside a container?
-More concretely,
-can I start a process inside a cgroup and then later kill off the process?
-
-[fn:easyleakexample] 
+[fn:easyleakexample]
 Leaking a process is as simple as this:
 #+BEGIN_SRC sh
 sh -c '{ sleep inf & } &'
@@ -335,3 +340,12 @@ sh -c '{ sleep inf & } &'
 it forks off another copy of itself to perform the outer '&', which is our process B;
 then 'sleep inf' is our process C.
 
+[fn:user_namespaces]
+User namespaces can be used without privileges,
+but they've had a lot of vulnerabilities,
+so most Linux distributions don't turn that feature on.
+
+[fn:systemd-run]
+systemd, for example, with its 'systemd-run' API, allows us to request that systemd start up a process for us.
+systemd runs every process in a separate cgroup (which is the underlying container mechanism that we would use),
+so it can protect against the malicious process leak problem.
