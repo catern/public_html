@@ -14,7 +14,7 @@ and stopping processes that haven't yet exited.
 
 So what is so bad about the Linux process API?
 
-- It makes it easy for processes to "leak", and linger on the system without anyone to cause them to exit.
+- It makes it easy for processes to accidentally "leak", and linger on the system without anyone to cause them to exit.
 - Conversely, it makes it /impossible/ (without root) to guarantee that a buggy or malicious process has not "leaked" some processes.
 - It uses global process identifiers (pids) instead of a secure unforgeable identifier, making it possible to confuse one process for another.
 - It uses signals to communicate process events, making libraries (which can't safely handle signals) unable to spawn processes, as well as inheriting all the other problems of Unix signals.
