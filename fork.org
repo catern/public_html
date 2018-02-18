@@ -1,6 +1,7 @@
 #+TITLE: The Linux process API is bad (DRAFT)
 #+options: num:nil
 #+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
+# TODO maybe I should include something about not daemonizing and how that isn't sufficient?
 
 The Linux process API is bad.
 To be fair, the Linux process API is not /uniquely/ bad.
