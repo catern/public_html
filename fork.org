@@ -9,7 +9,7 @@ The bad process API of Linux is shared with all the other Unix-like systems, whi
 In this article, though, I'll just be talking about Linux.
 
 Here, when I say "process API", I am talking about the interface
-for starting processes running,
+for starting processes,
 monitoring processes until they exit,
 and stopping processes that haven't yet exited.
 
@@ -22,34 +22,46 @@ So what is so bad about the Linux process API?
 
 I'll go into each of these problems in more depth.
 I'll explain each problem, as well as some solutions that won't work out.
-At the end of the article, I'll go over my own solution and how it solves all of these problem.
+At the end of the article, I'll go over my own solution and how it solves all of these problems.
 
 * It's easy for processes to leak
 
 What do I mean by a "leaked process"?
 
-I mean a process running without anyone knowing where it came from or knowing whether it's safe to kill it.
-
-There are two requirements for a process to exist without anyone knowing who it is:
-First, the process must be orphaned;
-second, no-one must know its pid or have any other means to kill it.[fn:process_groups]
-
-Some process is orphaned if the process that started it, its parent process, is orphaned.
-If process A starts process B, which starts process C,
-then process B exits,
-process C will be orphaned.[fn:easyleakexample]
-
-Only the parent process B is able to robustly monitor its child process C and ensure that it exits at some point.
-But if B notes down the pid of process C, or C notes down its own pid,
-we will at least be able to try and kill C later.
-
-A process is leaked when it is orphaned and no-one writes down its pid.
-"Leak" is used by analogy with "memory leak".
+I mean a process running without anyone knowing where it came from or what it is for.
+If we don't know where a process came from or what it's for,
+we don't know whether it's safe to kill it,
+it's leaked.
+"Leak" is used by analogy with "memory leak";
+a memory leak results in memory that isn't really being used,
+but is kept alive because there's no way to know it's truly no longer in use.
 
 Once a process has been leaked,
-you either have to hope that it will exit on its own,
-or manually look at what processes are running on the system and guess which ones are no longer needed.
-(And maybe get it wrong!)
+you have two choices.
+You can hope that it will exit on its own at some point.
+Or you can manually look at the list of processes running on the system, and try to guess which ones are no longer needed.
+
+There are two requirements for a process to exist without anyone knowing what it is:
+First, the process must be orphaned;
+second, no-one must know the pid of the process, or have other means to kill precisely that process.[fn:process_groups]
+
+A process is orphaned when its parent process exits.
+If process A starts process B, which starts process C,
+and then process B exits,
+process C will be orphaned.[fn:easyleakexample]
+The parent process B is able to robustly track the lifetime of its child process C,
+through the mechanisms Linux provides for parent processes,
+and ensure that process C exits.
+If C is orphaned, that mechanism is no longer usable,[fn:reparented]
+and we have to resort to using C's pid to track it.
+
+If B writes down the pid of process C in some persistent way,
+or C writes down its own pid,
+we will at least be able to try and kill C later by reading that pid back.
+Killing C through its pid has other flaws which will be discussed later,
+but it works at a basic level.
+But if the pid of process C is not noted down in some persistent way,
+we've got a leaked process.
 ** How not to fix
 *** Make sure B always cleans up on exit and kills C
 B should just always make sure to kill process C before it exits.
@@ -87,7 +99,7 @@ So, in summary, it's not possible to guarantee that B cleans up and kills C when
 because it might be SIGKILL'd.
 Even in the case where B isn't SIGKILL'd,
 it's tricky for a complicated program to always make sure to kill off any child processes when it exits.
-*** Always write down the pid of every process it starts, or coordinate between A and B
+*** Always write down the pid of every process you start, or coordinate between A and B
 B could make sure to always write down the pid of every process it starts, so things can be orphaned but not leaked.
 More generally, B could coordinate with A, and somehow tell A about every process B starts.
 This will fail if there's a bug in B, or if B is killed just after starting a process but before telling A,
@@ -403,6 +415,12 @@ This is a major inconvenience for both the library developer and the user.
   and the userspace implementation can be discarded.
   Then we can finally have a good process API on Linux.
 * Footnotes
+
+[fn:reparented]
+Orphaned processes are in fact "reparented" to pid 1, "init".
+Init can wait for processes to die,
+but it doesn't have any knowledge about what a given process actually *is*.
+So it doesn't help us keep track of which process is which.
 
 [fn:process_groups]
 Process groups provide another means to kill a process.
