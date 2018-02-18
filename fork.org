@@ -65,7 +65,7 @@ so C will be unavoidably leaked.
 We might want to say, "never send SIGKILL".
 But that is impossible, both for a conventional reason and an ironic reason.
 The conventional reason is that B might have a bug, and hang, and SIGKILL might be the only way to kill it.
-The ironic reason is that the only way for B to clean up and exit in finite time is for it to SIGKILL its own children,
+The ironic reason is that the only way for B to clean up and exit in guaranteed finite time is for it to SIGKILL its own children,
 so that if they have bugs they will not just hang forever.
 So B would be SIGKILL'd by its own parent, implementing the same strategy.
 
