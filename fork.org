@@ -336,7 +336,7 @@ This is a major inconvenience for both the library developer and the user.
     using a library's own private event loop or other mechanisms.
     We just need a way to provide that interface that does not interfere with other libraries in the same process.
 * How to fix all these problems
-  Use my wrapper program, [[https://github.com/catern/supervise][supervise]],
+  Use my C wrapper program, [[https://github.com/catern/supervise][supervise]],
   and its associated [[https://github.com/catern/supervise/blob/master/python/supervise_api/supervise.py][Python library]]!
 
   Essentially, we delegate the problem of starting and monitoring child processes
