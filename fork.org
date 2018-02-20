@@ -1,17 +1,21 @@
-#+TITLE: The Linux process API is bad (DRAFT)
+#+TITLE: The Unix process API is bad (DRAFT)
 #+options: num:nil
 #+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
 # TODO I should include something about the "just don't daemonize" policy and how that isn't sufficient
 
-The Linux process API is bad.
-To be fair, the Linux process API is not /uniquely/ bad.
-The bad process API of Linux is shared with all the other Unix-like systems, which all have the same problems.
-In this article, though, I'll just be talking about Linux.
+The Unix process API is bad.
+All the Unix-like systems of today have the same problems;
+none of them have fixed the problems that they inherited from their ancestors.
+In this article, though, I'll just be talking about the Linux process API;
+it has all the problems of the rest.
 
 Here, when I say "process API", I am talking about the interface
 for starting processes,
 monitoring processes until they exit,
 and stopping processes that haven't yet exited.
+
+And note that I won't be complaining about the fork/exec split;
+there's already enough uncontroversial problems without considering that controversial one.
 
 So what is so bad about the Linux process API?
 
