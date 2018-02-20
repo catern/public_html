@@ -1,6 +1,7 @@
 #+TITLE: The Unix process API is bad (DRAFT)
 #+options: num:nil
 #+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
+# add a license? CC-BY-SA?
 
 The Unix process API is bad.
 All the Unix-like systems of today have the same problems;
@@ -26,9 +27,26 @@ So what is so bad about the Linux process API?
   making libraries (which can't safely handle signals) unable to spawn processes,
   as well as inheriting all the other problems of Unix signals.
 
-I'll go into each of these problems in more depth.
-I'll explain each problem, as well as some solutions that won't work out.
+I'll explain each problem, as well as some possible solutions that are ultimately flawed.
 At the end of the article, I'll go over my own solution and how it solves all of these problems.
+
+But first, some motivation.
+Why should we care about flaws in the Linux process API?
+Things work well enough right now, don't they?
+
+No, they don't work well enough.
+There are many hacks that are justified in part because they fix the badness of this process API.
+Hacks like process supervisor daemons, Linux containers, and other generally inflexible tools,
+all "fix" parts of the process API,
+by providing their own abstraction.
+
+These tools often have other benefits as well, of course.
+But if we just focus on the low-level process API on its own and fix it,
+we can re-evaluate these hacks and decide if,
+in the presence of a good process API,
+their other benefits are still worth the cost;
+or if those tools might be redesigned to be less complex and more flexible,
+if they were working on top of a quality process API.
 
 * It's easy for processes to leak
 
@@ -42,9 +60,9 @@ and it's leaked.
 a memory leak results in memory that isn't really being used,
 but is kept alive because there's no way to know it's truly no longer in use.
 
-Once a process has been leaked,
+Once some processes have been leaked,
 you have two choices.
-You can hope that it will exit on its own at some point.
+You can hope that they will exit on their own at some point.
 Or you can manually look at the list of processes running on the system, and try to guess which ones are no longer needed.
 
 There are two requirements for a process to exist without anyone knowing what it is:
@@ -68,7 +86,7 @@ Killing C through its pid has other flaws which will be discussed later,
 but it works at a basic level.
 But if the pid of process C is not noted down in some persistent way,
 we've got a leaked process.
-** How not to fix
+** Flawed solutions
 *** Make sure B always cleans up on exit and kills C
 B should just always make sure to kill process C before it exits.
 That way no processes will be orphaned, so no processes will be leaked, and we'll be fine.
@@ -128,7 +146,9 @@ such as a Docker container,
 then no matter how many processes B starts,
 A will be able to terminate them all by just stopping the container, and we'll be fine.
 
-This has four main flaws for solving the problem of making it easy to avoid leaking.
+Ignoring the other merits of containers,
+if we're trying to solve the problem of "it is too easy for processes to leak",
+containers have four main flaws.
 
 Flaw one is that it's not easy to run a container.
 
@@ -176,7 +196,7 @@ But note that this doesn't have to be the result of an attack;
 simple buggy code can cause this.
 If you ever program using fork(),
 you could easily start forking repeatedly just from a bug.
-** How not to fix
+** Flawed solutions
 *** Run your possibly-malicious process inside a container or a virtual machine
 If we run our possibly-malicious process inside a container or virtual machine,
 then no matter how much it forks and exits,
@@ -260,7 +280,7 @@ You might send a fatal signal to something critically important instead of the d
 Fundamentally, any usage of a pid is vulnerable to a [[https://en.wikipedia.org/wiki/Time_of_check_to_time_of_use][time-of-check-to-time-of-use]] race condition.
 Since pids are the only way to identify a process,
 this means any interaction with processes (other than your own child processes) is inherently racy.
-** How not to fix
+** Flawed solutions
 *** Don't reuse pids, use a UUID instead
 We could identify processes with some kind of truly globally unique identifier.
 Then we wouldn't have race conditions when we try to kill them.
@@ -305,7 +325,8 @@ so it's difficult to set up isolated test or development environments.
 
 Furthermore, even if we have a supervisor daemon starting processes on our behalf,
 this leaves a static parent-child hierarchy which cannot change.
-The supervisor daemon cannot, for example, restart itself to upgrade,
+The supervisor daemon cannot, for example, start a new version of itself to upgrade,
+without careful use of exec,
 as all of its child processes will stop being its children.
 Nor can process A initially start up process B as process A's child,
 and then later decide that process B should live past process A's exit.
@@ -336,7 +357,7 @@ If a library has no interface for receiving signal information,
 like glibc,
 then it can't use child processes.
 This is a major inconvenience for both the library developer and the user.
-** How not to fix
+** Flawed solutions
 *** Use signalfd
     While signalfd is certainly a great help in dealing with signals on Linux,
     it doesn't actually help deal with the problem of libraries receiving SIGCHLD.
