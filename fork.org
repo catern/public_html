@@ -1,7 +1,6 @@
 #+TITLE: The Unix process API is bad (DRAFT)
 #+options: num:nil
 #+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
-# TODO I should include something about the "just don't daemonize" policy and how that isn't sufficient
 
 The Unix process API is bad.
 All the Unix-like systems of today have the same problems;
@@ -21,8 +20,11 @@ So what is so bad about the Linux process API?
 
 - It makes it easy for processes to accidentally "leak", and linger on the system without anyone to cause them to exit.
 - Conversely, it makes it /impossible/ (without root) to guarantee that a buggy or malicious process has not "leaked" some processes.
-- It uses global process identifiers (pids) instead of a secure unforgeable identifier, making it possible to confuse one process for another.
-- It uses signals to communicate process events, making libraries (which can't safely handle signals) unable to spawn processes, as well as inheriting all the other problems of Unix signals.
+- It uses global process identifiers (pids) instead of a secure unforgeable identifier,
+  making it possible to confuse one process for another.
+- It uses signals to communicate process events,
+  making libraries (which can't safely handle signals) unable to spawn processes,
+  as well as inheriting all the other problems of Unix signals.
 
 I'll go into each of these problems in more depth.
 I'll explain each problem, as well as some solutions that won't work out.
@@ -35,7 +37,7 @@ What do I mean by a "leaked process"?
 I mean a process running without anyone knowing where it came from or what it is for.
 If we don't know where a process came from or what it's for,
 we don't know whether it's safe to kill it,
-it's leaked.
+and it's leaked.
 "Leak" is used by analogy with "memory leak";
 a memory leak results in memory that isn't really being used,
 but is kept alive because there's no way to know it's truly no longer in use.
@@ -49,7 +51,7 @@ There are two requirements for a process to exist without anyone knowing what it
 First, the process must be orphaned;
 second, no-one must know the pid of the process, or have other means to kill precisely that process.[fn:process_groups]
 
-A process is orphaned when its parent process exits.
+Some process is orphaned when its parent process exits.
 If process A starts process B, which starts process C,
 and then process B exits,
 process C will be orphaned.[fn:easyleakexample]
@@ -119,7 +121,7 @@ In general, are we going to patch every program in existence that wasn't written
 It's not practical to rewrite every Unix program in existence.
 We want to make it harder for processes to accidentally leak;
 but it will still be easy to write or use a program that doesn't follow our coordination mechanism,
-and thus can leak processes.
+and thereby leak processes.
 *** A should run B inside a container
 If A runs B inside a Linux container technology,
 such as a Docker container,
@@ -243,7 +245,8 @@ There is a single pool of process IDs on the system.
 If enough processes are started and exit,
 a process ID will be reused.
 
-Pids are mainly used to send signals to processes with the "kill" system call (which is used for any kind of signal, not just lethal ones).
+Pids are mainly used to send signals to processes with the "kill" system call
+(which is used for any kind of signal, not just lethal ones).
 
 Typically, a long-lived process (a "daemon") would write its own pid into a file, called a "pidfile".
 Then other processes could send signals to the daemon by reading that pidfile and using "kill".
@@ -320,8 +323,8 @@ Signals are delivered to the entire process, and only one signal handler can be 
 
 So if the main function in process A registers a signal handler for SIGCHLD,
 and library L1 in process A starts a process B, when process B exits,
-the signal handler of the main function in process A will receive the notification of the exit of the child,
-and the library will have no idea.
+the signal handler of the main function in process A will receive a notification of the exit of a child it never started,
+and the library will never be told that its child has exited.
 
 Conversely, if the library L1 registers the signal handler,
 and the main function or even another library L2 starts a process B,
@@ -367,11 +370,13 @@ This is a major inconvenience for both the library developer and the user.
     using a library's own private event loop or other mechanisms.
     We just need a way to provide that interface that does not interfere with other libraries in the same process.
 * How to fix all these problems
-  Use my C wrapper program, [[https://github.com/catern/supervise][supervise]],
+  Use my C utility, [[https://github.com/catern/supervise][supervise]],
   and its associated [[https://github.com/catern/supervise/blob/master/python/supervise_api/supervise.py][Python library]]!
 
   Essentially, we delegate the problem of starting and monitoring child processes
   to a small helper program: supervise.
+  And it abstracts away the fixes for these problems behind a nicer (but still low-level) interface.
+  For a high-level interface, one can use the Python library.
 ** Problem: It's easy for processes to leak
    Solution: supervise kills all your descendant processes when you exit.
 
@@ -414,8 +419,8 @@ This is a major inconvenience for both the library developer and the user.
    Solution: supervise gives you a file descriptor interface to monitor a process for exit.
 
    In addition to the file descriptor that supervise reads instructions from,
-   supervise also is passed a file descriptor to write status changes to.
-   This file descriptor can be read and monitored to get process status changes. 
+   supervise also accepts a file descriptor to write status changes to.
+   You can read and monitor this file descriptor to receive notification of process status changes. 
 * How to really fix all these problems in the long term
   Of course, supervise is not a long-term solution.
   Running an additional helper process for every real process you start is an annoying,
