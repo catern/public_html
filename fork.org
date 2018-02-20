@@ -391,8 +391,11 @@ This is a major inconvenience for both the library developer and the user.
     using a library's own private event loop or other mechanisms.
     We just need a way to provide that interface that does not interfere with other libraries in the same process.
 * How to fix all these problems
-  Use my C utility, [[https://github.com/catern/supervise][supervise]],
-  and its associated [[https://github.com/catern/supervise/blob/master/python/supervise_api/supervise.py][Python library]]!
+  I only know one existing solution that fixes all these problems
+  without sacrificing flexibility or generality.
+
+  Use the C utility [[https://github.com/catern/supervise][supervise]] to start your processes;
+  for Python, you can use its associated [[https://github.com/catern/supervise/blob/master/python/supervise_api/supervise.py][Python library]].
 
   Essentially, we delegate the problem of starting and monitoring child processes
   to a small helper program: supervise.
@@ -501,6 +504,6 @@ but they've had a lot of vulnerabilities,
 so most Linux distributions don't turn that feature on.
 
 [fn:systemd-run]
-systemd, for example, with its 'systemd-run' API, allows us to request that systemd start up a process for us.
+systemd, for example, with its [[https://www.freedesktop.org/software/systemd/man/systemd-run.html][systemd-run]] API, allows us to request that systemd start up a process for us on the fly.
 systemd runs every process in a separate cgroup (which is the underlying container mechanism that we would use),
 so it can protect against the malicious process leak problem.
