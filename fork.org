@@ -1,7 +1,7 @@
 #+TITLE: The Linux process API is bad (DRAFT)
 #+options: num:nil
 #+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
-# TODO maybe I should include something about not daemonizing and how that isn't sufficient?
+# TODO I should include something about the "just don't daemonize" policy and how that isn't sufficient
 
 The Linux process API is bad.
 To be fair, the Linux process API is not /uniquely/ bad.
@@ -194,7 +194,13 @@ But having someone else start a process on our behalf breaks a lot of traditiona
 For example, we can't easily have our child process inherit stdin/stdout/stderr from us,
 nor will it inherit environment variables or any ulimits we've placed on ourself.
 The shell, among other applications, is completely dependent on these features.
-So as a general-purpose mechanism, this is not workable,
+
+Also, this privileged daemon centralizes all the processes we start on the system.
+We can't, say, set up a truly isolated environment for development or integration testing,
+because we'll still have to go through the central daemon.
+
+So as a general-purpose mechanism,
+this is not workable,
 but it can work in certain constrained scenarios.
 *** Limit the number of processes that can exist on the system
 What if we limit the number of processes that can exist on the system?
@@ -264,23 +270,31 @@ When process A starts process B, and then process B exits, process A is notified
 Furthermore, process B leaves a "zombie process" behind after it exits,
 which consumes the pid until process A explicitly acts to get rid of the zombie process.
 These two features allow process A to know exactly when it is safe to send signals to B's pid.
-So if processes only send signals to their child processes,
-they can send signals without races.
+So if A stays running for as long as B is running,
+and only A sends signals to B,
+we can have signals without races.
 
-This works, and is an excellent replacement for pidfiles, but it is inflexible.
+This works, and is an excellent replacement for pidfiles.
+But it doesn't work in all situations.
 
 What if process A exits unexpectedly?
 Then we are back in the situation of not being able to kill process B without a race condition.
-Indeed, frequently we genuinely want process B to outlive process A;
-whenever we are starting a daemon, for example.
+Furthermore, what if we genuinely want process B to outlive process A?
+This is the case whenever we are starting a long-lived process (a daemon), for example.
 
 To support this, instead of forking off a process,
-process A could send a request to a supervisor daemon to start process B, as the supervisor daemon's own child.
+process A could send a request to a long-lived supervisor daemon to start process B, as the supervisor daemon's own child.
+The authors of supervisor daemons such as =systemd= or =supervisord=
+often urge software developers not to fork off their own long-lived processes;
+instead, say the supervisor daemon authors,
+we should request that the supervisor daemon fork off long-lived processes on our behalf.[fn:dontdaemonize]
 
 Unfortunately, that has the same issues as discussed in the section on preventing malicious process leaks,
 where we considered having a privileged daemon create containers on our behalf.
 We can't easily have our child process inherit stdin/stdout/stderr from us,
 nor will it inherit environment variables or any ulimits we've placed on ourself.
+And this daemon centralizes the processes we start on the system,
+so it's difficult to set up isolated test or development environments.
 
 Furthermore, even if we have a supervisor daemon starting processes on our behalf,
 this leaves a static parent-child hierarchy which cannot change.
@@ -289,8 +303,9 @@ as all of its child processes will stop being its children.
 Nor can process A initially start up process B as process A's child,
 and then later decide that process B should live past process A's exit.
 
-Still, if we could find a way to rearrange the parent-child hierarchy,
-this technique would work very well.
+What we need is a way to send signals without races, without forcing a specific parent-child hierarchy.
+If we can make the parent-child hierarchy more flexible,
+it would work well.
 We will use this technique in combination with others as part of a full solution at the end of this article.
 * Process exit is communicated through signals
 Process exit is communicated to the parent of a process by SIGCHLD.
@@ -364,10 +379,10 @@ This is a major inconvenience for both the library developer and the user.
    supervise will kill the descendant processes,
    and then supervise will also exit.
 
-   It's able to find all descendant processes by using PR_SET_CHILD_SUBREAPER, a Linux-specific feature.
+   It's able to find all descendant processes by using =PR_SET_CHILD_SUBREAPER=, a Linux-specific feature.
    If process A starts process B which starts process C,
    and process B exits,
-   if process A set PR_SET_CHILD_SUBREAPER then process A will become the new parent of process C.
+   if process A set =PR_SET_CHILD_SUBREAPER= then process A will become the new parent of process C.
    This allows it to safely kill all descendant processes.
 ** Problem: It's impossible to prevent malicious processes leaks
    Solution: supervise kills all your descendant processes when you exit, securely and in a guaranteed-to-terminate way.
@@ -384,12 +399,13 @@ This is a major inconvenience for both the library developer and the user.
    wrapping a different process.
 
    All the descendant processes of supervise will at some point become its direct children,
-   thanks to PR_SET_CHILD_SUBREAPER,
+   thanks to =PR_SET_CHILD_SUBREAPER=,
    so it can safely send them all signals using "kill" and cause them to exit,
    so a supervision hierarchy can be maintained without forcing any specific organization.
 
    And just like all file descriptors, the supervise file descriptors can be inherited by children or passed over Unix sockets.
-   This allows a supervision hierarchy to be rearranged at runtime.
+   This allows a supervision hierarchy to be rearranged at runtime,
+   rather than forcing a static parent-child hierarchy.
 ** Problem: Process exit is communicated through signals
    Solution: supervise gives you a file descriptor interface to monitor a process for exit.
 
@@ -403,7 +419,7 @@ This is a major inconvenience for both the library developer and the user.
   inconvenience and performance loss.
   The correct long-term solution is to actually get this functionality into the Linux kernel.
 
-  See the [[https://lwn.net/Articles/638613/][CLONE_FD patchset]] which provided something similar,
+  See the [[https://lwn.net/Articles/638613/][=CLONE_FD= patchset]] which provided something similar,
   Thiago Macieira's [[https://www.macieira.org/blog/2012/07/forkfd-part-4-proposed-solutions/][series of blog posts on forkfd]],
   the [[https://www.freebsd.org/cgi/man.cgi?query=pdfork&sektion=2][pdfork syscall]] in FreeBSD,
   and the [[http://capsicum-linux.org/][Capsicum for Linux]] effort which has ported pdfork to Linux.
@@ -415,6 +431,11 @@ This is a major inconvenience for both the library developer and the user.
   and the userspace implementation can be discarded.
   Then we can finally have a good process API on Linux.
 * Footnotes
+
+[fn:dontdaemonize]
+This is the "don't daemonize yourself, don't put yourself into the background" advice,
+which has become very common with the rise of system.
+It's certainly correct advice, but it's incomplete.
 
 [fn:reparented]
 Orphaned processes are in fact "reparented" to pid 1, "init".
