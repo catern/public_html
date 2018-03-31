@@ -67,8 +67,9 @@ Or you can manually look at the list of processes running on the system, and try
 
 There are two requirements for a process to exist without anyone knowing what it is:
 First, the process must be orphaned;
-second, no-one must know the pid of the process, or have other means to kill precisely that process.[fn:process_groups]
+second, no-one must know the pid of the process, or have other means to kill precisely that process.[fn:pidimprecise]
 
+# TODO add diagram
 Some process is orphaned when its parent process exits.
 If process A starts process B, which starts process C,
 and then process B exits,
@@ -123,23 +124,38 @@ So, in summary, it's not possible to guarantee that B cleans up and kills C when
 because it might be SIGKILL'd.
 Even in the case where B isn't SIGKILL'd,
 it's tricky for a complicated program to always make sure to kill off any child processes when it exits.
-*** Always write down the pid of every process you start, or coordinate between A and B
+*** Use =PR_SET_PDEATHSIG= to kill C when B exits.
+We can use the Linux-specific feature =PR_SET_PDEATHSIG= on process C,
+to ensure that process C will receive SIGKILL (or another signal) whenever process B exits for any reason,
+including if process B exits uncleanly due to a bug or SIGKILL.
+
+The issue is that this only works one level down the tree.
+If C forks off its own process D,
+the death signal will kill off C but not D.
+
+Extending it to work over an entire tree of processes,
+requires that the entire tree be using =PR_SET_PDEATHSIG= (and using it correctly).
+If we can make that guarantee, this technique will work.
+But in practice,
+most large systems can't make that guarantee since they are made up of a large number of programs from many different developers.
+As one specific example, many applications run subcommands through Unix shells, which don't use =PR_SET_PDEATHSIG=.
+
+Even in smaller systems where we control all involved programs,
+this technique isn't perfect, since even programs we control can always have bugs and fail to use =PR_SET_PDEATHSIG=.
+We'd prefer a guarantee that relies only on the program at the root of the tree,
+and doesn't require us to reason about and debug all the programs involved.
+*** Always write down the pid of every process you start, or otherwise coordinate between A and B
 B could make sure to always write down the pid of every process it starts, so things can be orphaned but not leaked.
 More generally, B could coordinate with A, and somehow tell A about every process B starts.
+Then A (which we might trust to be correctly implemented) can handle cleaning up the processes that B starts.
 This will fail if there's a bug in B, or if B is killed just after starting a process but before telling A,
 but perhaps it's good enough?
 
-This would work out, if we controlled the entire tree of programs we are running.
-Then we could add this coordination to every program we run.
-
-But what if the programs for A and B come from different developers?
-Are we going to patch B to do this coordination?
-In general, are we going to patch every program in existence that wasn't written by us, to coordinate with us?
-
-It's not practical to rewrite every Unix program in existence.
-We want to make it harder for processes to accidentally leak;
-but it will still be easy to write or use a program that doesn't follow our coordination mechanism,
-and thereby leak processes.
+This has the same flaw as =PR_SET_PDEATHSIG=,
+in that it only allows for avoiding leaks at a single level.
+Like =PR_SET_PDEATHSIG=,
+all programs involved would need to use our mechanism.
+And that's infeasible in practice in any large system.
 *** A should run B inside a container
 If A runs B inside a Linux container technology,
 such as a Docker container,
@@ -180,6 +196,39 @@ and this will place a real burden on the system.
 
 So, running every child process in a separate container isn't a viable solution.
 We still have no way to easily prevent child processes from leaking.
+*** Use process groups or controlling terminals
+Process groups and controlling terminals are two features
+which can be used to terminate a group of processes.
+Such a group of processes is usually called a "job",
+since Unix shells use these features and use that terminology.
+When processes start children,
+they start out in the same job,
+and they can all be terminated at once.
+So if process A put process B in a job,
+process A could avoid process C leaking by terminating the job.
+
+Unfortunately, neither of these job mechanisms is nestable.
+If a process puts itself or its children into a new process group or gives itself a new controlling terminal,
+it completely replaces the old process group or controlling terminal.
+So that process will no longer be terminated when its original job is terminated!
+
+In other words, if process A puts process B in a job,
+then process B puts process C in a job,
+then process B neglects to terminate process C,
+process C will no longer be in the job that process A knows about,
+so process C will leak!
+
+So, ironically, if a child process tries to use these features to prevent its own child processes from leaking,
+it can inadvertantly cause them to leak.
+This is certainly unsuitable.
+*** Use Windows 8 nested job objects
+Windows 8 added support for nested job objects.
+Child processes (and all their transitive children) can be associated with a job,
+and they will all be terminated when the owner of the job exits (or deliberately kills them).
+Child processes can create their own jobs and assign their own children to those jobs,
+without interfering with or being aware of their parent job.
+
+Unfortunately, we're using Linux, not Windows. :)
 * It's impossible to prevent malicious processes leaks
 
 What's a "malicious process leak"?
@@ -287,7 +336,7 @@ Then we wouldn't have race conditions when we try to kill them.
 
 This would work,
 but it would be difficult to retrofit onto an existing Unix system:
-Many applications assume that pids are the same size as 32-bit ints.
+Many applications assume that pids are the same size as 16-bit or 32-bit ints.
 
 We would also pay an efficiency cost, just because of handling a larger identifier.
 It would be unusual for an operating system to provide references to its internal structures with UUIDs,
@@ -320,6 +369,7 @@ Unfortunately, that has the same issues as discussed in the section on preventin
 where we considered having a privileged daemon create containers on our behalf.
 We can't easily have our child process inherit stdin/stdout/stderr from us,
 nor will it inherit environment variables or any ulimits we've placed on ourself.
+The shell, among other applications, is completely dependent on these features.
 And this daemon centralizes the processes we start on the system,
 so it's difficult to set up isolated test or development environments.
 
@@ -376,7 +426,8 @@ This is a major inconvenience for both the library developer and the user.
     We can provide a file descriptor interface, which is increasingly standard on Linux,
     and is easy for libraries to use and monitor.
 
-    It would be near impossible to get every other library that wants to use subprocesses or wants to listen for SIGCHLD
+    Unfortunately,
+    it would be near impossible to get every other library that wants to use subprocesses or wants to listen for SIGCHLD
     to use this single standard library.
 
     There are already plenty of libraries which provide wrappers around SIGCHLD/fork/exec,
@@ -404,19 +455,23 @@ This is a major inconvenience for both the library developer and the user.
 ** Problem: It's easy for processes to leak
    Solution: supervise kills all your descendant processes when you exit.
 
-   supervise is passed a pipe to read instructions from on startup,
-   and monitors that pipe throughout its (short and simple) lifetime.
+   supervise is passed a file descriptor to read instructions from on startup,
+   and monitors that fd throughout its (short and simple) lifetime.
    When the parent process exits,
-   the pipe will be closed,
+   the fd will be closed,
    supervise will be notified,
    supervise will kill the descendant processes,
    and then supervise will also exit.
 
-   It's able to find all descendant processes by using =PR_SET_CHILD_SUBREAPER=, a Linux-specific feature.
+   But because process lifetime is tied to the lifetime of a fd,
+   it's still easy to create long-lived processes if you wish;
+   just make sure the fd outlives your own process.
+
+   supervise is able to find all descendant processes by using =PR_SET_CHILD_SUBREAPER=, a Linux-specific feature.
    If process A starts process B which starts process C,
    and process B exits,
-   if process A set =PR_SET_CHILD_SUBREAPER= then process A will become the new parent of process C.
-   This allows it to safely kill all descendant processes.
+   then if process A has set =PR_SET_CHILD_SUBREAPER= then process A will become the new parent of process C.
+   This allows supervise to safely find and kill all descendant processes.
 ** Problem: It's impossible to prevent malicious processes leaks
    Solution: supervise kills all your descendant processes when you exit, securely and in a guaranteed-to-terminate way.
 
@@ -476,18 +531,9 @@ Init can wait for processes to die,
 but it doesn't have any knowledge about what a given process actually *is*.
 So it doesn't help us keep track of which process is which.
 
-[fn:process_groups]
-Process groups provide another means to kill a process.
-And the controlling tty is yet another way.
-But neither of them are fully generic and nestable.
-They each allow a single additional layer of hierarchy,
-where you can kill all processes in a single group,
-or all processes with the same controlling tty.
-But if you create a new process group while already inside some process group,
-you will just leave your original process group,
-and no longer be killed when that group is killed.
-The same is true for the controlling tty.
-Because they don't fundamentally change the flaws of the process API, I won't go into them here.
+[fn:pidimprecise]
+Actually, even knowing the pid isn't a particular good way to clean up a process;
+we discuss that more in the section on process ids.
 
 [fn:easyleakexample]
 Leaking a process is as simple as this:
