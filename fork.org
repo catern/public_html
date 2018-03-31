@@ -6,15 +6,15 @@
 The Unix process API is bad.
 All the Unix-like systems of today have the same problems;
 none of them have fixed the problems that they inherited from their ancestors.
-In this article, though, I'll just be talking about the Linux process API;
+In this article, I'll just be talking about the Linux process API;
 it has all the problems of the rest.
 
-Here, when I say "process API", I am talking about the interface
+When I say "process API", I am talking about the interface
 for starting processes,
 monitoring processes until they exit,
 and stopping processes that haven't yet exited.
 
-And note that I won't be complaining about the fork/exec split;
+I won't be discussing the fork/exec split here;
 there's already enough uncontroversial problems without considering that controversial one.
 
 So what is so bad about the Linux process API?
@@ -34,20 +34,17 @@ But first, some motivation.
 Why should we care about flaws in the Linux process API?
 Things work well enough right now, don't they?
 
-No, they don't work well enough.
-There are many hacks that are justified in part because they fix the badness of this process API.
-Hacks like process supervisor daemons, Linux containers, and other generally inflexible tools,
-all "fix" parts of the process API,
-by providing their own abstraction.
+Yes, there are many tools like process supervisor daemons and Linux containers which fix parts of the process API.
+All of these tools so far are flawed in one way or another, as I'll explain,
+but they're still in wide use and they are adaquate solutions when used carefully.
 
-These tools often have other benefits as well, of course.
-But if we just focus on the low-level process API on its own and fix it,
-we can re-evaluate these hacks and decide if,
-in the presence of a good process API,
-their other benefits are still worth the cost;
-or if those tools might be redesigned to be less complex and more flexible,
-if they were working on top of a quality process API.
-
+The real problem is the significant complexity cost of working around the flaws of the process API.
+The aforementioned tools have many features and complex interfaces,
+and implementing their workarounds yourself can lead to even more complexity.
+At the moment, any system that tries for reliability must pay this complexity cost.
+But if the native process API was not so flawed,
+no such complex hacks would be needed,
+and our systems would be both simpler and more robust.
 * It's easy for processes to leak
 
 What do I mean by a "leaked process"?
