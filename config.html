@@ -44,7 +44,7 @@ If you want to make your configuration more dynamic,
 write code to dynamically determine the arguments to pass.
 <p>
 If you want to make rapid changes and don't want to wait for builds,
-call the function from a REPL.
+call the function from a REPL, or rely on fast incremental builds.
 <p>
 If you want to see what arguments are being passed to your function in your program,
 use logging and debuggers, according to your preference.
@@ -90,9 +90,9 @@ like Python,
 or with, at least, shared libraries and a fast link step,
 like dynamic libraries in C.
 <p>
-If you're on a slow and weak build system,
+If you're on a slow, weak, and hard-to-use build system,
 with a slow-building language,
-and you have very slow linking,
+and you have slow linking,
 then you probably want to fix one or more of those issues first;
 although if your programs are small, even those issues are not necessarily prohibitive.
 <p>
