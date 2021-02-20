@@ -1,0 +1,103 @@
+<title>Write code, not configuration</title>
+<style>head { display: block; } title { display: block; font-size: 150%; font-weight: bold; }</style>
+When you write a program which might use one of multiple implementations,
+or needs to connect to some URL,
+or needs some information to function,
+your first step should be to just hardcode it.
+Use one implementation, hardcode one URL, use one specific piece of information.
+<p>
+If, after doing so, you find that you need another program
+with different hardcoded information,
+turn your program into a function.
+Take the implementation as an argument,
+take the URL as an argument,
+take the information you need as an argument.
+<p>
+And then just call that function with the arguments you prefer,
+each time you need a program with different "configuration".
+<p>
+You don't need to load those arguments from some file on disk,
+or by querying some database or service,
+or even by taking them as command line parameters.
+<p>
+Just make a separate program for each case.
+<p>
+For a batch job, this might mean a few different executables,
+tweaked and rebuilt frequently over time as one's needs change.
+<p>
+For a user-facing application, this might mean that each user runs their own custom executable,
+compiled for or by them, with pre-compiled shared libraries common between all users.
+<p>
+For a daemon providing some network service and connecting to other services,
+this might mean 10 or so different executables,
+which are run in the 10 or so different availability zones or datacenters or sorts of machines
+on which this daemon is deployed.
+Or for a more heterogenous deployment,
+it might mean many thousands of different executables,
+deployed to many thousands of different environments,
+each layered on top of a common image with shared libraries identical between all deployments.
+<p>
+If you want to share information between multiple programs with different configurations,
+share it in the same way you share code: with a library.
+<p>
+If you want to make your configuration more dynamic,
+write code to dynamically determine the arguments to pass.
+<p>
+If you want to make rapid changes and don't want to wait for builds,
+call the function from a REPL.
+<p>
+If you want to see what arguments are being passed to your function in your program,
+use logging and debuggers, according to your preference.
+<p>
+Code written in this way in your actual programming language
+is far more expressive than code written in a configuration DSL,
+like JSON, YAML, or Dhall.
+<p>
+In a configuration DSL,
+one would select from multiple implementations by manipulating some identifier for the implementations;
+a string or a sum type, perhaps.
+This might be formatted in an invalid way,
+or might be from the wrong version,
+or might be incompatible,
+or any number of possible issues.
+<p>
+But in any general-purpose programming language,
+implementations are first class values which can be passed around and manipulated,
+whether as an object, a module, a struct of function pointers, or something else.
+One can write a function (or a template, a functor, a macro, or something else)
+which takes the implementation directly as an argument,
+with no possibility of issues due to mismatches between a string identifier and the actually available implementations.
+<p>
+In a typical configuration DSL,
+we would specify a set of key-value pairs to configure some component.
+We might run some validator over the DSL to ensure it matches some schema
+which we know our code will eventually load.
+<p>
+But static checks in general purpose programming languages, such as type checkers,
+perfrom "validation" of the "schema" of our configuration for free,
+wherever we pass arguments to functions.
+Required arguments must be present, and even must be of the correct type,
+and there's no need to keep our code in sync with a schema.
+<p>
+Writing code in your general purpose language
+is easier, faster, and better
+than writing separate configuration.
+<p>
+Of course, this is all easier with faster and more powerful build systems,
+like Nix,
+or with interpreted or fast-building languages,
+like Python,
+or with, at least, shared libraries and a fast link step,
+like dynamic libraries in C.
+<p>
+If you're on a slow and weak build system,
+with a slow-building language,
+and you have very slow linking,
+then you probably want to fix one or more of those issues first;
+although if your programs are small, even those issues are not necessarily prohibitive.
+<p>
+And you might also be in a corporate environment,
+where code changes require an extensive and painful process,
+but configuration changes can be made relatively easily.
+If so, consider quitting.
+<p>
