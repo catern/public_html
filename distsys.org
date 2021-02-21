@@ -113,14 +113,14 @@ These are Python examples, but the techniques are language-independent.
     >> j.url
     "https://example.com"
     #+end_src
-  - Use your language's asynchronous support to monitor multiple processes in the background.
+  - Use asynchronous code to monitor multiple processes in the background.
 
     Each process needs to be monitored for failure.
     If, for example, a process exits, appropriate action needs to be taken,
     such as restarting that process or a larger collection of processes,
     or signaling a fatal error.
 
-    You can use the asynchronous support in your language to monitor all the processes at once.
+    You can use the asynchronous support in your language to monitor all the [[https://github.com/catern/rsyscall][processes]] at once.
 
     If a process exits, that can be indicated through your language's usual error-handling method
     (by raising an exception, for Python),
