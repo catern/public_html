@@ -1,0 +1,154 @@
+#+title: Good practices for programs that run distributed systems
+
+By "programs that run distributed systems",
+I mean programs which run two or more separate processes,
+across one or more hosts, which communicate through some means.
+
+This is a programming task like any other,
+and the same techniques we usually use
+(functions, arguments, types, tests, etc.)
+can be used to great effect in this domain.
+
+These are Python examples, but the techniques are language-independent.
+
+   - Express dependencies between components using function arguments.
+
+     When service A makes use of services B and C, we need to make sure to start B and C before A.
+
+     This is straightforwardly represented with a function:
+     #+begin_src python
+     def start_a(b: B, c: C) -> A:
+         ...
+           "--b-url", b.url,
+           "--c-url", c.url,
+         ...
+         return A(...)
+     #+end_src
+
+     This defines a function which takes two arguments, of types "B" and "C",
+     and which returns a value of type "A".
+
+     One can define such types for one's own services,
+     and include all the relevant information in them,
+     such as URLs to use to interact with them.
+   - Keep track of complex values using types.
+
+     Suppose service D can run in multiple different modes;
+     say, it can either listen on an HTTP or HTTP2 URL.
+     And suppose some other service E can only work with service D if it's in HTTP2 mode.
+
+     We can represent this with types:
+     #+begin_src python
+     def start_e(d: D[HTTP2Url]) -> E:
+         ...
+           "--d-url", d.url, # an HTTP2Url
+         ...
+         return E(...)
+
+
+     def main(d: D[HTTPUrl]) -> E:
+         # type error!
+         return start_e(d)
+     #+end_src
+
+    The D class here takes a type argument specifying what the type of =d.url= is.
+    We can achieve this with generics or templates in most modern languages.
+
+    In =main=, we call =start_e= with the wrong type of =D=,
+    and we'll get a compile-time type error as a result.
+  - Create different environments by [[../config.html][passing different arguments to functions]].
+
+    Suppose service F has an optional dependency on service G;
+    it can run whether or not service G is available.
+
+    We can represent this by passing different arguments to our =start_f= function in different environments:
+    #+begin_src python
+    def start_f(g: Optional[G]) -> F:
+        ...
+        if g:
+           ... "--g-url", g.url ...
+        else:
+           pass
+        return F(...)
+
+    def environment_one() -> None:
+        g = ...
+        f = start_f(g)
+        ...
+
+
+    def environment_two() -> None:
+        f = start_f(None)
+        ...
+    #+end_src
+
+    We can use =environment_one= or =environment_two=, each where appropriate.
+  - Test the distributed system through normal language-level tests.
+
+    Since our distributed system is started by a normal program,
+    we can use standard testing libraries to write our tests.
+
+    Python's standard library has a =unittest= module which works fine:
+    #+begin_src python
+    import unittest
+
+    class TestThings(unittest.TestCase):
+        def setupTest(self) -> None:
+            ...
+            self.h = start_h(...)
+
+        def test_some_things(self) -> None:
+            self.assertIn("OK", requests.get(self.h.url + "/status"))
+    #+end_src
+    These tests should be stored alongside the code,
+    just as with normal programs.
+  - Explore interactively using the REPL or debugger.
+
+    The functions that start our system can be called from a REPL or debugger with no additional effort.
+    #+begin_src python
+    >> i = start_i(...)
+    <I object at 0x7fb3a45a4290>
+    >> j = start_j(i, ...)
+    <J object at 0x7fb3a45a4490>
+    >> j.url
+    "https://example.com"
+    #+end_src
+  - Use your language's asynchronous support to monitor multiple processes in the background.
+
+    Each process needs to be monitored for failure.
+    If, for example, a process exits, appropriate action needs to be taken,
+    such as restarting that process or a larger collection of processes,
+    or signaling a fatal error.
+
+    You can use the asynchronous support in your language to monitor all the processes at once.
+
+    If a process exits, that can be indicated through your language's usual error-handling method
+    (by raising an exception, for Python),
+    and the error can be caught and reacted to at the appropriate level,
+    or allowed to propagate.
+    #+begin_src python
+    async def run_k() -> None:
+        result = await run_process("k")
+        if result.exit_code != 0:
+            raise Exception(...)
+
+    async def start_k(nursery: trio.Nursery) -> K:
+        nursery.start_soon(run_k)
+        return K(...)
+
+    async def main():
+        async with trio.open_nursery() as nursery:
+            k = await start_k(nursery)
+    #+end_src
+  - Avoid external dependencies and special privileges.
+
+    Most normal programs don't require calling out to external services,
+    nor do they require that the user hold special privileges in some authorization system.
+
+    A program or library which starts distributed systems will be more useful
+    if it likewise can be used without such special setup.
+    It will be usable in a wider range of environments,
+    and by a wider range of users.
+
+These practices have served me well.
+By following these practices, I've found it's even easier to achieve a [[../run.html][runnable system]].
