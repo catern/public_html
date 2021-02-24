@@ -1,15 +1,9 @@
-#+title: Good practices for programs that run distributed systems
+#+title: Writing programs that run distributed systems
+#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
 
-By "programs that run distributed systems",
-I mean programs which run two or more separate processes,
-across one or more hosts, which communicate through some means.
-
-This is a programming task like any other,
-and the same techniques we usually use
-(functions, arguments, types, tests, etc.)
-can be used to great effect in this domain.
-
-These are Python examples, but the techniques are language-independent.
+Features of modern programming languages
+make it easy to write clear and correct programs that run distributed systems.[fn:what]
+Here are a few Python examples of these (language-independent) techniques.
 
    - Express dependencies between components using function arguments.
 
@@ -27,6 +21,9 @@ These are Python examples, but the techniques are language-independent.
 
      This defines a function which takes two arguments, of types "B" and "C",
      and which returns a value of type "A".
+
+     Naturally, if you want an A, you've got create a B and a C first:
+     exactly the invariant we want to enforce.
 
      One can define such types for one's own services,
      and include all the relevant information in them,
@@ -52,10 +49,10 @@ These are Python examples, but the techniques are language-independent.
      #+end_src
 
     The D class here takes a type argument specifying what the type of =d.url= is.
-    We can achieve this with generics or templates in most modern languages.
+    We can do this with generics or templates in most modern languages.
 
-    In =main=, we call =start_e= with the wrong type of =D=,
-    and we'll get a compile-time type error as a result.
+    In =main=, we call =start_e= with the wrong type of =D=;
+    we get a compile-time type error as a result.
   - Create different environments by [[../config.html][passing different arguments to functions]].
 
     Suppose service F has an optional dependency on service G;
@@ -150,5 +147,13 @@ These are Python examples, but the techniques are language-independent.
     It will be usable in a wider range of environments,
     and by a wider range of users.
 
-These practices have served me well.
-By following these practices, I've found it's even easier to achieve a [[../run.html][runnable system]].
+By using these techniques,
+I've found it's even easier to achieve a [[../run.html][runnable system]].
+
+* Footnotes
+
+[fn:what]
+By "distributed system",
+I mean two or more separate processes,
+across one or more hosts, which communicate through some means.
+ 
