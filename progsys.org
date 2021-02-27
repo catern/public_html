@@ -1,9 +1,8 @@
-#+title: Writing programs that run distributed systems
+#+title: Writing programs that run systems
 #+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
 
-Features of modern programming languages
-make it easy to write clear and correct programs that run distributed systems.[fn:what]
-Here are a few Python examples of these (language-independent) techniques.
+The features of modern programming languages
+make it easy to write clear and correct programs that run systems.
 
    - Express dependencies between components using function arguments.
 
@@ -51,8 +50,8 @@ Here are a few Python examples of these (language-independent) techniques.
     The D class here takes a type argument specifying what the type of =d.url= is.
     We can do this with generics or templates in most modern languages.
 
-    In =main=, we call =start_e= with the wrong type of =D=;
-    we get a compile-time type error as a result.
+    In =main=, we call =start_e= with the wrong type of =D=,
+    and we'll get a compile-time type error as a result.
   - Create different environments by [[../config.html][passing different arguments to functions]].
 
     Suppose service F has an optional dependency on service G;
@@ -85,7 +84,7 @@ Here are a few Python examples of these (language-independent) techniques.
     Since our distributed system is started by a normal program,
     we can use standard testing libraries to write our tests.
 
-    Python's standard library has a =unittest= module which works fine:
+    For example, Python's standard library has a =unittest= module which works fine:
     #+begin_src python
     import unittest
 
@@ -124,13 +123,8 @@ Here are a few Python examples of these (language-independent) techniques.
     and the error can be caught and reacted to at the appropriate level,
     or allowed to propagate.
     #+begin_src python
-    async def run_k() -> None:
-        result = await run_process("k")
-        if result.exit_code != 0:
-            raise Exception(...)
-
     async def start_k(nursery: trio.Nursery) -> K:
-        nursery.start_soon(run_k)
+        nursery.start_soon(run_command_and_wait_on_subprocess, ["k", ...])
         return K(...)
 
     async def main():
@@ -149,11 +143,3 @@ Here are a few Python examples of these (language-independent) techniques.
 
 By using these techniques,
 I've found it's even easier to achieve a [[../run.html][runnable system]].
-
-* Footnotes
-
-[fn:what]
-By "distributed system",
-I mean two or more separate processes,
-across one or more hosts, which communicate through some means.
- 
