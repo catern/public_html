@@ -1,54 +1,62 @@
-#+title: Beyond process supervisors
-
+<html>
+  <head>
+<title>Beyond process supervisors</title>
+</head>
+<body>
+<h1>Beyond process supervisors</h1>
 When running processes on Unix systems,
-it is important that these processes be waited-on by their parent process.
+it is important that every process be waited-on by its parent process.
+<p>
 Processes (such as "daemons") should not be run in "the background",
 orphaned and reparented to init,
 such that nothing will be notified if they exit.
+<p>
 Instead, they should be run under some other program, perhaps a process supervisor, which will wait on them;
-[[https://jdebp.uk/FGA/unix-daemon-design-mistakes-to-avoid.html][much has been written about this before]].
-
+much has been
+<a href="https://jdebp.uk/FGA/unix-daemon-design-mistakes-to-avoid.html">written about</a>
+<a href="https://www.freedesktop.org/software/systemd/man/daemon.html">this before.</a>
+<p>
 This is absolutely true and correct,
 and any system that is starting up processes in "the background" and just letting them leak
 is fundamentally flawed and must be fixed;
 and a dedicated process supervisor, running as a daemon, is a good way to approach fixing such problems.
-
+<p>
 But ultimately, the dedicated process supervisor daemon isn't necessary.
-
+<p>
 Starting and waiting on child processes is something any Unix program can do.
 There's no need for a specialized process supervision daemon.
-
+<p>
 If I have a collection of processes which together provide some functionality or application,
 it's natural for me to start those processes as my own child processes,
 and then wait on them and implement my own failure-handling policies
 based on the domain-specific information that I have about their behavior.
-
+<p>
 With this approach,
-I start the child processes that are relevant to me and then /keep running/,
+I start the child processes that are relevant to me and then <em>keep running</em>,
 waiting on those child processes and performing any maintenance tasks necessary (such as restarting failed processes).
-
+<p>
 This is a naturally recursive structure,
 where a given process might spawn more child processes to perform its task,
 each of which might in turn spawn still more child processes.
-
+<p>
 This recursive structure ultimately bottoms out at the init process - systemd or something else.
-
+<p>
 With systemd, a weak form of this recursive structure is always the case:
 The "system instance" of systemd (which is the init process)
 starts and waits on a "user instance" of systemd for each interactive user;
 the user instance in turn runs and waits on various user processes, such as a desktop environment.
-
+<p>
 But systemd only allows for two levels of recursion: system, then user.
 There's no way to start a systemd instance that just manages a single user application,
 with a lifecycle tied to that single application.
-
+<p>
 The best way to achieve further such recursion is to simply write a regular Unix program
 which just starts its own child processes and waits on them.
-
+<p>
 Indeed, this is already how most applications which run child processes work.
 They don't delegate the core Unix primitive of "fork and exec" to some system service;
 they simply perform it themselves.
-
+<p>
 Many designs are much easier when starting one's own child processes.
 If I want to connect two processes with a socketpair,
 the simple and obvious way is to create the socketpair, then start the two processes,
@@ -57,16 +65,18 @@ If I want to start some processes in the same set of namespaces,
 similarly the easiest way is to just enter those namespaces and then start the processes.
 And, of course, if I want to handle process failure with more intelligence than "restart it 5 times",
 it's easy to implement that logic in a general purpose programming language.
-
+<p>
 Delegating this basic functionality to a separate service like systemd provides little benefit,
 if one is careful to monitor one's own child processes.
-
-With modern programming languages and [[https://github.com/catern/rsyscall][libraries]],
+<p>
+With modern programming languages and <a href="https://github.com/catern/rsyscall">libraries</a>,
 it's easier than ever to write Unix programs which start and wait on collections of processes.
-
+<p>
 When building your next multi-process system,
 consider starting and monitoring processes directly,
 instead of using a process supervisor.
-
+<p>
 It can make sophisticated designs much easier,
-and also combines well with [[./distsys.html][richly typed designs]].
+and also combines well with <a href="./distsys.html">richly typed designs</a>.
+</body>
+</html>
