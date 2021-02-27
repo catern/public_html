@@ -1,5 +1,5 @@
-<title>Write code, not configuration</title>
-<h1>Write code, not configuration</h1>
+<title>Don't write configuration, write code</title>
+<h1>Don't write configuration, write code</h1>
 When you write a program which might use one of multiple implementations,
 or needs to connect to some URL,
 or needs some information to function,
@@ -25,7 +25,9 @@ Just make a separate program for each case.
 For a batch job, this might mean a few different executables,
 tweaked and rebuilt frequently over time as one's needs change.
 <p>
-For a user-facing application, this might mean that each user runs their own custom executable,
+  For a user-facing application, this might mean that each user runs their own
+  <a href="http://hackage.haskell.org/package/xmonad-contrib-0.16/docs/XMonad-Doc-Configuring.html">custom</a>
+  <a href="https://st.suckless.org/">executable</a>,
 compiled for or by them, with pre-compiled shared libraries common between all users.
 <p>
 For a daemon providing some network service and connecting to other services,
@@ -100,10 +102,3 @@ And you might also be in a corporate environment,
 where code changes require an extensive and painful process,
 but configuration changes can be made relatively easily.
 If so, consider quitting.
-<h3>Further reading</h3>
-<ul>
-  <li><a href="http://mikehadlow.blogspot.com/2012/05/configuration-complexity-clock.html">The Configuration Complexity Clock</a>
-  <li><a href="http://www.object-oriented-security.org/lets-argue/singletons">Singletons Considered Harmful</a>
-  <li><a href="http://hackage.haskell.org/package/xmonad-contrib-0.16/docs/XMonad-Doc-Configuring.html">XMonad configuration</a>
-  <li><a href="https://st.suckless.org/">st configuration</a>
-</ul>
