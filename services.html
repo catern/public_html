@@ -1,0 +1,115 @@
+<html>
+  <head>
+<title>Write libraries instead of services, where possible</title>
+</head>
+<body>
+<h1>Write libraries instead of services, where possible</h1>
+  A service has constant administration costs which are paid by the service provider.
+  A properly designed library instead moves these costs to the users of the library.
+<p>
+  For any implementer with limited resources,
+  <!-- obviously everyone has limited resources, but I feel like this makes the sentence scan better, shrug -->
+  this means a library can provide functionality to the user at a lower cost to the implementer than a service,
+  where viable.
+<p>
+  Usually, the centralization of these costs is cited as a benefit of services.
+  People say, "services are easy because you can upgrade them centrally,
+  so you can avoid slow-to-upgrade users making everyone's lives worse."
+<p>
+  But this assumes that slow-to-upgrade users can have negative effects on everyone else.
+  If one user can't have a negative impact on other users,
+  then you don't care if some users are slow to upgrade;
+  they're only hurting themselves.
+<p>
+  You can prevent users from negatively impacting other users by not sharing state or resources between users;
+  in other words, by avoiding services.
+<p>
+  For example, a common scenario is an implementer creating a library and a service together,
+  and later discovering that the (now already deployed) library has some bug or incompatibility,
+  and needs to be upgraded everywhere before the service can be improved.
+  A big headache,
+  which might naively suggest that functionality should be moved from the library to the service
+  so that it can be more easily upgraded.
+<p>
+  But if you didn't have the service in the first place - if there was only the library,
+  containing all the functions,
+  doing whatever the service was supposed to do in the first place -
+  you wouldn't have this problem.
+  Users who don't upgrade would suffer whatever problem exists in the initial version of the library,
+  and everyone else would be fine.
+<p>
+  Avoiding services completely in this way isn't always possible;
+  but it's possible more often than people think.
+  Some ideas along these lines to consider:
+<ul>
+  <li>Instead of manipulating resources from a service,
+    you can directly call the underlying primitives from a library.
+    In effect, the user then relies on the more stable services that are maintained by someone else,
+    like the Linux kernel or Kubernetes.
+    If you want to abstract over them - a library can do that too just fine.
+    <p>
+    Some good examples of services that can be avoided in this way
+    are <a href="./supervisors.html">process supervisors</a>
+    or <a href="./progsys.html">configuration management systems</a>.
+  <li>If the underlying primitives and resources cannot be safely accessed by regular users,
+    they can't use a library which accesses them.
+    One might conclude that a service is needed to safely share those resources between multiple users;
+    indeed that's practically the <em>definition</em> of a "service".
+    <p>
+      However, with some thought, often we actually <em>can</em> safely give users access to those resources,
+      and so a library can work fine.
+      Many resources don't actually need to be multiplexed by yet another service,
+      perhaps because they're one or more of:
+    <ul>
+      <li>fast to create (so we can just create them on the fly in the library)
+      <li>cheap to create (so we can give every user their own)
+      <li>already multiplexed and safe to share
+        (it's amazing how easy it is to miss this if you don't explicitly think about it)
+      <li>easily tweaked to be shareable (for example, a resource could be leased out to a user then reset when they're done)
+      <li>or otherwise safe or can be made safe to give to users directly
+    </ul>
+    Consider this carefully; this point is often non-obvious.
+  <li>Perhaps we really can't give users access to the underlying primitives.
+    But that doesn't mean a service is our only option to provide privilege separation between the user and the library.
+    <p>
+    If user code is running on a sufficiently advanced platform, one not administered by the user,
+    then a library can safely manipulate resources that aren't accessible to the rest of the program.
+    For example:
+    <ul>
+      <li>An object in a type-safe language can contain capabilities for resources which it uses to implement its methods,
+        without those capabilities being available to the code calling those methods.
+      <li>Java-style stack inspection can restrict user or library code to deny access at runtime to unauthorized methods.
+      <li>Capability-safe architectures such as CHERI
+        prevent code from accessing memory that it doesn't have an explicit capability for.
+      <li>Software fault isolation can allow Multics-style "call gates",
+        where a library has a different privilege level from other code.
+    </ul>
+    Admittedly, only the first of these is particularly common.
+  <li>Maintaining a stable, backwards-compatible interface is relatively straightforward for services
+    thanks to the support provided by many common protocols with features which ease compatibility
+    (protocol buffers, JSON, etc).
+    <p>
+      But this is also possible with a library.
+      Indeed, a library is strictly more powerful here;
+      there's no reason you can't use those same protocols for a local library,
+      and enjoy the same compatibility benefits.
+  <li>If you must, you can still update a library without user involvement, by using
+    <a href="https://www.akkadia.org/drepper/no_static_linking.html">dynamic linking</a> for your library.
+    Basic dynamic linking still requires a process restart to get new libraries,
+    but more advanced techniques can be used, such as automatically reloading the library on each call,
+    if you really want to upgrade things at any moment without your users knowing.
+    <p>
+    These days, dynamic linking is often criticized,
+    for the same reasons upgrading a service without involving your users is considered a bad idea,
+    but you can certainly still do it if you want to.
+</ul>
+
+Through these ideas and others,
+it's often possible to create a library instead of a service.
+<p>
+By avoiding the maintenance and upgrade costs of a service,
+a library can afford to contain more functionality.
+That's good for both the implementer and the user.
+
+</body>
+</html>
