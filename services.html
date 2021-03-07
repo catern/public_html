@@ -96,12 +96,13 @@
   <li>If you must, you can still update a library without user involvement, by using
     <a href="https://www.akkadia.org/drepper/no_static_linking.html">dynamic linking</a> for your library.
     Basic dynamic linking still requires a process restart to get new libraries,
-    but more advanced techniques can be used, such as automatically reloading the library on each call,
-    if you really want to upgrade things at any moment without your users knowing.
+    but more advanced techniques, such as automatically reloading the library on each call,
+    will allow truly upgrading things at any moment without your users knowing.
     <p>
     These days, dynamic linking is often criticized,
-    for the same reasons upgrading a service without involving your users is considered a bad idea,
-    but you can certainly still do it if you want to.
+    for the same reasons upgrading a service without involving your users at all is criticized,
+    so consider carefully whether you want to do it.
+    If you're fully avoiding services, such upgrades won't be necessary.
 </ul>
 
 Through these ideas and others,
