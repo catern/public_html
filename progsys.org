@@ -1,33 +1,44 @@
-#+title: Writing programs that run systems
+#+title: Deploying a distributed system? A type system helps a lot
+#+options: toc:0 num:nil
 #+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
 
-Features of modern programming languages
-make it easy to write clear and correct programs that run systems.
+Deploying and running a distributed system can be complex;
+a type system, even a basic one, can help with many of these complexities.
 
-   - Express dependencies between components using function arguments.
+Here are a few examples which demonstrate this in Python
+using the type system added by [[https://www.python.org/dev/peps/pep-0484/][PEP 484]].
 
+Together, these techniques make it easier to [[../run.html][run your system]].
+** You can express dependencies between services using function arguments.
      When service A makes use of services B and C, we need to make sure to start B and C before A.
 
      This is straightforwardly represented with a function:
      #+begin_src python
      def start_a(b: B, c: C) -> A:
          ...
+         start_process([
+           "/bin/a",
            "--b-url", b.url,
            "--c-url", c.url,
+           ...
+         ])
          ...
          return A(...)
      #+end_src
 
-     This defines a function which takes two arguments, of types "B" and "C",
-     and which returns a value of type "A".
+     The =start_a= function takes two arguments, of types =B= and =C=,
+     and returns a value of type =A=.
+     Internally, the function starts up service A,
+     passing command-line arguments using details from the function arguments.
 
-     Naturally, if you want an A, you've got create a B and a C first:
-     exactly the invariant we want to enforce.
+     Now if you want to start service A,
+     you've got create instances of =B= and =C= first - presumably by starting services B and C.
+     That's exactly the invariant we want to enforce.
 
      One can define such types for one's own services,
      and include all the relevant information in them,
      such as URLs to use to interact with them.
-   - Keep track of complex values using types.
+** You can keep track of complex values using types.
 
      Suppose service D can run in multiple different modes;
      say, it can either listen on an HTTP or HTTP2 URL.
@@ -47,12 +58,12 @@ make it easy to write clear and correct programs that run systems.
          return start_e(d)
      #+end_src
 
-    The D class here takes a type argument specifying what the type of =d.url= is.
+    =D= here takes a type argument specifying what the type of =d.url= is.
     We can do this with generics or templates in most modern languages.
 
     In =main=, we call =start_e= with the wrong type of =D=,
     and we'll get a compile-time type error as a result.
-  - Create different environments by [[../config.html][passing different arguments to functions]].
+** You can create different environments by passing different arguments to functions.
 
     Suppose service F has an optional dependency on service G;
     it can run whether or not service G is available.
@@ -79,67 +90,67 @@ make it easy to write clear and correct programs that run systems.
     #+end_src
 
     We can use =environment_one= or =environment_two=, each where appropriate.
-  - Test the distributed system through normal language-level tests.
+    Such techniques can also be used for configuration [[./config.html][more generally]].
+* Other useful programming language features
+There are a few other programming language features (besides a type system)
+that are helpful for deploying and running distributed systems.
 
-    Since our distributed system is started by a normal program,
-    we can use standard testing libraries to write our tests.
+** You can test the deployment code like any other program.
+If we use a normal program to deploy our distributed system,
+we can use standard testing libraries to write tests for that program.
 
-    For example, Python's standard library has a =unittest= module which works fine:
-    #+begin_src python
-    import unittest
+For example, Python's standard library has a =unittest= module which works fine:
+#+begin_src python
+class TestThings(unittest.TestCase):
+    def setupTest(self) -> None:
+        ...
+        self.h = start_h(...)
 
-    class TestThings(unittest.TestCase):
-        def setupTest(self) -> None:
-            ...
-            self.h = start_h(...)
+    def test_some_things(self) -> None:
+        self.assertIn("OK", requests.get(self.h.url + "/status"))
+#+end_src
+These tests can be stored and developed alongside the code to deploy the distributed system,
+just like normal programs.
+** You can explore interactively using the REPL or debugger.
+If we can run our system easily, we'll often want to do quick iterative exploration and changes;
+or maybe we'll want to explore an already-running system.
 
-        def test_some_things(self) -> None:
-            self.assertIn("OK", requests.get(self.h.url + "/status"))
-    #+end_src
-    These tests should be stored alongside the code,
-    just as with normal programs.
-  - Explore interactively using the REPL or debugger.
+REPLs and debuggers provide ready-made sophisticated interfaces to do exactly this kind of exploration.
+#+begin_src python
+>> i = start_i(...)
+<I object at 0x7fb3a45a4290>
+>> j = start_j(i, ...)
+<J object at 0x7fb3a45a4490>
+>> j.url
+"https://example.com"
+#+end_src
+** You can use asynchronous code to monitor multiple processes in the background.
+Every process needs to be monitored for failure.
+If a process exits, appropriate action needs to be taken,
+such as restarting that process or a larger collection of processes,
+or signaling a fatal error.
 
-    The functions that start our system can be called from a REPL or debugger with no additional effort.
-    #+begin_src python
-    >> i = start_i(...)
-    <I object at 0x7fb3a45a4290>
-    >> j = start_j(i, ...)
-    <J object at 0x7fb3a45a4490>
-    >> j.url
-    "https://example.com"
-    #+end_src
-  - Use asynchronous code to monitor multiple processes in the background.
+If your language has support for "asynchronous execution" or "coroutines",
+you can use that to [[http://catern.com/supervisors.html][monitor]] those [[https://github.com/catern/rsyscall][processes]].
 
-    Each process needs to be monitored for failure.
-    If, for example, a process exits, appropriate action needs to be taken,
-    such as restarting that process or a larger collection of processes,
-    or signaling a fatal error.
+An example with [[https://trio.readthedocs.io/en/stable/][trio]]:
+#+begin_src python
+async def run_command_and_restart_on_error(args: List[str]) -> None:
+    for _ in range(5):
+        try:
+            await run_command(args)
+        except CalledProcessError:
+            # sleep a second before restarting
+            await trio.sleep(1)
+            continue
+        return
+    raise Exception("we kept trying to restart, but we kept failing...")
 
-    You can use the asynchronous support in your language to monitor all the [[https://github.com/catern/rsyscall][processes]] at once.
+async def start_k(nursery: trio.Nursery) -> K:
+    nursery.start_soon(run_command_and_restart_on_error, ["k", ...])
+    return K(...)
 
-    If a process exits, that can be indicated through your language's usual error-handling method
-    (by raising an exception, for Python),
-    and the error can be caught and reacted to at the appropriate level,
-    or allowed to propagate.
-    #+begin_src python
-    async def start_k(nursery: trio.Nursery) -> K:
-        nursery.start_soon(run_command_and_wait_on_subprocess, ["k", ...])
-        return K(...)
-
-    async def main():
-        async with trio.open_nursery() as nursery:
-            k = await start_k(nursery)
-    #+end_src
-  - Avoid external dependencies and special privileges.
-
-    Most normal programs don't require calling out to external services,
-    nor do they require that the user hold special privileges in some authorization system.
-
-    A program or library which starts distributed systems will be more useful
-    if it likewise can be used without such special setup.
-    It will be usable in a wider range of environments,
-    and by a wider range of users.
-
-By using these techniques,
-I've found it's even easier to achieve a [[../run.html][runnable system]].
+async def main():
+    async with trio.open_nursery() as nursery:
+        k = await start_k(nursery)
+#+end_src
