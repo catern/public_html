@@ -24,7 +24,7 @@
   You can prevent users from negatively impacting other users by not sharing state or resources between users;
   in other words, by avoiding services.
 <p>
-  For example, a common scenario is an developer creating a library and a service together,
+  For example, a common scenario is a developer creating a library and a service together,
   and later discovering that the (now already deployed) library has some bug or incompatibility,
   and needs to be upgraded everywhere before the service can be improved.
   A big headache,
@@ -83,6 +83,7 @@
       <li>Java-style
         <a href="https://cs.stackexchange.com/questions/796/how-does-stack-inspection-work">stack inspection</a>
         can restrict user or library code to deny access at runtime to unauthorized methods.
+        <!-- good paper about stack inspection: https://www.usenix.org/legacy/publications/library/proceedings/usits97/full_papers/gong/gong.pdf -->
       <li><a href="https://en.wikipedia.org/wiki/Capability-based_addressing">Capability-safe architectures</a>
         such as
         <a href="https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/">CHERI</a>
