@@ -1,0 +1,69 @@
+<html>
+  <head>
+<title>Your users are a test suite</title>
+</head>
+<body>
+<h1>Your users are a test suite</h1>
+Code written by your users assumes things about the behavior of your code;
+when your code violates those assumptions, the user code will fail.
+This is equivalent to a test for your code;
+user code, in aggregate, forms a test suite for your code.
+<p>
+This is why "testing in production" is so powerful and tempting.
+Production is where your users run,
+and if they all work, you (almost tautologically) know that your code is correct,
+or at least correct enough.
+<p>
+The more code that depends on you and runs successfully,
+the more confident you can be that your implementation is correct.
+<p>
+You don't have to test in production to take advantage of this.
+Some examples:
+<ul>
+<li>When the Rust team changes the Rust compiler,
+they use the new compiler version
+to rebuild every open source project listed in the Rust package manager.
+Any new build failure indicates a bug in the change.
+<li>Modifying a low-level component in a monorepo
+and building and testing everything depending on it
+gives confidence that the change does not break the dependents,
+without writing an extensive test suite for the component itself.
+</ul>
+If you can <a href="./run.html">run your system</a>, including user code,
+you can incorporate running user code into your normal development and testing practices.
+You can drive events through the system,
+with saved production data
+or with techniques from fuzzing and property-based testing to trigger known edge cases,
+and assert that no errors occur.
+<p>
+User code can be treated as a test suite,
+which can be optimized and improved like any other,
+and which can be run repeatedly by each developer as they make changes.
+For a corporate entity that employs both the developer and the user,
+or an open source developer who acts out of altruism,
+the added incentive to improve the quality of user code is especially desirable.
+<p>
+One class of user code that is particularly useful for this purpose is:
+services developed to monitor and detect production errors.
+Such services depend on your code just like any other user,
+and are naturally suited to detect many kinds of bugs.
+<p>
+These techniques are most effective with a large system,
+with multiple users which in turn have users of their own.
+Again, the more code that depends on you and runs successfully,
+the more confident you can be that your implementation is correct.
+<p>
+  A larger, more complex system also
+  makes it harder to write traditional realistic stand-alone test cases.
+<p>
+  At some point,
+  these trends cross over,
+  and writing real code that uses the system productively is better for testing
+  than trying to write realistic stand-alone test cases.
+<p>
+  That's not a problem;
+  your users are a test suite ready for use,
+  you just need to <a href="./run.html">run it</a>.
+</body>
+</html>
+

@@ -1,0 +1,513 @@
+* post about, running system + contracts is good testing
+  Yeah this is what I need.
+  I need this post so I can excerpt parts of it and reference it.
+
+  hmm
+  also inverse testing?
+  does that fit in?
+
+  yeah okay so I guess a blog post about actual testing will be beneficial/necessary
+
+  then we can talk about that at the end of the example (I guess)
+
+  or maybe even in the philosophical discussion part;
+  we only waved it off because we didn't actually have anything to say lol.
+
+  ok so then we can just point out how what we're doing complies with that testing approach,
+  nice good okay...
+
+  you have error reporting mechanisms in prod,
+  like reject messages or error logs or all that
+  what if they go wrong? well that's why you have many services
+  what if they all go wrong? well why do you expect your test to be any different,
+  given that you will certainly not lavish effort on the test that doesn't even run in prod?
+* more thoughts
+  okay I feel like the inverse point is a little more useful?
+
+  or... just...
+  you test by building the complement...
+  or composing the complement.
+
+  I dunno...
+
+  or, autograders...
+  well those are basically test suites...
+
+  what we need is an inverse...
+
+  I wonder if I'm just repeating what property-based or quickcheck stuff say?
+
+  ugh this add example,
+  and other trivial unit test examples...
+  they make it kinda hard to see what to do.
+
+  maybe I should just bash unit tests?
+  hm.
+
+  It's kind of independent of unit vs integration tests really.
+
+  (even though that is a false dichotomy;
+  your "unit" uses library functions, that's no different from integration tests!)
+
+  cuz in any case,
+  if you've got some interface, you can "invert it".
+
+  this typing example...
+  it's also kind of missing the point
+
+  like, I'm concerned with more, programming in the large.
+
+  where you aren't dealing with integers or whatever.
+
+  you're dealing with more complex data types,
+  which, ok, are therefore larger, but...
+
+  your issue is... mainly handled by making sure you're all type-correct?
+
+  are they related?
+  I feel like they're both issues of programming in the large;
+  "these add function tests are not applicable",
+  and,
+  "types are surprisingly effective"
+* boopy conversation
+** my start
+*** insight 1 
+    what's the tests for your tests?
+    your implementation of course
+    which means your tests must be implementing something, but what?
+*** insight 2
+    test things by making their inverse
+*** insight 3
+    just run a system and that's enough testing lol
+** insight 4:
+  systems that produce a UI and systems that don't are tested very differently,
+  I guess.
+  if you aren't testing something used by a human,
+  your tests shouldn't be pretending to be a human.
+  the tests should just combine the thing with the other component that will actually use it!
+  so tagline: "Stop testing like a human"
+
+** insight 5:
+  contracts and stuff are nice.
+  but most systems don't have a ton of contracts internally.
+  but as a system becomes more complex, you actually get this interesting nonlinear effect.
+  where all the different clients rely on different properties,
+  and if you're actually running all of them - then you get a lot of invariants tested.
+
+  and people actually do this a lot!
+  testing in QA, testing in prod;
+  they don't run explicit tests,
+  they just wait for downstream systems to explode violently.
+
+  (and this doesn't require a human to be monitoring things)
+
+  "Complexity is a de-facto contract"
+
+  or something.
+  but it's not exactly *complexity* we want.
+  it's more... like... more code... or something...
+
+  so okay I think this covers all my previous insights, and is a better expression of it.
+
+  contract-based testing...
+  or, property based testing...
+  or something.
+  "you are already doing property-based testing"
+
+  by deploying things in prod, etc
+  this is why you get those nice benefits of "testing in prod",
+  or why you don't feel confident until you've deployed in prod.
+
+  once you've deployed in prod,
+  you might still sanity check the outputs of your system.
+  but that's not the real benefit;
+  the real benefit is all the other systems
+  that are now reading the outputs of your system,
+  and testing your invariants.
+
+  and if you violate them... they'll break
+
+  so that's why testing in prod is nice,
+  because it provides a lot of additional "properties" and "contracts",
+  that you don't have when testing.
+
+  but it's obviously inconvenient to only testing in prod...
+  but if you can just run your system anywhere, on demand,
+  then you get the best of both worlds.
+
+  
+*** boopy
+    and plus you have lots of good production alerting,
+    and monitoring, and stuff.
+    stuff which notices when things fail.
+
+    and that's writing test code.
+
+    it's not inevitable that this is true though,
+    it's something you invest in;
+    good production alerting...
+
+*** continuing thinkin
+    possible title: "You can "test in prod" in dev"
+
+    maybe...
+
+    might want to say,
+    there are a few impacts...
+    obviously now you have humans looking at it,
+    and reviewing it,
+    and reporting errors.
+
+    but you also have all the clients and automated systems reporting errors.
+
+    possible title: "Why is testing in production so useful?"
+    i guess...
+
+    but maybe what I want to say is...
+    something more focused on how you can get those benefits in dev?
+
+    no actually that seems good
+    because it explains things
+
+    or better yet:
+
+    title: "Testing in production is useful because of many assertions"
+    or something? hm.
+
+    the clickbait question style is maybe not good
+    because it doesn't give people something they can upvote
+
+*** let's just write it
+    just writing it will probably force me to think properly..
+
+    hmm
+
+    I might also want to emphasize how testing in this way is easier...
+    you save effort because you just focus on prod invariants and things...
+
+    you don't have to write tests!
+
+    hm I guess lots of people do have staging environments too
+
+    but, production is still nicer,
+    because you get the actual invariants enforced by people who run against you!
+    which, um,
+    presumably more people run stuff against production than the staging environment or whatever.
+
+    title: Testing in prod is easy-mode property-based testing
+    title: Property-based testing, the easy way: Just test in production
+    title: Testing in production is easy and good
+
+    no I want to express why testing in production is good, darn it
+
+    title: Testing in production means testing with your real clients
+    title: Testing in production means testing your real invariants
+
+    invariants? yeah? maybe I can focus on that?
+
+    title: Testing in production is testing with your real invariants
+    title: Testing in production means testing with your real invariants
+    title: Every real system already contains its own tests
+
+    yeah maybe?
+    reveal the tests inside your system?
+
+    title: You already have a test suite
+
+    (which is your end users)
+
+    title: Test with real users, not a test suite
+
+    well, I don't want to have an imperative...
+    I just want to say, it's easier to test with real users than to write a test suite
+    and... that's very effective...
+
+    maybe...
+    title: The largest part of your test suite should be your users
+
+    hmm...
+    I do think that's a good imperative...
+
+    really I just want to say,
+    hey, running your users is the easiest way.
+
+    title: Start your test suite by running downstream consumers
+    title: Start your test suite by pulling from running in production
+    title: Start your test suite by running in production
+
+    uhh hmmmmm
+
+    so I should mention here,
+    I think the way that the Rust compiler recompiles their ecosystem on changes,
+    is a great example of this.
+
+    oh, maybe...
+
+    title: Your ecosystem is a test suite
+
+    oh hm
+
+    title: Your users are a test suite
+
+    hmmm
+
+    title: Your users are a ready-made test suite
+    title: Your consumers are a ready-made test suite
+
+    I'm liking this direction...
+    just need to find a good phrasing.
+    a good word for dependents/users/ecosystem
+
+    what's my first sentence anyway
+
+    Programs which use your service assert various invariants about your service;
+    if your service fails to meet those invariants, your users will fail.
+    So when your consumers run for the first time against a new version,
+    they can reveal issues that all other testing missed.
+    This is why testing in production is so useful;
+    it (by definition) contains every real consumer of your service,
+    and tests all the invariants they require.
+
+    https://brson.github.io/2017/07/10/how-rust-is-tested#s-ds
+
+    maybe "users" is fine
+
+    title: Your users are a test suite, ready to run
+    title: Your users are a ready-made test suite
+
+    first lines:
+    #+begin_quote
+    Your users (the code that relies on your service or library through some means)
+    require your functionality to comply with certain invariants,
+    and for at least some of those invariants,
+    user code will fail loudly if they're violated.
+    These are the same properties as any test,
+    and so your users collectively form a ready-made test suite,
+    available to you without any investment in writing test cases.
+
+    This is why testing in production is so powerful:
+    Production is where your users run.
+    (also monitoring tools, which are "users", broadly construed)
+
+    But when you have access to user code
+    (as is often true for open source developers,
+    as well as for developers of internal services)
+    you can also run it outside of production.
+
+    If [[./run.html][you can run your system]],
+    including the user code that is part of it,
+    you can run user code like a regular test suite,
+    repeatedly as part of your development process.
+
+    This is much easier than writing custom test cases.
+
+    hmm.... You can start with this and then gain further coverage
+    by modifying the environment to match prod... uhh....
+    (it should already match prod... what do I mean?
+    like, it should have the same feailures as prod. so maybe I mean injecting failures?)
+    #+end_quote
+    
+    also do I really want to say it's easier than writing custom test cases?
+    maybe I can just leave that to the imagination...
+
+    well, I can say, like
+    Assuming you're capable of running your system,
+    as you should be,
+    this is an easy way to add test coverage,
+    which can form the foundation for your testing approach.
+
+    Depending on how optimized the user code is,
+    and the level to which you can control it and use it to trigger specific scenarios,
+    unit testing may not be necessary;
+    you can test your software entirely through its public interfaces,
+    while still executing your tests fast.
+
+    eh no that paragraph is bad.
+
+    but what do I really want to say?
+* what to say
+  - Rust uses this
+  - This is why testing in prod is good
+  - This is the easiest way to make a test suite
+  - This incentivizes you to help your users and make their code more robust
+  - Presumably you're developing at least some code which interacts with your service;
+    if that's testing-only, generalize it to production,
+    and if that's production-only, you can use it for testing like everything else.
+  - Your production monitoring systems are also users in this sense
+  - You can also develop new code which uses yours.
+
+  can we fit "inverses" into this idea?
+  well, I guess I don't much care about inverses, really...?
+  yeah I don't actually think "inverses",
+  in the sense of "exactly reversing so you can compare output by equality",
+  is useful in all that many places.
+  yeah...
+
+  yeah, I just think,
+  "writing full-featured real code" that you then just happen to use for a test,
+  is better than "writing test cases".
+
+  yeah that's a nice phrasing too.
+
+  - This suggests that instead of laboriously writing test cases,
+    you can focus on writing real code that really uses your system.
+    You get good coverage by running your system as a whole.
+
+  - The more components downstream of you in the system,
+    the more confident you are that your service is correct if the whole system runs without any errors.
+
+  - In a way, there's a nonlinear relationship between total system complexity and testing feasability;
+    at low complexity levels, manually written test cases are easy.
+    At moderate levels, many forms of testing become hard.
+    At high levels, where there are many different systems interacting and placing requirements on each other,
+    test cases are even harder,
+    but simply running the entire system (perhaps in production),
+    and observing that everything is successful,
+    is good evidence of correctness.
+
+  - This suggests that at some point,
+    writing real code that uses a system for some productive purpose
+    is competitive, from a testing perspective,
+    with writing dedicated test cases.
+    (As long as you can run that real code in a development environment,
+    in the same way you'd run a test case)
+
+  - This can combine well with property-based testing and fuzzing.
+    The task of coming up with properties to check is already solved by user code;
+    simply assert that there are no failures in the system.
+    This frees you to focus on generating inputs and driving them through the whole system.
+    
+  - This is best with open source or internal corporate services,
+    where you care (altruistically or not) about your users and want their code to be correct,
+    and have some level of confidence that it is correct.
+    Even if it's not correct and you don't have enough incentive to fix it,
+    you can (automatically or not) compensate for known failures in user code.
+
+  - A monorepo is a way to exploit this;
+    modifying a low-level dependency in a monorepo
+    and building and testing all the dependents
+    gives you confidence that you are not breaking the dependents,
+    even without writing an extensive test suite for the dependency itself.
+    
+  title: Your users are a test suite
+
+  Yeah I think that's quite pithy and good
+  maybe... maybe not...
+  I'm still iffy on "users"
+  I want to better connote user code, and not people...
+
+  okay so more things I want to say...
+  dunno, let's try another draft
+* title: Your users are a test suite
+  Code written by your users contains assumptions about the behavior of your code,
+  and for at least some of those assumptions, user code will fail detectably if those assumptions are violated.
+  These are the attributes of a test;
+  user code in aggregate forms a test suite for your code.
+
+  This is why "testing in production" is so powerful and tempting.
+  Production is where your users run,
+  and if they all work, you (almost tautologically) know that your code is correct,
+  or at least correct enough.
+
+  The more code that depends on you and runs successfully,
+  the more confident you can be that your implementation is correct.
+
+  But you don't have to test in production to take advantage of this.
+  For example:
+  
+  - When the Rust team changes the Rust compiler,
+  they use the new compiler version
+  to rebuild every open source project listed in the Rust package manager.
+  Any new build failure indicates a bug in the change.
+
+  - Modifying a low-level dependency in a monorepo,
+  and building and testing all the dependents,
+  gives you confidence that you are not breaking the dependents,
+  without writing an extensive test suite for the dependency itself.
+  
+  If you can [[./run.html][run your system]], including user code,
+  you can incorporate running user code into your normal development and testing practices.
+  You can drive events through the system,
+  with saved production data
+  or with techniques from fuzzing and property-based testing to trigger known edge cases.
+
+  User code can be treated as a test suite,
+  which can be optimized and improved like any other,
+  and which can be run repeatedly by each developer as they make changes.
+  For a corporate entity that employs both the developer and the user,
+  or an open source developer who acts out of altruism,
+  the added incentive to improve the quality of user code is especially desirable.
+
+  Services developed to monitor and detect production errors in your code can also be included;
+  they depend on your code just like any other user,
+  and are naturally suited to detect many kinds of bugs.
+
+  This is most effective with a large system,
+  with multiple users which in turn have users of their own.
+
+  As a system grows larger,
+  writing realistic stand-alone test cases naturally becomes more difficult,
+  while user code provides more and more coverage in aggregate.
+
+  This suggests that at some point,
+  writing real code that uses a system for some productive purpose
+  is competitive, from a testing coverage perspective,
+  with writing stand-alone test cases.
+  
+  
+
+
+  Writing stand-alone test cases from scratch can make it easier to create a fast test suite,
+  but in an environment where you care about your users and want their code to be correct and fast
+  (such as open source or internal corporate development),
+  you can also benefit from optimizing user code to run faster purely for testing reasons.
+  
+
+
+  Rather than optimizing a standalone test suite,
+  specific bits of user code can be optimized
+
+
+  It seems that system size 
+
+  As your number of users depending on you grows,
+  and they in turn have users depending on them,
+  the system becomes more complex.
+  It becomes harder to write realistic stand-alone test cases.
+
+  There's a non-linear relationship between system size and testing feasibility.
+
+  With a small system,
+  the original developer can write test cases which are realistic and cover all edge cases.
+
+  With a large system,
+  comprehensive test cases are hard to write,
+  but running user code provides equivalent coverage - assuming you can run it.
+
+  Between those points,
+  test cases are hard,
+  and user code is not substantial enough to give good coverage.
+  
+
+  This is good,
+  because more suc
+
+  The more such code exists,
+  and the more you can incorporate it into normal development,
+  the less reliant you are on manually writing test cases
+  which simulate what your actual users do.
+
+  This is good, because as systems become more complicated,
+  writing realistic test cases because substantially harder.
+
+  Code written by your users contains at least some assumptions about the behavior of your code
+  which, when violated, cause the user code to fail.
+
+  This suggests a non-linear relationship between system complexity and testability;
+  a small system is tested best with stand-alone test cases,
+  a large system is tested best with user code,
+  but a medium-sized system doesn't work well with either.
+
+  If you find yourself trying to improve the reliability of a medium-sized system,
+  paradoxically, adding more code (and running it as part of your development process)
+  
