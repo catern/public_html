@@ -510,4 +510,33 @@
 
   If you find yourself trying to improve the reliability of a medium-sized system,
   paradoxically, adding more code (and running it as part of your development process)
-  
+* fixing the first sentence
+  okaaaaay
+
+  this comes back to the problem of users vs whatever
+
+  maybe I can say "your implementation" instead of "your code"??
+
+  "your" and "user" sound similar/have similar letters, so they're also confusing...
+
+Any code that uses some service
+makes assumptions about the behavior of that service.
+When the service violates those assumptions, the user code will fail.
+This is equivalent to a test for the service;
+user code, in aggregate, forms a test suite for the service.
+
+Yeah I like the use of service here.
+
+Changing a low-level component in a monorepo
+triggers a build and test of everything that depends on that component.
+A failure of some dependent indicates that the change to the component is buggy,
+
+
+
+The incentive to improve the quality of user code
+works especially well when the same corporate entity employs both the developer and the user,
+or when an open source developer is acting out of altruism.
+* fixing the cross over point
+  hmm I feel like that's not maximally persuasive (since someone disagreed...)
+
+  i already weakened it a bit.

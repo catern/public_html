@@ -4,18 +4,16 @@
 </head>
 <body>
 <h1>Your users are a test suite</h1>
-Code written by your users assumes things about the behavior of your code;
-when your code violates those assumptions, the user code will fail.
-This is equivalent to a test for your code;
-user code, in aggregate, forms a test suite for your code.
+Any code that uses some service
+makes assumptions about the behavior of that service.
+When the service violates those assumptions, the user code will fail.
+This is equivalent to a test for the service;
+user code, in aggregate, forms a test suite for the service.
 <p>
 This is why "testing in production" is so powerful and tempting.
 Production is where your users run,
-and if they all work, you (almost tautologically) know that your code is correct,
+and if they all work, you (almost tautologically) know that your implementation is correct,
 or at least correct enough.
-<p>
-The more code that depends on you and runs successfully,
-the more confident you can be that your implementation is correct.
 <p>
 But you don't have to test in production to take advantage of this.
 <p>
@@ -25,10 +23,11 @@ Some examples:
 they use the new compiler version
 to rebuild every open source project listed in the Rust package manager.
 Any new build failure indicates a bug in the change.
-<li>Modifying a low-level component in a monorepo
-and building and testing everything depending on it
-gives confidence that the change does not break the dependents,
-without writing an extensive test suite for the component itself.
+<li>Changing a low-level component in a typical monorepo
+triggers a build and test of everything that depends on that component.
+A build or test failure indicates a bug in the change to the component.
+Complete success is often sufficient to show that the change is safe,
+even if the component itself has no tests.
 </ul>
 If you can <a href="./run.html">run your system</a>, including user code,
 you can incorporate running user code into your normal development and testing practices.
@@ -40,31 +39,32 @@ and assert that no errors occur.
 User code can be treated as a test suite,
 which can be optimized and improved like any other,
 and which can be run repeatedly by each developer as they make changes.
-For a corporate entity that employs both the developer and the user,
-or an open source developer who acts out of altruism,
-the added incentive to improve the quality of user code is especially desirable.
+This incentive to improve the quality of user code
+works especially well when the developer and the user are employed by the same entity,
+or when an open source developer is acting out of altruism.
 <p>
 One type of user code that is particularly useful for this purpose:
 services developed to monitor and detect production errors.
-Such services depend on your code just like any other user,
+Such monitoring services depend on your service just like any other user,
 and are naturally suited to detect many kinds of bugs.
 <p>
 These techniques are most effective with a large system,
-with multiple users which in turn have users of their own.
-Again, the more code that depends on you and runs successfully,
+with multiple users each with users of their own
+that can be included to test more invariants.
+The more code that depends on you and runs successfully,
 the more confident you can be that your implementation is correct.
 <p>
-  A larger, more complex system also
-  makes it harder to write traditional realistic stand-alone test cases.
+A larger, more complex system also makes it harder
+to write traditional realistic stand-alone test cases.
 <p>
-  At some point,
-  these trends cross over,
-  and writing real code that uses the system productively is better for testing
-  than trying to write realistic stand-alone test cases.
+At some point,
+these trends cross over,
+and writing real code that uses the system productively is an easier way to test
+than trying to write realistic stand-alone test cases.
 <p>
-  That's not a problem;
-  your users are a test suite ready for use,
-  you just need to <a href="./run.html">run it</a>.
+That's not a problem;
+your users are a test suite ready for use,
+you just need to <a href="./run.html">run it</a>.
 </body>
 </html>
 
