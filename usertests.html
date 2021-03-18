@@ -4,15 +4,15 @@
 </head>
 <body>
 <h1>Your users are a test suite</h1>
-Any code that uses some service
-makes assumptions about the behavior of that service.
-When the service violates those assumptions, the user code will fail.
+Any code that uses a service
+assumes things about the behavior of that service.
+If the service violates those assumptions, the user code will fail.
 This is equivalent to a test for the service;
 user code, in aggregate, forms a test suite for the service.
 <p>
 This is why "testing in production" is so powerful and tempting.
 Production is where your users run,
-and if they all work, you (almost tautologically) know that your implementation is correct,
+and if they all work, you know that your implementation is correct,
 or at least correct enough.
 <p>
 But you don't have to test in production to take advantage of this.
@@ -51,11 +51,12 @@ and are naturally suited to detect many kinds of bugs.
 These techniques are most effective with a large system,
 with multiple users each with users of their own
 that can be included to test more invariants.
+<p>
 The more code that depends on you and runs successfully,
 the more confident you can be that your implementation is correct.
 <p>
-A larger, more complex system also makes it harder
-to write traditional realistic stand-alone test cases.
+But, a larger, more complex system also makes it harder
+to write realistic stand-alone test cases.
 <p>
 At some point,
 these trends cross over,
