@@ -540,3 +540,24 @@ or when an open source developer is acting out of altruism.
   hmm I feel like that's not maximally persuasive (since someone disagreed...)
 
   i already weakened it a bit.
+* post
+  ok dang it, not getting those upvotes I crave
+
+  maybe need a more clickbait title
+
+  title: You should run user code as a test suite
+
+  seems better? imperative is more clickbaity?
+
+  title: You can run user code as a test suite
+  title: User code is a test suite
+
+  title: Test your system with itself
+
+  hm
+
+  title: A complex system is its own test
+  title: A complex system is its own tests
+  title: A complex system is its own test suite
+
+  that sounds kinda better, I guess...
