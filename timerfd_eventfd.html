@@ -1,0 +1,77 @@
+<html>
+  <head>
+<title>timerfd is a specialized kind of eventfd</title>
+</head>
+<body>
+<h1>timerfd is a specialized kind of eventfd</h1>
+<a href="https://man7.org/linux/man-pages/man2/eventfd.2.html">
+eventfd file descriptors</a>
+and
+<a href="https://man7.org/linux/man-pages/man2/timerfd_create.2.html">
+timerfd file descriptors</a>
+have compatible behavior when
+<a href="https://man7.org/linux/man-pages/man2/read.2.html">
+<code>read</code></a>
+is called on them.
+Thus, one can be substituted for the other without an application knowing,
+assuming it only calls <code>read</code>.
+<p>
+For both,
+you read exactly one 64-bit integer at a time, and if that integer would be 0, <code>read</code> blocks.
+<p>
+With timerfd, this is the number of timer expirations since the last <code>read</code>;
+with eventfd, this is the number of events that have been written to the eventfd since the last <code>read</code>.
+<p>
+So, timerfd can be emulated by simply writing to an eventfd from a userspace process every N seconds.
+<p>
+Indeed, we can think of "timerfds" as a specialized kind of eventfd,
+specially optimized by the kernel,
+for the common case of triggering an event on a timer.
+<p>
+This opens up some interesting possibilities.
+<p>
+First, let's imagine that we live in a world where programs are habitually written in a object-capability style
+using file descriptors.
+Like with Capsicum or CloudABI or UCSPI.
+<p>
+In this world,
+we could use timerfds rather than strings to configure things relating to time.
+<p>
+For example, rather than passing cron the text string <code>0 * * * *</code> to run a job every hour,
+we could instead pass a timerfd which is configured to expire every hour.
+Then cron would run select on that timerfd, among others,
+and when a timerfd expires,
+cron would run the relevant job.
+<p>
+One can imagine similar schemes for many other forms of time handling which currently are done with inert data.
+<p>
+Indeed, we could universally use timerfd for <em>all</em> interactions with time;
+a well-designed program would never use <code>clock_gettime</code>,
+but instead would only ever wait for various timerfds to expire.
+<p>
+Then, for programs that are designed to use timerfds in this way,
+eventfd provides a way to put "time" under userspace control,
+without use of privileges or namespaces.
+<p>
+A cron designed to use timerfds would not be just a way to run jobs at specific times.
+Rather, it would be a fully generic tool for running a job on any event,
+so long as it's notified of that event through an eventfd-compatible file descriptor,
+which can be passed in to cron from any arbitrary external source.
+<p>
+Likewise for other programs;
+rather than being bound to just working with time,
+they can also work with any other kind of events.
+<p>
+Since time-based events are generally just approximations for the hard-to-work-with actual events,
+this is a generally useful change.
+Programs which today wait for an event by looping over a flag-check and a (timerfd-based) sleep,
+can later wait directly for the event through an eventfd.
+<p>
+This would also be useful to ensure deterministic tests for applications which rely on time.
+<p>
+This increase in expressiveness is just a consequence
+of the power of both the object-capability paradigm and Linux.
+Using file descriptors as capabilities perfectly harmonizes this paradigm with Linux,
+and allows for mechanisms like the one described here.
+</body>
+</html>
