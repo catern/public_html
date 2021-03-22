@@ -35,4 +35,31 @@ for dyn
   Clients can use this library to speak the wire protocol;
   when the wire protocol changes,
   clients can automatically download and use the new library version at runtime.
-  
+* boopy feedback 2  
+  first paragraph is long
+  you need the title to understand it, which is weird
+
+  second paragraph is too abstract,
+  sounds like you are going to do some cap theorem thing,
+  just delete it lol
+* rework 2  
+  OK I think I can make the first paragraph much shorter and more vague.
+
+  What's the core idea here?
+
+  It is easier to deploy changes to backwards-compatible wire protocols
+  than to wire protocols that are not backwards compatible.
+  (But I'm suggesting that's not true!)
+
+  A backwards-compatibility layer makes it easier to deploy upgrades to protocols;
+  when this is at the wire protocol layer, it also makes the protocol less efficient.
+  If backwards-compatibility is shifted to the client library layer,
+  it can be removed from the wire protocol which can then be made more efficient.
+
+
+  At the wire protocol level,
+  which describes the serialization and deserialization of bits over some transport,
+  supporting old client code while the wire protocol changes
+  comes with a cost in performance.
+
+  (maybe skip straight to "Protocols that are backwards-compatible and can be changed" section?)
