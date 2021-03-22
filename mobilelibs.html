@@ -1,0 +1,79 @@
+<html>
+  <head>
+<title>For performance, use auto-updated libraries instead of backwards-compatible protocols</title>
+</head>
+<body>
+<h1>For performance, use auto-updated libraries instead of backwards-compatible protocols</h1>
+Instead of speaking a backwards-compatible but slow wire protocol,
+a service can speak a fast, but not-backwards-compatible wire protocol
+and provide a library with an efficient backwards-compatible interface to that wire protocol.
+Clients can use this library to speak the wire protocol;
+when the wire protocol changes,
+clients can automatically download and use the new library version at runtime.
+<p>
+In the design of protocols,
+backwards-compatibility,
+extensibility,
+and performance are fundamentally conflicting goals.
+<p>
+The most backwards-compatible protocols are never (or rarely) extended,
+and therefore can achieve good performance by optimizing for what's supported today;
+for example, TCP/IP or Ethernet.
+<p>
+Protocols that are backwards-compatible and can be changed
+require a great deal of parsing complexity so that new messages
+can be sent without breaking old parsers;
+for example, HTTP, Protocol Buffers or Capnproto.
+<p>
+To be able to change the protocol while retaining good performance,
+backwards-compatibility in the wire protocol must be sacrificed.
+That allows us to create optimized binary wire protocols,
+which support exactly and only the current set of features.
+<p>
+A wire protocol that is not backwards-compatible is still useful;
+it just means that whenever the service changes the wire protocol,
+all the clients must be upgraded.
+Translation layers can be installed between the client and the service,
+but that sacrifices performance, which defeats our original goal.
+<p>
+Upgrading in sync is straightforward if the service and the clients are controlled by the same entity.
+If the service and clients are controlled by different entities, such synchronized upgrades become harder.
+<p>
+We can ensure that the service and clients are controlled by the same entity
+by having user code download the client library on the fly.
+Instead of users deploying full client libraries as part of their own code,
+users program against an interface definition for the client library.
+Then, at runtime, some minimal bootstrap code connects to the service
+to download the current client library and run it inside a sandbox.
+<p>
+This is what web browsers do.
+A web browser contacts a server to download HTML and Javascript;
+that HTML and Javascript then further interacts with the server,
+using an arbitrary private protocol,
+which might not even be HTTP-based,
+to implement some web application.
+<p>
+Both for client libraries and the web,
+this allows the service provider to ignore backwards compatibility issues in the wire protocol,
+since the client library speaking the client-side of the protocol will always be up to date.
+<p>
+With this approach, instead of being backwards-compatible in the protocol,
+we need to be backwards-compatible in the library interface,
+since users may have deployed old interface definitions.
+This is much simpler to do while maintaining high performance;
+we can just write code which implements old interface functions by calling new functions.
+And there are many tools available to ensure that a library is compatible with a specific interface.
+<p>
+Users would still be able to write their own protocol implementations.
+Indeed, there's no reason to not make the auto-downloaded library open source.
+They simply would need to ensure that they were always up to date;
+downloading the client library on the fly makes that much easier for users.
+<p>
+Backwards-compatible, extensible protocols are frequently the appropriate chance;
+but when high performance is needed,
+different techniques are required.
+By download the client library for the protocol on the fly,
+we can have high performance and extensibility,
+without compromises.
+</body>
+</html>

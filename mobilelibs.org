@@ -1,0 +1,38 @@
+
+okay so for dynamic linking while still being extensible and fast,
+we need mobile libraries
+
+alternative title:
+
+for dyn
+* boopy feedback
+** backwards-compatible
+  okay it's all misleading,
+  because I'm proposing this *as* a way to have a backwards-compatible protocol
+  (boopy says)
+  he doesn't like the first sentence
+
+  so I should really not say "hey there's no backwards-compatibility lol",
+  i should instead say this is a different way to to do it.
+  seems reasonable!
+** interface definitions
+  ALSO,
+  the point about, the client has interface definitions,
+  was not loud enough because boopy missed that
+* so, rework...
+  so... what am I really saying?
+  i'm saying, maybe,
+  that backwards-compat is better done at the edges,
+  rather than transmitted over the wire...
+
+  yeah, that's... good and interesting
+
+  Basically:
+
+  Instead of speaking a backwards-compatible but slow wire protocol,
+  a service can speak a fast, but not-backwards-compatible wire protocol
+  and provide a library with an efficient backwards-compatible interface to that wire protocol.
+  Clients can use this library to speak the wire protocol;
+  when the wire protocol changes,
+  clients can automatically download and use the new library version at runtime.
+  
