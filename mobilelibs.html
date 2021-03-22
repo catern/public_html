@@ -4,32 +4,18 @@
 </head>
 <body>
 <h1>For fast protocols, be backwards-compatible in the client, not on the wire</h1>
-Instead of speaking a backwards-compatible but slow wire protocol,
-a service can speak a fast, but not-backwards-compatible wire protocol
-and provide a client library with an efficient backwards-compatible interface to that wire protocol.
-Clients can use this library to speak the wire protocol;
-when the wire protocol changes,
-clients can automatically download and use the new library version at runtime.
+A backwards-compatibility layer makes it easier to deploy upgrades to protocols;
+when this is at the wire protocol layer, it also makes the protocol less efficient.
+If backwards-compatibility is shifted to the client library layer,
+it can be removed from the wire protocol which can then be made more efficient.
 <p>
-In the design of protocols,
-backwards-compatibility,
-extensibility,
-and performance are fundamentally conflicting goals.
-<p>
-The most backwards-compatible protocols are never (or rarely) extended,
-and therefore can achieve good performance by optimizing for what's supported today;
-for example, TCP/IP or Ethernet.
-<p>
-Protocols that are backwards-compatible and can be changed
-require a great deal of parsing complexity so that new messages
-can be sent without breaking old parsers;
-for example, HTTP, Protocol Buffers or Capnproto.
+Backwards-compatible wire protocols require a great deal of parsing overhead
+so that new messages can be sent without breaking old parsers;
+good examples are HTTP, Protocol Buffers, and FIX.
 A popular approach is to send each message as a sequence of self-describing tag-value pairs;
 this spends a great deal of space and time on metadata about the format of the message stream.
 <p>
-To be able to change the protocol while retaining good performance,
-ultimately backwards-compatibility in the wire protocol must be sacrificed.
-That allows us to create optimized binary wire protocols,
+By sacrificing backwards-compatibility, we can instead create optimized binary wire protocols
 which support exactly and only the current set of features.
 <p>
 A wire protocol that is not backwards-compatible is still useful;
@@ -39,14 +25,18 @@ all the clients must be upgraded.
 but that sacrifices performance, which defeats our original goal.)
 <p>
 Upgrading in sync is straightforward if the service and the clients are controlled by the same entity.
-If the service and clients are controlled by different entities, such synchronized upgrades become harder.
+However, if the service and clients are controlled by different entities,
+such synchronized upgrades become harder.
+For example, TCP/IP and Ethernet have so many deployed implementations
+that they can essentially never be upgraded.
 <p>
 We can ensure that the service and clients are controlled by the same entity
-by having user code download the client library on the fly.
-Instead of users deploying full client libraries as part of their own code,
-users program against an interface definition for the client library.
-Then, at runtime, some minimal bootstrap code connects to the service
-to download the current client library and run it inside a sandbox.
+by having user code download a backwards-compatible client library on the fly,
+instead of deploying it as part of their own code.
+<p>
+Users program against an interface definition for the client library.
+Then, at runtime, some minimal bootstrap code
+downloads the current version of the client library from the service and runs it inside a sandbox.
 <p>
 This is what web browsers do.
 A web browser contacts a server to download HTML and Javascript;
@@ -59,17 +49,16 @@ Both for client libraries and the web,
 this allows the service provider to ignore backwards compatibility issues in the wire protocol,
 since the client library speaking the client-side of the protocol will always be up to date.
 <p>
-With this approach, instead of being backwards-compatible in the wire protocol,
-we need to be backwards-compatible in the library interface,
-since users may have written code against old interface definitions.
+For this to work, each new version of the client library must be backwards-compatible,
+since users may have written code with old interface definitions.
 This is much simpler to do while maintaining high performance;
 we can just write code which implements old interface functions by calling new functions.
 And there are many tools available to ensure that a library is compatible with old interfaces.
 <p>
 Users would still be able to write their own protocol implementations.
-Indeed, there's no reason to not make the auto-downloaded library open source.
+Indeed, there's no reason to not make the client library open source.
 Users would simply need to ensure that they were always up to date;
-downloading the client library on the fly makes that much easier.
+downloading the client library on the fly makes that easier, but is not required.
 <p>
 Backwards-compatible, extensible wire protocols are frequently the appropriate choice;
 but when high performance is needed,
