@@ -1,6 +1,6 @@
 #+title: Simple, Fast, Easy Parallelism in Shell Pipelines
 #+options: toc:0 num:nil
-#+HTML_HEAD: <style type="text/css">body{ max-width:60em; margin-left:auto; margin-right:auto; }</style>
+#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} body{ max-width:60em; margin-left:auto; margin-right:auto; }</style>
 
 # TODO people think it might be slow - show it's faster than python
 # TODO people think they already know how to do parallel job processing with xargs or parallel
@@ -35,31 +35,33 @@ processing each line and sending some transformed lines to =sink=.
 So there is a possibility of parallel processing on the basis of lines:
 We could have multiple =worker= tasks[fn:task] which each process different lines of data from =src= and output transformed lines to =sink=.[fn:interleaving]
 
-Of course, there already exists =xargs= and GNU =parallel=,
-which have the ability to run multiple tasks at once.
+Of course, there already exists =xargs= and GNU parallel[fn:parallel],
+which have the ability to run multiple tasks simultaneously.
 What's the difference?
-- When =xargs= and =parallel= run a command, they provide a line of input as an argument to that command.
+- When =xargs= runs a command, it provides a line of input as an argument to that command.
   But the typical data-processing Unix command reads lines of input from stdin,
   not from its arguments on the command line,
-  so many commands simply don't make sense to use with =xargs= and =parallel=.[fn:parallelpipe]
-- =xargs= and =parallel= start a new task[fn:task] for each line of input.
+  so many commands simply don't make sense to use with =xargs=.
+- =xargs= starts a new task[fn:task] for each line of input.
   That is impractical for programs with a slow initialization.
   For example, this is painful for programs that open a network connection.
 - Because a new task is started for every line, workers can't keep state about the data they have seen.
-  For example, =uniq= cannot be done in parallel with =xargs= and =parallel=.
+  For example, =uniq= cannot be done in parallel with =xargs=.
   This ability to keep state as input is processed is useful for many, many data-processing tasks.
 
-Overall, =xargs= and =parallel= are mainly useful for executing a command repeatedly with a varying set of arguments, not processing a lot of data.
+Overall, =xargs= is mainly useful for executing a command repeatedly with a varying set of arguments, not processing a lot of data.
 A technique that allows
 a pool of worker tasks[fn:task], executing in parallel,
 to process incoming lines as they arrive on stdin,
 would be strictly more general.
-You could even run =xargs= and =parallel= within such a technique, or nest such a technique within itself;
-you can't run =xargs= and =parallel= from =xargs= or =parallel=.
+You could even run =xargs= within such a technique, or nest such a technique within itself;
+you can't run =xargs= from =xargs=.
 
 Writing a parallel pipeline in any shell looks like this:[fn:interleaving]
 #+begin_src sh
-src | { worker & worker & worker & } | sink
+src | { worker &
+        worker &
+        worker & } | sink
 #+end_src
 This will start up three workers in the background,
 which will all read data from src in parallel,
@@ -78,7 +80,8 @@ This just means "this command should read input from file descriptor 0; that is,
 which happens by default in most shells,
 but won't happen in bash due to a [[https://groups.google.com/forum/#!topic/gnu.bash.bug/bgTSFM8UAek][bug]] that will be fixed in the next release.
 #+begin_src sh :exports both
-yes ooo | head -n 8 | pv --quiet --rate-limit 4 | { <&0 tr o z & tr o x & }
+yes ooo | head -n 8 | pv --quiet --rate-limit 4 | { <&0 tr o z &
+                                                        tr o x & }
 #+end_src
 
 #+RESULTS:
@@ -99,7 +102,9 @@ To deal with the issue of interleaving, we need to introduce two new commands.
 and =unpad= removes that padding.
 Then we make the following small modification:
 #+begin_src sh
-src | pad | { unpad | worker & unpad | worker & unpad | worker & } | sink
+src | pad | { unpad | worker &
+              unpad | worker &
+              unpad | worker & } | sink
 #+end_src
 Communicating with fixed-size blocks means that =pad= and =unpad= will never interleave,
 due to [[http://www.gnu.org/software/libc/manual/html_node/Pipe-Atomicity.html][pipe atomicity]].
@@ -107,13 +112,15 @@ This fixed size must be determined in advance,
 and should be at least as large as the largest possible line that =src= can emit.
 There is an upper limit[fn:pipebuf] on this fixed size;
 on Linux, it's 4096 bytes;
-and if a line is longer than that, it will be truncated to 4096 bytes.
+and *if a line is longer than that, it will be truncated to 4096 bytes, discarding all extra data*.
+If your lines are longer than 4096 bytes, you will lose data!
 But most people don't work with lines that are anywhere close to 4096 bytes long,
-and if you did work with such long lines then you could work around the limit in any number of ways.[fn:workaround]
+so they have little to worry about if they are careful.
+If you do work with such long lines then you can work around the limit in any number of ways.[fn:workaround]
 
 =pad= and =unpad= can be defined as follows:[fn:trailing][fn:pipebuf]
 #+begin_src sh
-# pad to the maximize size we can do and still be atomic
+# pad to the maximize size we can do and still be atomic on this system
 pipe_buf=$(getconf PIPE_BUF /)
 function pad() {
     # redirect stderr (file descriptor 2) to /dev/null to get rid of noise
@@ -127,7 +134,8 @@ For convenience, you could insert this snippet into your =.bashrc=.
 
 Let's look at a fixed version:
 #+begin_src sh :exports both
-yes ooo | head -n 8 | pv --quiet --rate-limit 4 | pad | { <&0 unpad | tr o z & unpad | tr o x & }
+yes ooo | head -n 8 | pv --quiet --rate-limit 4 | pad | { <&0 unpad | tr o z &
+                                                              unpad | tr o x & }
 #+end_src
 
 #+RESULTS:
@@ -162,7 +170,8 @@ Since =factor= is CPU-bound,
 we want to run it on multiple CPU cores at once.
 Since these worker tasks will be able to run simultaneously on different cores, this will be substantially faster than the single-worker case.[fn:cores]
 We =pad= and =unpad= the output as well to avoid it being interleaved,
-since factor could perform partial writes or writes over the maximum atomic size.[fn:padoutput]
+since factor could perform partial writes or writes over the maximum atomic size.
+Placing =pad= and =unpad= on the output is safer unless you know for sure that the output is atomic.[fn:padoutput]
 
 Try comparing different numbers of workers to the single-worker case:
 #+begin_src sh
@@ -190,9 +199,11 @@ Host: $host
 
 "
 function worker() {
-    # unpad the input, pass each line to xargs for printf-formatting, and pass the resulting request to s_client
+    # unpad the input, pass each line to xargs for printf-formatting,
+    # and pass the resulting request to s_client
     # use pv to throttle our requests to 8 per second per worker.
-    unpad | pv --quiet --line-mode --rate-limit 8 | xargs -n 1 printf "$format" | openssl s_client $host | pad
+    unpad | pv --quiet --line-mode --rate-limit 8 |  \
+    xargs -n 1 printf "$format" | openssl s_client $host | pad
 }
 # generate an endless stream of increasing integers and pad them to a fixed size
 seq inf | pad | {
@@ -229,6 +240,13 @@ which limits the amount of pipe buffers that could be filled to just one;
 alternatively, throttle before =pad= when generating the input.
 Ideally, =dd= would have a throttling option built-in, which would allow wholly eliminating the problem... I'm working on a patch.
 
+Again one last reminder:
+If your lines are over 4096 bytes long, you will lose data if you don't use a workaround.[fn:workaround]
+And =pad= and =unpad= can only be omitted from the worker output if you know the worker output is atomic.[fn:padoutput]
+Now, with this caveats,
+go forth and use this knowledge to construct high-performance concurrent systems out of shell scripts!
+# [fn:parallelprobs]
+
 # do we need other examples?
 # maybe people don't use xargs' parallelism capabilities...
 # so I can trick them into thinking this is new...
@@ -260,10 +278,6 @@ Of course this is a gross hack,
 because for proper support of pipelines it means the kernel not only needs to know which task is in the foreground,
 but keep track of groups of tasks, called "jobs".
 This is why some people think job control is an over-complicated mess that should never have been introduced.
-
-[fn:parallelpipe]
-GNU =parallel= does have the ability to pass input on stdin to commands,
-but it still starts a new task for each unit of input.
 
 [fn:interleaving]
 If you're worried about interleaving, just read on.
@@ -311,13 +325,17 @@ the [[http://wiki.bash-hackers.org/syntax/redirection][Bash hackers wiki]].
 You may also want to look at [[http://unix.stackexchange.com/questions/136510/process-substitution-with-tee-and-paste][this StackOverflow question]] as an alternative way to combine the output of these parallel workers.
 
 [fn:padoutput]
-Using =pad= and =unpad= on the *output* of parallel workers is not strictly necessary,
-but it's always safe.
-We can control it with other techniques too,
+Using =pad= and =unpad= on the *output* of parallel workers is not always necessary,
+but it is generally a safer way to do things.
+We can control interleaving of the output with other techniques too,
 such as =stdbuf -oL=,
 to force output to be written in units of whole lines,
-which will be atomic as long as those lines are short enough,
-and won't cause any painful interleaving.
+which will be atomic as long as those lines are short enough.
+The foe of atomicity in this context is buffering of the output,
+so see [[http://mywiki.wooledge.org/BashFAQ/009][this BashFAQ question]] for more information about controlling or disabling buffering.
+Again, if you don't know for sure that the output of the worker is line-buffered,
+or otherwise written in atomic-sized chunks,
+it is best to use =pad= and =unpad= for safety.
 
 [fn:cores]
 If you have multiple cores, anyway. But who doesn't, these days?
@@ -340,3 +358,25 @@ We can get a kernel-minimum value of =PIPE_BUF= with =getconf PIPE_BUF /=.
 We need to pass a path to =getconf= because this value can vary on a per-pipe basis,
 and =getconf= (or more specifically the underlying [[http://www.unix.com/man-page/posix/3p/fpathconf/][fpathconf(3p)]] system call)
 gives you the ability to specify the pipe that you are checking =PIPE_BUF= for.
+
+[fn:parallel]
+GNU parallel partially, but not fully, does what I describe in this article.
+
+It supports sending lines of input to commands over stdin with its =--pipe= argument
+and sending multiple lines to the same task with its =--round-robin= argument.
+And it doesn't have a 4096-byte-long line limit,
+and you don't need to worry about wrapping your workers with =pad= and =unpad=.
+
+But, parallel can only send fixed-size blocks to workers;
+so if the pipeline is only getting small amounts of work at a time,
+parallel won't send that work out until it builds up to a larger block.
+That's an unacceptable limitation for at least my use cases.
+
+# [fn:parallelprobs]
+# One remaining problem with GNU parallel is that it doesn't fully support streaming the output from the multiple parallel tasks;
+# the only options are to buffer all the output of a task and write it out all at once,
+# to leave the output totally unbuffered such that it suffers from interleaving,
+# or to line-buffer the output.
+# The last option should work great,
+# but in my testing it seems rather erratic about when parallel actually flushes its output -
+# it seems to be buffering multiple lines at once.
