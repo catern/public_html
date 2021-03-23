@@ -1,0 +1,118 @@
+#+TITLE: Finding the optimal tradeoff between career and art
+#+HTML_HEAD: <style type="text/css">body{ max-width:60em; margin-left:auto; margin-right:auto; }</style>
+
+I enjoy creating high quality software - producing "art".
+
+"High quality" is, of course,
+hard to define,
+and hard to identify,
+and mostly subjective.
+So I won't try to define it in depth.
+But, in my opinion,
+the highest quality software is open source,
+reuses existing high quality software,
+does not duplicate existing solutions,
+is thoroughly researched and informed by predecessors in both industry and academia,
+is a novel improvement on the state of the art,
+reduces the total sum complexity of the entire computational system,
+and is stable, reliable, and fast.
+
+In general, the closer you get to the world of mathematics, logic, and pure computer science,
+the easier it is to build high quality software.[fn:academia]
+The real world is complex,
+and any software that has to serve a "real world" purpose
+becomes unavoidably more complex.
+That's fine by me;
+because of this, I much prefer to build abstract, low-level software,
+like programming languages, compilers and operating systems.
+
+I also enjoy material comforts such as "food" and "shelter".
+Fortunately,
+many organizations are willing to give me money in exchange for me creating software.
+Very convenient, since I enjoy creating software.
+
+But such organizations typically (as dictated by competition and scarcity)
+don't care about making "high quality" software in and of itself.
+They want to perform some real world task,
+as soon as possible,
+to some bare minimum level of quality,
+in a way that is reasonably deployable and usable, often by non-technical users.
+The constraints of our society place so many constraints on the software created in such organizations
+that the software produced is generally quite low quality.
+
+Different organizations, nevertheless,
+have different constraints,
+and are able to produce software of different quality levels.
+Most programmers can think of organizations which stereotypically produce abysmal software,
+and of organizations which produce (relatively) high quality software.
+
+Different organizations will also give me different amounts of money.
+Again, most programmers can think of organizations which pay well,
+and organizations which pay poorly.
+
+How much an organization pays me doesn't necessarily correlate or anticorrelate
+with my ability to pursue high quality software when working for them.
+An organization that has heavy constraints on their ability to pursue quality software
+might pay well or poorly.
+Similarly, an organization which allows pursuing high quality software in a (relatively) unconstrained way
+might pay well or poorly.
+
+So, these are the objectives of the optimization problem:
+I want to be able to produce the highest possible quality software ("art");
+and I also want to get paid the maximum possible number of dollarydoos ("career").
+I don't care about anything else, at least for considering this optimization problem.
+
+Maximizing "career" on its own has been discussed endlessly;
+I'm more interested in discussing maximizing "art",
+under the constraint of a minimum level of "career";
+and on maximizing "career",
+under the constraint of a minimum level of "art".
+And, in general, determining the Pareto frontier of the art/career tradeoff.
+
+I'm looking for more relevant information, or any suggestions.
+Feel free to send me an email (my address is on the main page),
+or make comments on this article on any social media site.
+* Options
+Below are a few quick evaluations of some common, obvious options.
+Probably not all of these are actually on the Pareto frontier.
+
+** Personal open source work
+- Pros: Can do whatever I want
+- Cons: Near impossible to get funding, no resources
+** Academia (Get a PhD)
+- Pros: Can mostly do whatever I want, can get excellent technical advice from professors
+- Cons: Poorly paid, little resources, ultimately time-limited because there's so much competition for academic jobs
+** Academia (Past a PhD, on tenure-track jobs)
+- Pros: Paid well, can mostly do whatever I want, can get excellent technical advice from colleagues
+- Cons: Very difficult due to the heavy competition for academic jobs (though CS is better than other academic fields)
+** Research lab (Work at modern Bell Labs)
+- Pros: Will probably be working on technically excellent projects pushing boundaries
+- Cons: Hard to find (Do any of these even exist?) and hard to get in to (probably need a PhD first)
+** Work at a big company
+- Pros: Lots of resources, paid well
+- Cons: Little ability to choose technical direction, will be ultimately at the whims of product managers and customers
+** Work on open source at a big company
+- Pros: Decent resources, decent pay, being open source enforces higher-than-average standards
+- Cons: Such positions are rare, likely to be subject to the whims of tech industry trends and bad engineering practices
+** Become a manager or tech lead at a big company
+- Pros: Lots of resources, paid well, some authority to choose technical direction
+- Cons: Have to fight political fights to maintain technical excellence,
+  will still be mostly at the whims of product managers and customers,
+  will have substantially less time to write code
+** Work on research at a big company (ML/AI, PL, etc.)
+- Pros: Excellent pay, excellent resources, probably world-class
+- Cons: Such positions are rare, I personally am not really interested in ML/AI so the available positions are even narrower
+** Work at a startup or start my own business
+- Pros: Can choose whatever technical direction I want at the start
+- Cons: No time to do things well, little resources in general, risky pay structure
+** Work in quantitative finance (Proprietary trading firms, hedge funds, etc.)
+- Pros: Lots of resources in general, theoretically technical excellence directly translates into profits
+- Cons: In practice their tech might not actually be very good,
+  they might not be willing to dedicate resources to technology
+
+* Footnotes
+
+[fn:academia]
+That doesn't mean that software created by mathematicians and logicians is necessarily, or even typically,
+going to be high quality.
+Just that it's easier.
