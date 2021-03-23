@@ -17,7 +17,7 @@
 
 # Answer this complaint: I'd rather teach the new hire one thing than 10
 
-Docker is extremely popular these days.[fn:date]
+Docker is extremely popular these days.
 Too bad it's not very good.
 
 A note in advance:
@@ -39,16 +39,19 @@ If they are indeed more flexible in addition to being simpler to use, then that'
   It's well written and makes it easy to grok the concept.
   If you create a new instance of all[fn:usernamespaces] of these namespaces, you have something like a container.
 
-  The cgroups documentation (located at [[https://www.kernel.org/doc/Documentation/cgroups-v1/][Documentation/cgroups-v1/]] and [[https://www.kernel.org/doc/Documentation/cgroup-v2.txt][Documentation/cgroup-v2.txt]] in your local copy of the Linux source code) is less straightforward, 
+  The cgroups documentation (located at [[https://www.kernel.org/doc/Documentation/cgroups-v1/][Documentation/cgroups-v1/]] and [[https://www.kernel.org/doc/Documentation/cgroup-v2.txt][Documentation/cgroup-v2.txt]]
+  in your local copy of the Linux source code) is less straightforward,
   but still a better explanation than I could write.
   The basic idea is that cgroups are a mechanism for grouping processes.
-  This mechanism is used to implement other systems like [[http://man7.org/linux/man-pages/man7/cpuset.7.html][man 7 cpuset]], which are used to track and schedule the container processes.
+  This mechanism is used to implement other systems like [[http://man7.org/linux/man-pages/man7/cpuset.7.html][man 7 cpuset]],
+  which are used to track and schedule the container processes.
 
   If you make the appropriate system calls to move into a cpuset cgroup and create new namespaces, you have a container.
   There's not much to it.
 
   One could write a relatively short C program and create a Unix-style utility that uses these system calls to start up a new container.
-  You can see this for yourself by playing around with [[http://man7.org/linux/man-pages/man1/nsenter.1.html][man 1 nsenter]] and [[http://man7.org/linux/man-pages/man1/unshare.1.html][man 1 unshare]], which are the most minimal possible wrappers around the namespaces syscalls.
+  You can see this for yourself by playing around with [[http://man7.org/linux/man-pages/man1/nsenter.1.html][man 1 nsenter]] and [[http://man7.org/linux/man-pages/man1/unshare.1.html][man 1 unshare]],
+  which are the most minimal possible wrappers around the namespaces syscalls.
 
   The point of explaining this is to show that the Linux container functionality is all rather simple.
   Docker (or any other container software) are not doing anything especially mystifying in the specific area of bringing up a container.
@@ -66,45 +69,43 @@ If they are indeed more flexible in addition to being simpler to use, then that'
 
   In fact, most even have neat little wrapper scripts to do it for you! And these are only an =apt-get install debootstrap= (or equivalent) away!
   To build filesystem trees for a few of the most popular distros[fn:buildtree]:
-  - =debootstrap trusty /srv/trees/ubuntu=
+  - =debootstrap focal /srv/trees/ubuntu=
   - =debootstrap stable /srv/trees/debian=
-  - ~yum -y --nogpg --releasever=22 --disablerepo='*' --enablerepo=fedora install fedora-release systemd passwd dnf fedora-release vim-minimal --installroot=/srv/trees/fedora~
+  - ~dnf -y --releasever=33 --installroot=/var/lib/machines/f33 --disablerepo='*' --enablerepo=fedora --enablerepo=updates install systemd passwd dnf fedora-release vim-minimal glibc-minimal-langpack~
   - =pacstrap /srv/trees/arch=
 
   And of course you can select additional packages to install using these commands, or make other changes.
   This has been used for decades to build chroots, which I'll say more about a bit later.
   There are even more novel package managers,
-  like [[https://nixos.org/nix/][nix]] and [[http://www.gnu.org/software/guix/][guix]],
+  like [[Https://nixos.org/][Nix]] and [[https://guix.gnu.org/][Guix]],
   which have interesting features that can make things even easier.
 
   But wait, the distro version of node.js (for example) is too out of date!
   How am I going to get the latest version?
 
   Well, the first thing you should do if you need more up to date versions is enable the updated package repositories for your distro:
-  Ubuntu backports, Debian backports, CentOS EPEL.
-  It may be surprising to some, but distros and package managers actually exist for a reason, 
-  and one of those reasons is that they make it easy to keep your system up to date.
-  (There are other advantages which I won't go into here[fn:packageadvantages])
+  Ubuntu backports, Debian backports, Fedora EPEL.
+  Package managers are not just for show;
+  they really do make it easier to keep your system up to date,
+  among their many other advantages.[fn:packageadvantages]
 
   If a suitably updated version is not available through distro channels,
-  I am obligated to suggest that the next best option is 
-  to download the source of the distro package, update and rebuild it yourself, and install using that package.
-  Or, build the package yourself if one isn't available.
+  I am obligated to suggest that the next best option is to update the distro package,
+  which may be quite easy, depending on your distro.
+  Or, create a package yourself if one isn't available.
   This can be a bit of a pain if you are in the early development stages
   (though there are tools to make it easier[fn:packagetools])
   but again, there are many advantages.[fn:packageadvantages]
 
   Most people, however, use the traditional hacks.
-  You can chroot in and just do your usual =pip install foo= or =gem install bar= or =npm install baz= or =./configure && make && make install=,
-  just as you would with some "RUN" directives in a Dockerfile.
+  You can chroot in and just do the usual =pip install foo= or =gem install bar= or =npm install baz= or =./configure && make && make install=,
+  just as you would from some "RUN" directives in a Dockerfile.
 
-  Wow! It's just like Docker!
-  No, Docker is just like this.
-  Hopefully it is becoming obvious that here, at least, there is no real advantage of Docker.
+  So here, at least, there is no real advantage of Docker.
 
   Crucially, you can use all the same install scripts that you would use with a normal Linux machine.
   You don't need to rewrite everything into Dockerfiles.
-  You can do it manually, you can use shell scripts, you can use Ansible, 
+  You can do it manually, you can use shell scripts, you can use Ansible,
   you can write a boutique ConfigurationManagementFactory in Java, you can do whatever you like.
   It's just installing software.
   It's not complicated unless you make it complicated.
@@ -112,25 +113,26 @@ If they are indeed more flexible in addition to being simpler to use, then that'
   It seems to me that Docker is no simpler or easier than the standard way.
 
   Now, it's true that Docker uses layering to be efficient in terms of disk space and time to build new containers.
-  It defaults to using [[http://aufs.sourceforge.net/aufs.html][AUFS]] to do this.[fn:dockerstorage]
-  I think you could reimplement it easily yourself with a small shell script and some calls to mount;
-  but I haven't bothered.
+  It defaults to using [[https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html][OverlayFS]] to do this.[fn:dockerstorage]
+  You could reimplement it easily yourself with a small shell script and some calls to mount,
+  but there's no need.
 
-  Personally, I just use [[https://btrfs.wiki.kernel.org/index.php/Manpage/btrfs-subvolume][man 8 btrfs-subvolume]].
+  Instead, I just use [[https://btrfs.wiki.kernel.org/index.php/Manpage/btrfs-subvolume][man 8 btrfs-subvolume]].
   btrfs is a copy on write filesystem which can instantly make space-efficient copies of filesystem trees in "subvolumes",
   which the user sees as just regular directories.
 
-  You can build a stock Ubuntu filesystem tree into a subvolume with 
-  =btrfs subvolume create /srv/trees/ubuntu && debootstrap trusty /srv/trees/ubuntu/=.
+  You can build a stock Ubuntu filesystem tree into a subvolume with
+  =btrfs subvolume create /srv/trees/ubuntu && debootstrap focal /srv/trees/ubuntu/=.
   Then, when you want to build a new container with specific software,
   you just copy that subvolume and perform your modifications on the copy;
-  that is, =btrfs subvolume snapshot /srv/trees/debian /srv/containers/webapp= and work on =/srv/containers/webapp=.
+  that is, =btrfs subvolume snapshot /srv/trees/ubuntu /srv/containers/webapp= and work on =/srv/containers/webapp=.
   If you want to copy those modifications, you just take another snapshot.
 
-  This is arguably better, because there's no need to maintain a lot of state about the mount layerings and set them up again on reboot.
+  This is actually better than OverlayFS,
+  because there's no need to maintain a lot of state about the mount layerings and set them up again on reboot.
   Your container filesystem just sits there in a volume waiting for you to start it.
-  
-  Naturally, if you don't like btrfs for some reason,
+
+  Of course, if you don't like btrfs for some reason,
   you're perfectly able to use zfs, OverlayFS, AUFS, or whatever;
   no need to have a "storage driver" implemented just to do some simple copy-on-write or layering operations.
 
@@ -167,7 +169,7 @@ If they are indeed more flexible in addition to being simpler to use, then that'
   But wait! Docker isn't just a pointless abstraction layer over the simple task of building filesystem trees!
   It lets you actually use those filesystem trees in containers!
 
-  Well, it may be a shock, but these tools that Docker uses - they actually exist for a reason.
+  That's not at all novel, though.
   As I said earlier, these tools have been used for decades to build chroots.
 
   What's a chroot?
@@ -218,7 +220,7 @@ If they are indeed more flexible in addition to being simpler to use, then that'
   your system may be substantially *less* secure than a properly implemented chroot.
   Breakout from an unprivileged chroot depends on a well-known and well-studied area of exploits: Linux privilege escalation.
   Linux namespace containers present an entirely new security surface;
-  it's quite possible that they have inherent vulnerabilities 
+  it's quite possible that they have inherent vulnerabilities
   that are impossible for the kernel to correct without breaking uncontained functionality.
   Indeed, Docker's own developers enthusiastically admit that Docker cannot (yet) securely run code as root.
   For decades people have been running their applications as unprivileged users inside chroots to mitigate this threat.
@@ -244,8 +246,8 @@ If they are indeed more flexible in addition to being simpler to use, then that'
   and they never bothered to question whether that might not be a good idea?
 
   The practical problems with "application containers" are well known.
-  Zombie orphan processes[fn:orphans] fill up your container and consume resources with no =init= to reap them; 
-  the traditional cron and syslog daemons are not automatically available; 
+  Zombie orphan processes[fn:orphans] fill up your container and consume resources with no =init= to reap them;
+  the traditional cron and syslog daemons are not automatically available;
   etc., etc..
   These are problems, but they could certainly be overcome if we wrote enough new software dedicated to making application containers work well.
 
@@ -281,7 +283,7 @@ but more powerful since it fully virtualizes the file system hierarchy, as well 
 
   And it's already present on every systemd system, so it's easy to start using.
   Check out the [[http://www.freedesktop.org/software/systemd/man/systemd-nspawn.html#Examples][examples]] in the man page.
-  Combining it with other parts of the GNU/Linux ecosystem, like =debootstrap= and =btrfs=, 
+  Combining it with other parts of the GNU/Linux ecosystem, like =debootstrap= and =btrfs=,
   you can have something with all the power of Docker, or more[fn:more], without the complexity overhead.
   Ultimately, Docker is just too complex for the simple functionality it provides;
   there's just no need for it.
@@ -296,7 +298,7 @@ but more powerful since it fully virtualizes the file system hierarchy, as well 
   they can be used without privileges, for example, and they let you, kind of, "fake" having capabilities.
   Who knows what new security vulnerabilities this introduces?
 
-[fn:packageadvantages] 
+[fn:packageadvantages]
   Package managers save you a lot of work
   when you need to do upgrades, or widely deploy the software, or install more than one custom library.
   Here, look at [[http://fedoraproject.org/wiki/Package_management_system#Advantages_of_package_management_systems][this page]].
@@ -309,11 +311,11 @@ but more powerful since it fully virtualizes the file system hierarchy, as well 
 #   and fiddle with the necessary files.
 #   User namespaces will allow us to drop =CAP_SYS_ADMIN= before entering the container, but see footnote 1.
 
-[fn:packagetools] 
+[fn:packagetools]
   [[http://en.wikipedia.org/wiki/CheckInstall][Checkinstall]] and [[https://github.com/jordansissel/fpm][fpm]] are tools for quickly building packages, and are suitable for novices who don't care about package management.
   Of course, at some point, one really should learn how to directly build packages of one's preferred format (rpm or deb).
 
-[fn:orphans] 
+[fn:orphans]
   Processes on Unix-like operating systems are organized into a hierarchy;
   a normal process will have one parent and zero or more children.
   When any process terminates, it is dependent upon its parent process to [[http://man7.org/linux/man-pages/man2/wait.2.html][wait(2)]] on it;
@@ -336,10 +338,10 @@ but more powerful since it fully virtualizes the file system hierarchy, as well 
   See the [[http://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/][Phusion baseimage]] for another explanation of the problem,
   and some software that has been written to work around this problem with Docker.
 
-[fn:dockerstorage] 
+[fn:dockerstorage]
   Docker also supports btrfs and the Linux device mapper for implementing layering.
 
-[fn:containerhistory] 
+[fn:containerhistory]
   The use of containers (or more generally, "[[http://en.wikipedia.org/wiki/Operating-system-level_virtualization][operating-system level virtualization]]") is not especially new, of course.
   For many years now Solaris has had [[http://en.wikipedia.org/wiki/Solaris_Containers][zones]], FreeBSD has had [[http://en.wikipedia.org/wiki/FreeBSD_jail][jails]], and other operating systems have had [[http://en.wikipedia.org/wiki/Operating-system-level_virtualization#Implementations][other such technologies]].
   These are polished and working solutions for their respective operating systems.
@@ -355,17 +357,10 @@ but more powerful since it fully virtualizes the file system hierarchy, as well 
   and the kernel development policy means that they will be kept up to date with any future changes in the Linux codebase.
   Thus it seems reasonably likely that all further attempts to bring containerization to Linux will use these technologies as their foundation.
 
-[fn:more] 
+[fn:more]
   Checkpoint and Restore In Userspace ([[http://www.criu.org/Main_Page][CRIU]]) allows the "freezing" and resuming of Linux processes, with all kinds of interesting applications.
-  Docker [[http://criu.org/Docker][does not yet support CRIU]]. 
+  Docker [[http://criu.org/Docker][does not yet support CRIU]].
   Other software like [[http://tycho.ws/blog/2014/09/container-migration.html][LXC]] does fully support live migration through the use of CRIU.
 
-[fn:buildtree] 
+[fn:buildtree]
   These examples pulled from [[http://www.freedesktop.org/software/systemd/man/systemd-nspawn.html#Examples][here]].
-
-[fn:date] 
-  This article might be slightly out of date, I wrote it over half a year ago.
-  But the central ideas, while not timeless, at least operate on a timescale that is more like "decades".
-  I realize some of the information in this article might be just plain wrong,
-  but I don't have the time to fix it,
-  and there's lots of other information here that my draft readers were begging me to publish.
