@@ -1,0 +1,74 @@
+#+title: Plain text configuration of GNOME
+#+options: num:nil
+#+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
+For a number of reasons,
+I like to keep my configuration in plain text.
+Plain text can be edited with my favorite text editor,
+and it can be version controlled with the same tools as source code.
+
+I am also a fan of the GNOME desktop.
+GNOME uses the gsettings API for configuration;
+theoretically, this API could be directly backed by plain text paths.
+For performance reasons, however, dconf was created to back this API.
+
+dconf is basically a hierarchical {dictionary,map,hash-table}, with
+/unix/style/paths, each path containing some number of
+key-value pairs. Most of the time, the dconf database is compiled
+onto disk as a raw datastructure, and mmap'd in for lightning speed
+lookup.
+
+I can use the following command to write out the dconf database
+recursively as plain text, starting from the root:
+#+BEGIN_SRC sh
+dconf dump / > ~/.config/dconf/user.d/everything.conf
+#+END_SRC
+
+The result of the dump looks something like the following:
+#+BEGIN_SRC conf
+[org/gnome/settings-daemon/peripherals/keyboard]
+repeat-interval=uint32 27
+delay=uint32 318
+
+[org/gnome/desktop/input-sources]
+xkb-options=['caps:ctrl_modifier']
+#+END_SRC
+
+Of course, most of the settings in dconf are irrelevant to me, or are machine specific.
+I want to find the ones that I actually care about.
+I can do this by grepping the dump from dconf, or dumping sub-paths.
+#+BEGIN_SRC sh
+dconf dump / | grep terminal > ~/.config/dconf/user.d/myterminalsettings.conf
+dconf dump /org/gnome/terminal
+#+END_SRC
+The paths tab-complete, so it's easy to do some exploration with the latter option.
+However, the latter option dumps only partial paths, so you'd need to edit it before loading it back in.
+(Or dump it to a nested directory and develop a more elaborate script for loading that uses find(1)...)
+
+It's a bit silly to manually guess at which configuration option is which.
+So another option is to watch the dconf database as it changes:
+#+BEGIN_SRC sh
+dconf watch /
+#+END_SRC
+Now change a setting with the graphical interface, and it'll be printed to STDOUT!
+You'll have to do a small bit of munging to get this into the same format as dconf dump prints, though.
+It might be simpler to just dump the path printed.
+
+After narrowing down the dump, I delete the settings that I don't care about,
+and neatly comment and arrange the rest in multiple files in =~/.config/dconf/user.d/=.
+You can see my configuration at [[https://github.com/catern/dotfiles/tree/master/home/.config/dconf/user.d][my dotfiles repo on Github]].
+
+Now, if I want to load those settings back in, it's simple:
+#+BEGIN_SRC sh
+cat ~/.config/dconf/user.d/* | dconf load /
+#+END_SRC
+
+I actually really like this approach.
+I can have all the nice features of a plain text configuration,
+without the overhead.
+
+There is also an option, built in to dconf, to store the configuration as plain text,
+monitor those files for changes,
+and compile them progressively at runtime into the fast binary file that it uses by default.
+This is designed to support filesystems where mmap doesn't work well. (like NFS)
+Unfortunately, using this requires changing files in =/etc= at the moment, which I wanted to avoid.
+It would be useful if someone would add support for enabling this from =~/.config=.
