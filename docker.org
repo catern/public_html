@@ -209,10 +209,9 @@ If they are indeed more flexible in addition to being simpler to use, then that'
   Wrong!
   For most purposes, the main interesting thing that Docker containers provide is isolated networking.
   That is, Docker containers prevent the application inside the container from binding ports on the external network interfaces.
-  What else does this?
+  What else prevents applications from using ports?
   The firewall that you already have installed on your server.
   Again, pointless abstraction to address already-solved problems.
-  # TODO elaborate, maybe in a footnote, on the fact that firewalls prevent processes from binding ports
 
   # TODO note that claiming to be secure but defaulting to be insecure is sabotaging their users
   In fact, if you follow the insane default practice of running your applications as root in the container,
