@@ -1,0 +1,222 @@
+#+title: Miscellaneous Linux ideas
+#+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
+
+All of this should be usable without privileges.
+Most of this will require getting rid of the setuid bit as a prerequisite.
+
+* filesystems as dirfds
+** replace chroot with explicitly passing in a root dirfd
+   You would need to disallow ".." for this to work.
+** replace cwd with explicitly passing in a cwd dirfd
+** replace mount with two syscalls: one creating a dirfd, one mounting it
+   This way we can start a filesystem and access it,
+   and keep it private without creating a mount namespace
+** or, replace kernel mount with per-process userspace mount tables
+   Instead of mounting in the kernel,
+   just let a process multiplex between a set of dirfds that it has access to.
+
+   This allows doing very fancy policy, without paying the cost of that policy in the kernel.
+* FD passing of dirfds as an IPC mechanism
+  Sending a file descriptor isn't composable or self-describing
+  But if you send a directory file descriptor,
+  you can freely add more files in that directory,
+  and extend your IPC interface
+
+  You can also piggy-back on the structured-ness of filesystems,
+  to get structure for your IPC mechanism for free
+** prerequisite: lightweight userspace implementation of dirfds
+   FUSE can allow this already, but it's too heavyweight.
+
+   With filesystems as dirfds,
+   this would also allow a more composable/lightweight/minimal alternative to FUSE.
+* file descriptors backed by uploaded in-kernel eBPF programs
+  So you can do IPC/privilege isolation, without the cost of switching address spaces
+
+  They should be able to own other file descriptors as well and arbitrate access
+** revocability of arbitrary file descriptors through proxying
+   If a file descriptor is proxied by an eBPF program,
+   that program can hold some extra FD which it monitors for shutdown commands;
+   this gives us revocability
+
+   This would also work if userspace processes were able to emulate arbitrary file descriptors,
+   but an extra roundtrip to userspace for every file access is pretty heavyweight.
+* remove setuid dependence in userspace
+  the filesystem setuid bit is a big limiting factor,
+  we should get userspace ready for a world without the setuid bit.
+** IPC-based sudo replacement
+   ssh can work for this purpose
+** alternatives for mutating inherited environment in privileged ways
+   How do we inherit our current environment,
+   while mutating it in some way that requires privs?
+   This currently uses setuid
+
+   example: unshare
+*** expose the environment for external mutation by privileged programs
+    Traditionally on Unix you mutate your current environment,
+    relying on fork() to allow you to isolate changes.
+
+    If you could mutate environments from the outside,
+    that would "work".
+
+    Could be done with CRIU
+*** setuid without persistence
+   Maybe we could declare that setuid executables can't exist in the filesystem,
+   but still allow them to be created and passed via IPC.
+
+   Then you can create these capabilities on the fly.
+
+   though they won't be revocable
+** set ~NO_NEW_PRIVS~ prctl on important components
+* file-descriptor API for processes
+  I should be able to start a process and get an FD back,
+  signal that process through the FD without races,
+  and when I close that FD the process exits.
+
+  see ~clone_fd~, pdfork
+** decent, unprivileged process groups
+   We have cgroups but 1. the API sucks, 2. they're privileged
+
+   I still hold out hope for something integrated with the traditional process tree,
+   or at least something informed by a FD-api for processes
+** process supervisor which can function as bash, gdb, systemd, tmux, etc.
+   Having separate process supervisors hurts flexibility;
+   I want to be able to start debugging a program started in my shell,
+   or access stdin/stdout of a program started by my init system,
+   or so on.
+   Attaching to pids is not a solution;
+   a sane model for *ownership* of processes is needed.
+
+   Perhaps they should be a single program.
+** or, composable process supervision
+   Better yet, perhaps an FD api would allow sharing ownership;
+   or even borrowing, and revocability.
+
+   Or possibly it should be possible to move/share process ownership between the programs;
+   an FD API could allow that.
+* enhanced interactive shell
+   shell/command line interface is still best.
+   it works remotely and can be detach'd from.
+   it has trivial scriptability (just press up to do your last action again, possibly modified! and that's just the start.),
+
+   however it needs some cleanup
+** reimplement coreutils to take file descriptors rather than filenames
+   PLASH-style
+** integrate with copy-on-write
+   Python-notebook-style revision of commands and idempotency
+** clean up weird language
+   traditional sh/bash is just not a good language
+
+   this might be difficult to do at the same time as adding new features;
+   maybe backwards compatibility is useful, and tolerable if new features are added in a clean way?
+* Improved terminal/GUI
+   shell is still best interface, no buttons are needed
+   but it could still have a better display engine:
+   display of completions, inline docs, incremental results, etc., will all enhance the shell
+
+   also display of graphics would not hurt
+** notebook style shell/terminal
+   Python (and other languages) notebooks are very powerful interactive workspaces
+
+   seems like a natural design to steal for improved shells
+** give up and use the browser as the display engine
+   It will make a lot of the work easy since it's already done,
+   and it's already got built-in remote support.
+
+   but it is controversial.
+** determine how to sanely output graphics from Unixy tools
+   Possibly support a new convention for a passed-in FD, "stddisplay" or "stdgui",
+   on which a tool can send and receive GUI information?
+
+   Of course this is just the same as DISPLAY in X or WAYLAND_DISPLAY in Wayland.
+** pass in dirfd to extensibly provide new interfaces to command line tools
+* better Linux-native scripting language
+  I want something that makes advanced Linux primitives natively available.
+  It should have the syntactic sugar of the shell,
+  but updated for what is available in modern Linux, not just Unix.
+
+  I want to e.g. easily poll/epoll on a set of FDs,
+  or pass FDs/credentials over Unix domain sockets
+  or set up nested epoll structures,
+  or pipe together programs with socketpairs,
+  etc.
+
+  It should be GC'd and type-safe.
+** expressive library for using Linux features in existing scripting language
+   Python? C++? OCaml?
+
+   I want something with the fluidity of Go,
+   which achieves it through using Linux kernel APIs and syscalls to the maximum degree possible.
+* forkat(), file-descriptor API for distributed computing
+  Doesn't make sense that I can fork() and start competing to consume more of a global resource
+  Instead I should have to forkat() some passed-in reference to a scheduler timeslice
+  And that scheduler might be remote,
+  or it might be a timeslice provided by my parent from subdividing their own
+** generalized ssh which returns an fd for use with forkat
+   Likewise with containe
+** shell that understands running on remote systems through this mechanism
+* remove the implicit authority of the UID
+  Any process with my UID can screw with any of my other processes, that's not good
+** dynamically allocated users?
+   A userspace daemon accessible over IPC,
+   which responds to requests by returning
+   a setuid executable owned by an unused UID which does nothing but execvp its arguments
+
+   The holder of one of these executables can then switch into that UID.
+   The executable is basically the capability to switch in the UID, reified.
+
+   This means the setuid bit will stay around. Maybe restrict it to root?
+
+   How to garbage collect these users?
+** or, subusers?
+   The old standby that everyone seems to want.
+   Some new kernel capability which lets an arbitrary user subusers which they can su to.
+
+   It's easier with users being defined by strings rather than UID numbers;
+   you can just allow a user to append "/anystringlikethis" to their username
+
+   Kind of like Kerberos. 
+   Is it possible for principals to create subprincipals?
+   I don't think so, but maybe it could be added
+** or, just a simple prctl to relinquish your UID-based authority?
+   Users are a stupid concept anyway, we want an object-capability system.
+   So just a prctl which lets you relinquish the authority of your UID?
+** filesystem usage without UIDs
+   How can you use the fileystem without a UID?
+
+   Maybe just pass 777 dirfds around?
+
+   And pass subdirs around if you need to give access out?
+
+   Reconstructing an ACL system in the absence of UIDs would be helpful for user expectations.
+   Maybe if UIDs were reified into a capability you could use to access the filesystem?
+   that's kind of like the setuid idea
+* get Capsicum into Linux
+  Capsicum is great
+* distributed federated shared community Unix cluster
+  A distributed compute system which can be freely joined.
+  Like the community Unix clusters of old, but over the net at large.
+
+  Same foundations and technologies as large academic or corporate systems,
+  but making it as easy as possible for boxes to federate in and pool resources
+  (while restricting which users they permit access to).
+** cert chains/web of trust for authentication
+   Kerberos won't work, it requires trusting each box.
+   We want a box to be able to join without everyone having to trust that box.
+
+   Trusted community/university computing organizations can have certs,
+   which can sign certs of new users to give them access to the cluster
+** allocate box-local UID when a user appears for the first time on a box
+   LDAP sucks, and it's centralized anyway, and hopefully we'll get rid of UIDs eventually anyway
+** automated onboarding/administration
+   It should be possible to bridge a machine into the network automatically,
+   without requiring any human intervention.
+
+   Continuing administration should also be as small as possible.
+** denylist/allowlist/decentralized authorization/accounting
+   Each box can do authorization and accounting in its own way.
+   Not sure about this though
+** all users unprivileged
+   It only makes sense if this is the case.
+   This excludes the admins.
+
+   There's lots of stuff possible unprivileged, you can even run KVM-accelerated VMs unprivileged.
