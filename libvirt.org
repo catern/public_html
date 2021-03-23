@@ -1,0 +1,122 @@
+#+title: The Excellence of libvirt
+#+options: num:nil
+#+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
+
+At some point, I needed to use some VMs.
+At first I used direct invocations of the qemu command-line tool,
+but the command line arguments were hard to put together,
+and the whole edifice seemed unstable.
+
+Then I started using virt-manager, which is based on libvirt,
+and I've been very impressed with the entire libvirt ecosystem.
+
+* VMs in a GUI
+  The virt-manager GUI is very straightforward.
+  I can create, stop, start and destroy my VMs.
+  I can view their graphical consoles.
+  It presents a vast amount of functionality in a pretty straightforward and simple way,
+  and it was easy to grow into as I've expanded my use of libvirt.
+
+  If I really wanted something super-simple, I could use GNOME Boxes.
+  It uses libvirt like virt-manager, so all the VMs are shared, but strives for simplicity and intuitiveness.
+  So if I wanted to graduate to a program that exposes more functionality,
+  I could always move from GNOME Boxes to virt-manager.
+
+  And they are both native applications,
+  so I don't have to deal with the problems, glitches, and performance issues of a similarly complicated web application.
+  There are web app interfaces to libvirt available, but I've never used any of them.
+* VMs at the command line
+  # TODO why use CLI interfaces? write another article
+  I generally prefer command line interfaces for many reasons.
+  Thus, after some basic use of virt-manager, I looked into its command-line counterpart "virsh".
+  Like virt-manager and GNOME Boxes, it uses libvirt, so has automatic access to all the local VMs.
+
+  virsh does not include a command to create a new VM like virt-manager does.
+  This is handled by another command line tool, "virt-install",
+  which is produced by the same project as virt-manager.
+  It is quite capable;
+  it can automatically mount ISOs in VMs for installs, download and install from network URLs, PXE boot, all that stuff.
+  Naturally, virt-manager has all these functions as well.
+
+  I should note that both virsh and virt-install connect by default to
+  an unprivileged, not-hardware-accelerated, user-specific "session" hypervisor.
+  Correct this with the argument "--connect qemu:///system" to both,
+  to connect to the KVM-using system hypervisor that virt-manager uses by default.
+
+  Now I split my time between the virt-manager GUI and virsh/virt-install on the command line.
+  For the most basic tasks, like restarting a VM, I use virsh.
+  For ones of intermediate complexity, like modifying the configuration of a VM, I use virt-manager.
+  And for the most sophisticated tasks, or scripting, I return to virsh and other command line tools.
+* VMs remotely
+  When I needed to remotely manage my VMs, I was again delighted.
+  The use of a command line tool allows me to do remote work with ssh.
+  But in fact, libvirt has remote support built into the library.
+  Just as virt-manager, virsh and GNOME Boxes connect to the local libvirtd, which stores information about the VMs,
+  any libvirt tool can remotely connect to a libvirt daemon over the network, just by passing an extra --connect argument.
+  This can be done in multiple ways.
+  I generally use the (automatically set up) ssh tunnelling,
+  as it doesn't require any configuration on the remote libvirtd.
+
+  This means I can even use virt-manager remotely!
+  And I do, frequently; I have the exact same workflow for local VMs as for remote ones.
+  I can connect to all my VM hosts and get a nice dashboard of everything that's going on.
+
+  If a VM has a graphical display (provided by the underlying virtualization software) exposed through VNC/SPICE,
+  it doesn't need to listen on anything but the local network interface.
+  virt-manager helpfully reuses the ssh connection to tunnel a connection to the VM's display.
+* VMs on any hypervisor
+  I didn't really care about how the VMs were running.
+  I use QEMU/KVM most of the time, but mainly because it's what libvirt uses by default.
+  But libvirt - as a generic API - will even work with the Xen hosts that I deal with.
+
+  And if I want to make use of containers, that works too.
+  Though the container support is somewhat barebones,
+  I'm sure it will become more developed as time goes on - container technology as a whole is very raw at the moment.
+  And libvirt containers (like all libvirt virtual machines) are known to systemd-machined
+  (which puts all VMs on the system into their own cgroups, as an extra layer of protection against hypervisor breakouts).
+  Thus systemd can interact with the systemd instance inside the containers just like normal,
+  and provide useful features like "machinectl login CONTAINERNAME".
+* Ecosystem of VM tools
+  The ecosystem of tools around libvirt is really cool and really powerful.
+  All of it uses libvirt, so everything gets support for many hypervisors, accessed locally or remotely.
+  This reuse of a single powerful, well developed, mature library is very appealing.
+
+  For example, [[http://libguestfs.org/virt-edit.1.html][virt-edit]] (as well as the other libguestfs tools) can edit a file inside a VM's disk image, without having to manually mount it.
+  virt-top gives me a nice terminal overview of the VMs running currently.
+  virt-viewer can serve as a standalone complement to virt-manager,
+  so I can use virsh and virt-install and still see the VM's graphical display.
+
+  The [[http://libguestfs.org/][libguestfs]] suite of tools specifically are very powerful and well integrated with libvirt.
+  [[http://libguestfs.org/virt-rescue.1.html][virt-rescue]] is a game-changer for repairing VMs.
+  When migrating VMs from Xen to KVM, some simple scripting around [[http://libguestfs.org/guestfish.1.html][guestfish]] was essential.
+  I use these tools frequently - they make VM work significantly easier.
+
+* Conclusion
+  There are still other features of libvirt that I haven't yet touched.
+  For example, it has the capability to set fine grained access controls on VMs through the use of polkit.
+  It also provides live migration of VMs between hosts.
+
+# TODO on what principles am I choosing software? write another article
+  I find myself in agreement with Gwern's ideas on [[http://www.gwern.net/Choosing%20Software][choosing software]],
+  and usually I am suspicous of software that has a wide variety of features,
+  so I feel the need to justify my use of this software.
+  I feel comfortable using libvirt,
+  because of its relatively long life (in these times, 2005 was ages ago), continued widespread use, and large ecosystem.
+  I believe that libvirt is a good level of abstraction[fn:abstraction] for VM management.
+
+* Footnotes
+
+[fn:abstraction] 
+  Inevitably, some people try to put additional layers of abstraction over libvirt, 
+  in an attempt to even further "simplify" VM management, or abstract over the datacenter as a whole.
+  These are projects like OpenStack or VirtKick.
+
+  I feel these projects are in error.
+  They overcomplicate (vastly, in the case of OpenStack) the internals of managing virtual machines,
+  and they prevent the use of the existing ecosystem of excellent libvirt-based tools, 
+  which already makes virtual machine management extremely simple.
+  I suspect one reason for the existence of these projects is that
+  libvirt's client-side tools are not as easily available on proprietary systems like OS X or Windows.
+  If you wish to use an API other than the one libvirt natively provides,
+  you should implement that as a thin layer over libvirt.
+
