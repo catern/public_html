@@ -1,0 +1,110 @@
+#+title: Things in Emacs which I think are neat
+
+* help
+As far as I know, Emacs has the most advanced help system of any piece of software in existence;
+let me know if you know of any other software that even comes close.
+
+See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Help.html][C-h r m Help]] for the manual section about the help system.
+
+** =C-h l=
+  First do something weird by accident, like =C-x n n=.
+
+  Oh no! What did I do! Most of the text has disappeared, how do I get it back?
+
+  Just =C-h l= to view the last 300 keystrokes and commands you executed.
+
+  There you can see that you hit =C-x n n=, which executed the command =narrow-to-region=.
+** =C-h f= and =C-h k=
+  But if you still don't know what =narrow-to-region= does, that doesn't help you.
+
+  So either do =C-h f narrow-to-region= or =C-h k C-x n n= to see the documentation for =narrow-to-region=.
+
+  There you can see that you just need to do =C-x n w= to show the text again.
+** =C-h F= and =C-h K=
+  Like the above, but jumps to manual section for this function or command, if there is one.
+** =C-h r=
+  This just brings up the Emacs manual.
+  Note that you can do a full-text search through the manual with just a regular =C-s=.
+** =C-h m=
+  Shows the mode of the current buffer, and what keybindings specific to that mode are available.
+* dired
+dired is a powerful mode for navigating through, and manipulating, directories.
+
+See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Dired.html][C-h r m Dired]] for the manual section about Dired.
+** wdired
+ You can rename files and do other things by editing a dired buffer.
+
+ See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Wdired.html][C-h r m Wdired]] for the manual section about Wdired.
+** multi-file query-replace
+Mark files with =m=, then hit =Q= to do a multi-file query-replace.
+
+See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Operating-on-Files.html][C-h r m Operating on Files]] for more things you can do with dired.
+* remote files
+Almost all Emacs features work on both remote and local files.
+
+See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Remote-Files.html][C-h r m Remote Files]] for the manual section about acessing files over ssh (or other means).
+
+To access a remote host, just do =C-x C-f /ssh:user@host: RET=.
+
+You'll be dropped into dired on the remote host.
+* shell
+=M-x shell= drops us into an interactive shell, like in a standalone terminal.
+
+See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Shell.html][C-h r m Shell]] for the manual section about running shell commands from Emacs.
+
+Running a shell from Emacs instead of a separate terminal is often much nicer.
+Plus, as usual, it works when operating on remote files.
+
+=M-|= runs a shell command on the currently selected text.
+* External packages
+** notmuch email
+   I read email in Emacs with notmuch.el.
+
+   It's much better than Gmail.
+** magit
+   magit is very useful.
+*** partial staging
+    Partial staging of changes is very easy and natural with magit.
+
+    I wonder if part of the reason most people don't have fine-grained commits
+    is that partial staging is relatively painful with command line git.
+*** instant fixup
+    Stage some changes, hit =cF=, and select a commit.
+    Those changes will be turned into a fixup commit which will be immediately squashed into the selected commit.
+    Very helpful when cultivating a clean commit history.
+* query-replace
+  Humble find and replace, with =C-M-%=.
+  But it has some advanced features!
+
+  See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Replace.html][C-h r m Replace]] for the manual section about replacing text.
+** recursive-edit
+   You can hit =C-r= or =C-w= in the middle of a query-replace,
+   perform some edits in the buffer,
+   and then resume with =C-M-c=.
+
+   This is one use of =recursive-edit=, which is really generally quite useful.
+** Lisp in replacements
+   You can put Lisp code in a replacement string.
+
+   For example:
+   =C-M-% \(foo.*\) RET \,(upcase \1) RET=
+   to capitalize strings starting with "foo".
+* Misc
+** narrowing
+*** form-feed-delimited page-based presentations
+** kmacros
+** project.el
+** kill ring
+** prefix to repeat commands
+** C-x C-x to swap side of selection
+** C-x r to do rectangular selection
+* Things in Emacs which I think are less neat than the neatness level that everyone else seems to think they have
+** org
+* maybe others :noexport:
+** proced?
+** calc?
+** man and/or woman?
+   I don't know what this is cool but someone mentioned it
+** dunnet
+** daemon
+no this isn't necessary because people use exceed or whatever
