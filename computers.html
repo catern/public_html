@@ -1,0 +1,103 @@
+<html>
+  <head>
+<title>For me, the best number of computers is one</title>
+</head>
+<body>
+<h1>For me, the best number of computers is one</h1>
+In ancient history, there was this idea of a "computing utility".
+The idea was that we'd all just use one big computer.
+<p>
+That didn't end up working out.
+Instead, individual big institutions bought mainframes,
+and then individual small institutions and hobbyists bought minicomputers,
+and then individual average consumers bought PCs.
+These days, everyone has at least one computer;
+there are billions of computers out there.
+<p>
+This isn't all that bad.
+It's nice that people are able to own and control their own computer.
+<p>
+But this trend of proliferation has not stopped at one computer per person.
+Instead, almost everyone has at least two computers:
+<ul>
+  <li> A laptop
+  <li> A phone
+</ul>
+<p>
+Technology hobbyists today may have even more computers:
+<ul>
+  <li> A desktop
+  <li> A cloud VM hosting a personal website
+  <li> A cloud VM for development
+  <li> A wireless network router
+  <li> Random worthless Raspberry Pis running DNS servers or whatever
+</ul>
+The obvious cost of this is that you have to administrate and maintain many computers.
+Everyone complains about that and knows that cost;
+I'm sure that anyone reading this post already has their own favorite technique for dealing with this.
+<p>
+The less obvious cost is that today's computers are self-obsessed:
+they are closed off in their own little worlds and they barely interact with each other.
+<p>
+In a single computer:
+<ul>
+  <li> I can give one application or user access to a file created by some other application or user.
+  <li> I can pipe data from one program directly to another.
+  <li> I can send mail to other users and talk to them.
+  <li> I can see at a glance everything that's running under my user account,
+  and kill or restart anything at will.
+  <li> etc., etc., etc.
+</ul>
+<p>
+All of this becomes immensely difficult in a world with multiple computers.
+To do any of this, I have to set up special services (which then also have to be administered!)
+and configure everything to connect to them,
+and make sure that I use the right service,
+and on and on.
+<p>
+Instead of doing that, I just have a single computer:
+<ul>
+  <li> It's my desktop computer, on which I'm writing these words.
+  <li> It hosts several websites including <a href="http://catern.com">http://catern.com</a>.
+  <li> I do all my development on this computer, using Nix for development environments
+  <li> It's my WiFi router, by virtue of running hostapd.
+  <li> It hosts various other services such as DNS servers.
+</ul>
+<p>
+This is great.
+If I want to serve a new file on the web,
+I just stick it in <code>~/public_html</code>.
+If I want to run a new service and make it publicly available,
+I just run it.
+<p>
+You might ask: but what if your single computer goes down?
+Multiple computers give redundancy!
+<p>
+In the old days, protocols were designed to cope with occasional downtime.
+Email delivery, for example, will be periodically retried for hours or days until it makes it through;
+or it will be delivered to a different server which is closer to the end destination
+and can take on responsibility of doing the final hop.
+You could imagine the web being designed in a similar way, perhaps with transparent caching,
+but alas it is not.
+<p>
+So if I turn off my desktop, my personal website will go down,
+along with other services.
+For the services I care about,
+that's not a problem.
+<p>
+You might wonder: What if you want to use your computer while away from your desk?
+Luckily for me, I'm a homebody.
+If I wasn't, maybe I'd use a different approach,
+where my single computer was portable,
+and served my website and other stuff over the cell network,
+Manfred-Macx-style.
+<p>
+I do, unfortunately, have a separate phone.
+Connecting a cell modem to my desktop
+and getting rid of the separate phone (or something like that)
+is on my TODO list.
+<p>
+But nevertheless, as of now, I have (essentially) a single computer.
+It's my personal computing utility.
+</body>
+</html>
