@@ -16,20 +16,14 @@ class Data:
     pass
 
 class Directory:
-    def create_file(self, name: str) -> File:
-        "Create and return a file in this directory"
-        ...
+    "A directory, in which we can create files"
+    def create_file(self, name: str) -> File: ...
 
 class File:
-    "A file, to which we can append several kinds of data"
-    def append_data(self, data: t.Union[str, Data, File]) -> None:
-        """Append this piece of data to the file
-
-        When passed another file, we append the path of that file to
-        this file.
-
-        """
-        ...
+    "A file, to which we can append several types of values"
+    def append_str(self, data: str) -> None: ...
+    def append_data(self, data: Data) -> None: ...
+    def append_path(self, data: File) -> None: ...
 
 def create_file_with_contents(dir: Directory, name: str, arg: Data) -> File:
     "A helper function to create a file containing some data"
@@ -47,11 +41,11 @@ def prog(dir: Directory, arg1: Data, arg2: Data) -> File:
     """
     paths = dir.create_file("paths")
     arg1_file = create_file_with_contents(dir, "arg1", arg1)
-    paths.append_data("arg1 file path:")
-    paths.append_data(arg1_file)
+    paths.append_str("arg1 file path:")
+    paths.append_path(arg1_file)
     arg2_file = create_file_with_contents(dir, "arg2", arg2)
-    paths.append_data("arg2 file path:")
-    paths.append_data(arg2_file)
+    paths.append_str("arg2 file path:")
+    paths.append_path(arg2_file)
     return paths
 
 
@@ -90,22 +84,15 @@ class IOFile(File):
     path: str
     file: t.TextIO
 
-    def append_data(self, data: t.Union[str, StrData, IOFile]) -> None:
-        """Convert data to a string and append it to this file
+    def append_str(self, data: str) -> None:
+        "Append this string to this file"
+        self.file.write(data)
 
-        As we write data to the file, the file position moves forward
-        and the file grows.
+    def append_data(self, data: StrData) -> None:
+        self.append_str(data.content)
 
-        """
-        # This isn't introspection, just the idiomatic equivalent of a pattern
-        # match on a sum type, or a visitor on a std::variant.
-        if isinstance(data, str):
-            self.file.write(data)
-        elif isinstance(data, StrData):
-            self.file.write(data.content)
-        else:
-            assert isinstance(data, IOFile)
-            self.file.write(data.path)
+    def append_path(self, data: IOFile) -> None:
+        self.append_str(data.path)
 
 
 ##### Testing
@@ -135,23 +122,22 @@ class TestFile(File):
     path: str
     file: t.TextIO
 
-    def append_data(self, data: t.Union[str, Data, TestFile]) -> None:
-        """Convert data to a string and assert it matches the file
+    def append_str(self, data: str) -> None:
+        """Assert this string matches the data in this file
 
         As we read data from the file, the file position moves forward
         and we read new data.
 
         """
-        if isinstance(data, str):
-            expected = data
-        elif isinstance(data, StrData):
-            expected = data.content
-        else:
-            assert isinstance(data, TestFile)
-            expected = data.path
-        read_data = self.file.read(len(expected))
-        if expected != read_data:
-            raise Exception("the next data in the file should be", expected, "not", read_data)
+        read_data = self.file.read(len(data))
+        if data != read_data:
+            raise Exception("the next data in the file should be", data, "not", read_data)
+
+    def append_data(self, data: StrData) -> None:
+        self.append_str(data.content)
+
+    def append_path(self, data: TestFile) -> None:
+        self.append_str(data.path)
 
 def testmain():
     """Test IODirectory by running TestDirectory.
@@ -190,13 +176,17 @@ class PPFile(File):
     program: t.List[str]
     variable_name: str
 
-    def append_data(self, data: t.Union[str, PPData, PPFile]) -> None:
-        "Convert data to a variable name or string literal, and write a line of code to append it to this file"
-        if isinstance(data, str):
-            self.program.append(f"{self.variable_name}.append_data('{data}')")
-        else:
-            assert isinstance(data, PPData) or isinstance(data, PPFile)
-            self.program.append(f"{self.variable_name}.append_data({data.variable_name})")
+    def append_str(self, data: str) -> None:
+        "Write a line of code to append this string to this file"
+        self.program.append(f"{self.variable_name}.append_str('{data}')")
+
+    def append_data(self, data: PPData) -> None:
+        "Convert data to a variable name, and write a line of code to append it to this file"
+        self.program.append(f"{self.variable_name}.append_data({data.variable_name})")
+
+    def append_path(self, data: PPFile) -> None:
+        "Convert data to a variable name, and write a line of code to append it to this file"
+        self.program.append(f"{self.variable_name}.append_path({data.variable_name})")
 
 @dataclass
 class PPData(Data):
@@ -256,15 +246,17 @@ class ProfilingFile(File):
     path: str
     size: int = 0
 
-    def append_data(self, data: t.Union[str, StrData, ProfilingFile]) -> None:
-        "Convert data to a string and record how much file space writing it would consume"
-        if isinstance(data, str):
-            self.size += len(data)
-        elif isinstance(data, StrData):
-            self.size += len(data.content)
-        else:
-            assert isinstance(data, ProfilingFile)
-            self.size += len(data.path)
+    def append_str(self, data: str) -> None:
+        "Record how much file space writing this string would consume"
+        self.size += len(data)
+
+    def append_data(self, data: StrData) -> None:
+        "Record how much file space writing this data would consume"
+        self.append_str(data.content)
+
+    def append_path(self, data: ProfilingFile) -> None:
+        "Record how much file space writing this path would consume"
+        self.append_str(data.path)
 
 @dataclass
 class OptimizedDirectory(IODirectory):
