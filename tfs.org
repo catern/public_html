@@ -390,3 +390,8 @@ But they do know how to implement objects with different implementations!
     well I still don't really know what that is desugaring into...
     (some kind of... existential package?
     sure, I guess an existential supports this directly)
+*** another thought
+    TFS is kind of like writing an effect handler
+
+    and both of those are kind of like writing a pattern match over a function/expression.
+

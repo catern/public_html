@@ -38,7 +38,13 @@ def create_file_with_contents(dir: Directory, name: str, arg: Data) -> File:
     return file
 
 def prog(dir: Directory, arg1: Data, arg2: Data) -> File:
-    "A simple program manipulating files and directories"
+    """A simple program manipulating files and directories
+
+    We will be reinterpreting this program in different ways by passing it
+    different arguments, which are different implementations of Directory and
+    Data.
+
+    """
     paths = dir.create_file("paths")
     arg1_file = create_file_with_contents(dir, "arg1", arg1)
     paths.append_data("arg1 file path:")
@@ -91,6 +97,8 @@ class IOFile(File):
         and the file grows.
 
         """
+        # This isn't introspection, just the idiomatic equivalent of a pattern
+        # match on a sum type, or a visitor on a std::variant.
         if isinstance(data, str):
             self.file.write(data)
         elif isinstance(data, StrData):
@@ -204,10 +212,21 @@ def ppmain():
     print("    " + "\n    ".join(dir.program))
 
 # ppmain()
+# Output:
+# def func(mydir, somearg, otherarg):
+#     file0 = mydir.create_file('paths')
+#     file1 = mydir.create_file('arg1')
+#     file1.append_data(somearg)
+#     file0.append_data('arg1 file path:')
+#     file0.append_data(file1)
+#     file5 = mydir.create_file('arg2')
+#     file5.append_data(otherarg)
+#     file0.append_data('arg2 file path:')
+#     file0.append_data(file5)
 
 
 ##### Optimization
-# This implementation optimizes the program it's passed to, storing information
+# This implementation profiles the program it's passed to, storing information
 # about the file space allocation performed by the program and returning a new
 # Directory which batches those allocations together and performs them all at
 # once.
@@ -271,6 +290,8 @@ def optimized_main():
     prog(optdir, arg1, arg2)
     dir = optdir.optimized()
     prog(dir, arg1, arg2)
+
+# optimized_main()
 
 
 ##### Type-correct interfaces
