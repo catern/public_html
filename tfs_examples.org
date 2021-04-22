@@ -1,0 +1,358 @@
+#+title: Examples for "Write code, not compilers"
+#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
+
+Read "[[./tfs.html][Write code, not compilers]]" first.
+
+These examples are working, type-annotated Python 3.
+
+It sure is fun to write different implementations for interfaces!
+Let's see all the different things we can do with that!
+
+* The interface and program
+First, an interface:
+#+begin_src python
+class Data:
+    "Some opaque piece of data"
+    pass
+
+class Directory:
+    "A directory, in which we can create files"
+    def create_file(self, name: str) -> File: ...
+
+class File:
+    "A file, to which we can append several types of values"
+    def append_str (self, data: str ) -> None: ...
+    def append_data(self, data: Data) -> None: ...
+    def append_path(self, data: File) -> None: ...
+#+end_src
+
+And a short program that uses that interface:
+#+begin_src python
+def create_file_with_contents(dir: Directory, name: str, arg: Data) -> File:
+    "A helper function to create a file containing some data"
+    file = dir.create_file(name)
+    file.append_data(arg)
+    return file
+
+def prog(dir: Directory, arg1: Data, arg2: Data) -> File:
+    "A simple program manipulating files and directories"
+    paths = dir.create_file("paths")
+    arg1_file = create_file_with_contents(dir, "arg1", arg1)
+    paths.append_str("arg1 file path:")
+    paths.append_path(arg1_file)
+    arg2_file = create_file_with_contents(dir, "arg2", arg2)
+    paths.append_str("arg2 file path:")
+    paths.append_path(arg2_file)
+    return paths
+#+end_src
+
+By passing different implementations of the interfaces to this program,
+we will reinterpret the program as doing different things.
+
+* IO
+First, the obvious implementation:
+One which just writes to the filesystem.
+
+#+begin_src python
+@dataclass
+class StrData(Data):
+    "Some data, specifically a string"
+    content: str
+
+    def serialize(self) -> str:
+        return self.content
+
+@dataclass
+class IODirectory(Directory):
+    "A directory in the filesystem, in which we'll create files"
+    path: str
+
+    def create_file(self, name: str, size: int=None) -> IOFile:
+        """Open and create a file in this directory in the filesystem
+
+        An optional argument, size, will preallocate space in the file
+        for future writes. We'll use this later.
+
+        """
+        path = self.path + "/" + name
+        f = open(path, 'w')
+        if size:
+            f.truncate(size)
+        return IOFile(path, f)
+
+@dataclass
+class IOFile(File):
+    "A file in the filesystem, to which we'll write"
+    path: str
+    file: t.TextIO
+
+    def append_str(self, data: str) -> None:
+        self.file.write(data)
+
+    def append_data(self, data: StrData) -> None:
+        self.file.write(data.content)
+
+    def append_path(self, data: IOFile) -> None:
+        self.file.write(data.path)
+#+end_src
+
+We can then run =prog= with this implementation,
+to get the expected behavior of making some files and writing into them.
+
+#+begin_src python
+def main():
+    dir = IODirectory("/tmp/somedir")
+    arg1 = StrData("my very cool and neat data")
+    arg2 = StrData("some other kind of cool and neat data")
+    prog(dir, arg1, arg2)
+#+end_src
+
+So far, this is all completely conventional.
+
+* Testing
+We can pass an implementation which transforms our program into a test.
+At each point, instead of performing an operation,
+the program asserts that the operation has been performed correctly.
+
+That's what the Test implementation does:
+- Instead of creating a new file,
+  we assert that the file is there.
+- Instead of writing to the file,
+  we read the file and assert its contents match our expectation.
+
+This isn't a mock; it really does do IO in the filesystem,
+just different IO.
+
+#+begin_src python
+@dataclass
+class TestDirectory(Directory):
+    "A directory in the filesystem, in which we'll open files"
+    path: str
+
+    def create_file(self, name: str) -> TestFile:
+        """Open a file in this directory in the filesystem
+
+        If the file doesn't exist, we'll throw an exception.
+
+        """
+        path = self.path + "/" + name
+        # throws if the file doesn't exist
+        f = open(path, 'r')
+        return TestFile(path, f)
+
+@dataclass
+class TestFile(File):
+    "A file in the filesystem, which we'll read from"
+    path: str
+    file: t.TextIO
+
+    def append_str(self, data: str) -> None:
+        "Assert this string matches the data in this file"
+        read_data = self.file.read(len(data))
+        if data != read_data:
+            raise Exception("the next data in the file should be", data, "not", read_data)
+
+    def append_data(self, data: StrData) -> None:
+        self.append_str(data.content)
+
+    def append_path(self, data: TestFile) -> None:
+        self.append_str(data.path)
+#+end_src
+
+Now we can test the results of the IO implementation by running the Test implementation.
+
+#+begin_src python
+def testmain():
+    dir = IODirectory("/tmp/somedir")
+    arg1 = StrData("my very cool and neat data")
+    arg2 = StrData("some other kind of cool and neat data")
+    # run with IO
+    prog(dir, arg1, arg2)
+    # run with Test
+    prog(TestDirectory(dir.path), arg1, arg2)
+#+end_src
+
+First we run =prog= once with IODirectory to create the files.
+Then we run =prog= with TestDirectory to check that the files are there,
+and have the correct contents.
+
+* Pretty printing
+This implementation of =Data=, =Directory=, and =File= pretty-prints the program that they are passed to.
+
+Whenever a method is called,
+this implementation writes a line of code which calls that method.
+Variable names are generated to store any returned values,
+and used when later method calls are made with those values.
+
+#+begin_src python
+@dataclass
+class PPDirectory(Directory):
+    program: t.List[str]
+    variable_name: str
+
+    def create_file(self, name: str) -> PPFile:
+        "Write a line of code to create a file and store it in an arbitrarily named variable"
+        file = PPFile(self.program, f"file{len(self.program)}")
+        self.program.append(f"{file.variable_name} = {self.variable_name}.create_file('{name}')")
+        return file
+
+@dataclass
+class PPFile(File):
+    program: t.List[str]
+    variable_name: str
+
+    def append_str(self, data: str) -> None:
+        "Write a line of code to append this string to this file"
+        self.program.append(f"{self.variable_name}.append_str('{data}')")
+
+    def append_data(self, data: PPData) -> None:
+        "Convert data to a variable name, and write a line of code to append it to this file"
+        self.program.append(f"{self.variable_name}.append_data({data.variable_name})")
+
+    def append_path(self, data: PPFile) -> None:
+        "Convert data to a variable name, and write a line of code to append it to this file"
+        self.program.append(f"{self.variable_name}.append_path({data.variable_name})")
+
+@dataclass
+class PPData(Data):
+    variable_name: str
+#+end_src
+
+We can run =prog= with this implementation, picking arbitrary initial variable names:
+
+#+begin_src python
+def ppmain():
+    program = []
+    dir = PPDirectory(program, "mydir")
+    arg1 = PPData("somearg")
+    arg2 = PPData("otherarg")
+    # run prog to pretty-print the program
+    prog(dir, arg1, arg2)
+    # wrap the pretty-printed program in a function declaration and print it to stdout
+    print(f"def func({dir.variable_name}, {arg1.variable_name}, {arg2.variable_name}):")
+    print("    " + "\n    ".join(program))
+#+end_src
+
+This outputs a pretty-printed program to stdout:
+
+#+begin_src python
+def func(mydir, somearg, otherarg):
+    file0 = mydir.create_file('paths')
+    file1 = mydir.create_file('arg1')
+    file1.append_data(somearg)
+    file0.append_data('arg1 file path:')
+    file0.append_data(file1)
+    file5 = mydir.create_file('arg2')
+    file5.append_data(otherarg)
+    file0.append_data('arg2 file path:')
+    file0.append_data(file5)
+#+end_src
+
+Not the most beautiful pretty-printing,
+but still pretty good considering that this works without access to the source code.
+
+* Optimization
+First, some background knowledge:
+When writing to a filesystem, space must be allocated for data as it is written.
+Writing data in many small chunks causes the space allocation to be broken up into many small chunks.
+It is substantially more efficient to allocate space in one big chunk,
+rather than in many small chunks.
+
+Knowing that, we'd like to optimize our program to allocate all the space it needs for a file up front,
+at the time it creates the file.
+
+To do that, this implementation of =Data=, =Directory=, and =File= profiles the program it's passed to,
+storing information about the space allocation implicitly performed by the program.
+After the program is finished running with the profiling implementation,
+the =optimized_dir= method returns a new =Directory= object
+which uses that profiling information to perform space allocations in one big chunk at file creation,
+instead of in smaller chunks.
+
+#+begin_src python
+@dataclass
+class ProfilingDirectory(Directory):
+    path: str
+    files: t.Dict[str, ProfilingFile]
+
+    def create_file(self, name: str) -> File:
+        "Make a file which profiles the space usage of operations performed on it"
+        path = self.path + "/" + name
+        file = ProfilingFile(path)
+        self.files[name] = file
+        return file
+
+    def optimized_dir(self, path: str) -> OptimizedDirectory:
+        "Return an optimized directory which performs profiled space allocations all at once"
+        return OptimizedDirectory(path, self.files)
+
+@dataclass
+class ProfilingFile(File):
+    path: str
+    size: int = 0
+
+    def append_str(self, data: str) -> None:
+        "Record how much file space writing this string would consume"
+        self.size += len(data)
+
+    def append_data(self, data: StrData) -> None:
+        "Record how much file space writing this data would consume"
+        self.append_str(data.content)
+
+    def append_path(self, data: ProfilingFile) -> None:
+        "Record how much file space writing this path would consume"
+        self.append_str(data.path)
+
+@dataclass
+class OptimizedDirectory(IODirectory):
+    profiler_results: t.Dict[str, ProfilingFile]
+
+    def create_file(self, name: str) -> IOFile:
+        "Create this file, allocating space in it based on data from profiling"
+        profiler_result = self.profiler_results.get(name)
+        if profiler_result:
+            return super().create_file(name, size=profiler_result.size)
+        else:
+            return super().create_file(name)
+#+end_src
+
+We can use this profiler implementation to profile our program once,
+and then run it many times.
+
+#+begin_src python
+def optimized_main():
+    arg1 = StrData("somearg")
+    arg2 = StrData("otherarg")
+    profile_dir = ProfilingDirectory("somedir", {})
+    prog(profile_dir, arg1, arg2)
+    prog(profile_dir.optimized_dir("adir"), arg1, arg2)
+    prog(profile_dir.optimized_dir("bdir"), arg1, arg2)
+#+end_src
+
+* Conclusion
+Writing implementations for interfaces is fun and powerful.
+
+* Addendum: Type-correct interfaces
+The type declarations for the =Data=, =Directory=, and =File= interfaces at the start are simple and correct,
+but need to be made a little more generic to support our implementations;
+otherwise we get some type errors.
+
+The below declarations of the interfaces are fully correct and allows us to typecheck properly.
+But they're slightly more complicated, so we're doing it here to avoid confusion up front.
+
+#+begin_src python
+class Data:
+    pass
+
+T_Data = t.TypeVar('T_Data', bound=Data)
+T_File = t.TypeVar('T_File', bound=File)
+class File(t.Generic[T_Data]):
+    def append_str (self,         data: str  ) -> None: ...
+    def append_data(self,         data: T_Data) -> None: ...
+    def append_path(self: T_File, data: T_File) -> None: ...
+
+class Directory:
+    def create_file(self, name: str) -> File: ...
+#+end_src
+
+Exercise for the reader:
+Understand why these changes to the =append_data= and =append_path= methods are needed.

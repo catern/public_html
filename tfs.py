@@ -21,7 +21,7 @@ class Directory:
 
 class File:
     "A file, to which we can append several types of values"
-    def append_str(self, data: str) -> None: ...
+    def append_str (self, data: str ) -> None: ...
     def append_data(self, data: Data) -> None: ...
     def append_path(self, data: File) -> None: ...
 
@@ -89,10 +89,10 @@ class IOFile(File):
         self.file.write(data)
 
     def append_data(self, data: StrData) -> None:
-        self.append_str(data.content)
+        self.file.write(data.content)
 
     def append_path(self, data: IOFile) -> None:
-        self.append_str(data.path)
+        self.file.write(data.path)
 
 
 ##### Testing

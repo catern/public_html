@@ -394,4 +394,26 @@ But they do know how to implement objects with different implementations!
     TFS is kind of like writing an effect handler
 
     and both of those are kind of like writing a pattern match over a function/expression.
+*** citations?
+    maybe I should cite some stuff, like...
 
+    effect handlers/copattern matches
+
+    tagless final style
+
+    that one paper on type-directed decompilation
+    or type directed partial evaluation?
+
+    this will be a good singular reference
+*** redesign of post
+    let's just write a new one I guess
+
+    or... write a separate post which shows examples?
+
+    yeah and leave the koan as is.
+
+    Should I link it from the main page?
+
+    yes... on the same line.
+
+    Write code, not compilers (examples)
