@@ -276,3 +276,117 @@ But they do know how to implement objects with different implementations!
    rather than a hard-coded predetermined langauge.
 ** nice
    okay nice I like that yeah
+
+   okay let's stop updating the intro here and do it in the html only
+** examples
+   okay I think the main thing I actually need from here is examples.
+
+   I think I can have one function that I'll use for all three examples.
+
+   I can make a testing example too...
+
+   yeah lol how was this not obvious to me before, just have one function and use it for all the examples.
+
+   well... one reason that's not good is because,
+   different functions have interfaces for different things,
+   and therefore can support different transformations.
+
+   still.
+
+   I can do the string and compilation thing here...
+
+   and... I can do the testing example maaaaybe.
+
+   having a common example is really powerful but also limiting...
+
+   the testing example shouldn't require anything new
+
+   the string and compilation things require the same stuff
+
+   so actually it seems fine yeah.
+
+   the thing is that the *optimization* part, the up front allocation part,
+   requires less abstraction than others.
+
+   but, that's fine. we can ignore that.
+
+   yeah hmmmmmmm
+
+   yeah okay! I like this web application routes thing.
+   lotta potential here.
+
+   testing, we can test that the routes are pointing to the right objects,
+   or something.
+
+   the awkward thing with the webapp is that the familiar design has already been optimized
+   for not being super bad performance, heh.
+
+   hmmmmmmmm mm hmm hmm
+   i'm sure we can figure out something to batch though
+
+   hmmm
+
+   oh! allocate space for routes and apps up front!
+   just say, "allocate_route_space(3)", "allocate_app_space(2)"
+   or maybe allocating an entire buffer, that might be clearer
+
+   yeah and store it in the preallocation thing...
+
+   hmm this webapp thing is not necessarily the best though,
+   because it doesn't have side-effects.
+
+   what about creating some files on disk? that could be good.
+
+   and like...
+   renaming them and stuff.
+
+   and what would we all
+
+   hmm hmm
+
+   okay how about allocating the size of the file up front before writing?
+
+   yeah that could be good
+
+   ok ok cool so.
+
+   we can allocate the space in the file for the paths up front.
+
+   okay yeah I like this directory one
+
+   Testing is done by:
+
+   Test that the file contains the expected contents.
+
+   okay so I like it, let's proceed from here.
+
+   oh okay let's just narrow the file type in the method arguments, let's not assert it openly
+
+   oh hey and we could even make that type safe later with a generic, actually.
+*** how to type these examples?
+    hmmmmmmmmMmmMmMmmm
+    is it even possible in Python? with an OO type system?
+
+    so... we want to say...
+    we've got these interfaces, right...
+    i mean it's the fact that we're peering inside. hm.
+
+    oh so the...
+    protocol or something should be...
+
+    parameterized on the data? and... the file.
+
+    so the file can...
+    take itself as an argument.
+
+    the
+
+    that's gonna be tricky hmmmm
+
+    or is it?
+
+    ah no it's easy, duh, obvious in retrospect.
+
+    well I still don't really know what that is desugaring into...
+    (some kind of... existential package?
+    sure, I guess an existential supports this directly)

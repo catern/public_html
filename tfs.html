@@ -13,15 +13,14 @@ such that the desired type is returned from the function.
 A function does not need to be parsed and statically analyzed to figure out what it does.
 The function itself will tell you: Just call it and see.
 <p>
-It will tell you in the language that you ask for,
-using the arguments you pass it.
+The function will speak to you in a language determined by the arguments you pass it.
 <ul>
   <li>If you pass it objects and methods which perform IO and return unit,
-    it will tell you in the language of side-effects.
+    it will speak to you in the language of side-effects.
   <li>If you pass it objects and methods which pretty-print their arguments and return a string,
-    it will tell you in the language of pretty-printed programs.
+    it will speak to you in the language of pretty-printed programs.
   <li>If you pass it objects and methods which allocate registers and return instructions,
-    it will tell you in the language of executable code.
+    it will speak to you in the language of executable code.
 </ul>
 The fewer global variables and types that a function refers to,
 the more the function can speak in the language we desire,
