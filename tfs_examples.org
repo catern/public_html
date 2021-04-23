@@ -147,7 +147,12 @@ class TestFile(File):
     file: t.TextIO
 
     def append_str(self, data: str) -> None:
-        "Assert this string matches the data in this file"
+        """Assert this string matches the data in this file.
+
+        As we read more data from the file, our position in the file
+        moves forward and we read new data.
+
+        """
         read_data = self.file.read(len(data))
         if data != read_data:
             raise Exception("the next data in the file should be", data, "not", read_data)
@@ -336,6 +341,9 @@ Writing implementations for interfaces is fun and powerful.
 - [[https://link.springer.com/chapter/10.1007/3-540-47018-2_16][Type-Directed Partial Evaluation]].
   This paper discusses (in part) the pretty-printing technique used here
   and how it can be generalized.
+- [[http://www.object-oriented-security.org/lets-argue/singletons][Singletons Considered Harmful]].
+  This post explains, in object-oriented terms,
+  why it's preferable to pass dependencies as arguments rather than use globals.
 * Addendum: Type-correct interfaces
 The type declarations for the =Data=, =Directory=, and =File= interfaces at the start are simple and correct,
 but need to be made a little more generic to support our implementations;
