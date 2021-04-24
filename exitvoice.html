@@ -32,13 +32,11 @@ both "exit" and "voice" are available.
   <li>Exit: Or the user can switch to using some other piece of software which is more to their liking,
     paying various switching costs, like learning to use the new software.
 </ul>
-One interesting thing is that for open source software,
-those are not the only options.
+For open source software, there's a third option.
 <p>
 For open source software,
 both the user and the original software developer have the same power to change the software.
-<p>
-If the original developer refuses to make some change,
+So if the original developer refuses to make some change,
 the user can find some other person with programming skill,
 and ask (or pay) them to make the change instead.
 <p>
@@ -48,75 +46,92 @@ A user might make some private change to the software
 which they know wouldn't be accepted into the main version,
 while still making other changes as part of the main community.
 <p>
-The ability to "fork" has implications for "exit" and "voice".
+The ability to fork has implications for "exit" and "voice".
 <h3>Exit is less important for open source</h3>
 In different situations - not just in software - "exit" can be easier or harder.
 For example, someone working in a small town will have fewer job opportunities than someone working in a big city,
 so exiting a bad job is harder.
+<p>
 Since exit is essentially one's only option if voice fails,
 people will do things to make exit easier - like taking a job in a big city where they'll have lots of options.
 <p>
-One of the key influences on the ability to "exit" in software is portability.
+In software, one of the key influences on the ability to "exit" is portability.
 Portable software can be used on different platforms or with different dependencies
 and portable data formats can be read by different programs.
 <p>
 For example,
-if a piece of software depends on a certain non-portable feature of a proprietary library,
-the piece of software can't stop using the proprietary library.
-They're reliant on "voice" to make sure that the proprietary library changes only in good ways.
+if a piece of software "FooSoft" depends on non-portable features of a proprietary library "libprop",
+the piece of software can't easily stop using the proprietary library.
+FooSoft and its users are reliant on "voice" to make sure that libprop changes only in good ways.
 <p>
-If the piece of software instead only depends on such portable, widely available features of the proprietary library,
-then if the proprietary library changes in a bad way,
-the proprietary library can just be switched out for some other library.
+If FooSoft instead only depends on such portable, widely available features of libprop,
+then if libprop changes in a bad way,
+libprop can just be switched out for some other implementation of those features.
 <p>
-Such easy "exit" is the primary motivation for portability.
+Making it easy to "exit" in this way is the primary motivation to write portable software.
 <p>
-With the ability to fork,
-exit becomes less important,
-and so portability becomes less of a priority.
+For open source software, it's less important for users to preserve the ability to exit,
+because they can fork instead.
 <p>
-If, as in the example before, a piece of software depends on a non-portable feature of an open source library,
-and the open source library changes in a bad way,
-the piece of software can fork the open source library and continue using it.
+If, as in the example before, FooSoft depends on a non-portable feature of an open source library "libopen",
+and libopen changes in a bad way,
+FooSoft can fork libopen and continue using it.
 <p>
 So it's less important for software only use portable features of open source dependencies.
-<h3>TODO: Voice is less important for open source</h3>
-There's less attempting to persuade people,
-and more just-do-it.
-Because that's a realistic option to demonstrate things work!
+<h3>Voice is less important for open source</h3>
+In the use of "voice" in software, there are two participants, the user and the developer.
+<ul>
+  <li>A user wants some change, so they ask the developer to do it.
+  <li>The developer receives a request from the user for some change.
+</ul>
+The behavior of both sides is changed by voice.
+<ul>
+  <li>The user can invest less effort into persuading the developer,
+    because they can ultimately just make the change themselves.
+    Also, the user is able to more easily prove the goodness of their proposals
+    by implementing them in a fork and showing that to the developer.
+  <li>The developer can dismiss user requests more readily,
+    knowing that that the user has options other than "exit".
+    Also, the developer can require that the user implement and demonstrate the change with a long-lived fork,
+    before applying the change to the main version.
+</ul>
+On both sides, some of the effort that would otherwise be spent on voice
+is instead shifted to implementation work through forking.
+<p>
+One might compare this to a (possibly apocryhal) process for achieving change inside large corporations:
+Leave the company, start a startup implementing the change and demonstrating that it works,
+and then have the company buy that startup.
+The ability to fork makes this process much faster.
 <h3>When forking becomes harder, exit and voice become more important</h3>
 The "fork" ability relies on the user being able to
 get a complete copy of the resources used by the original software developer.
 Anything the original software developer can do, the user can now do.
 <p>
 This is only an approximation of the truth, of course.
+When the original developer has resources that aren't copied in a fork,
+forking becomes harder.
 <p>
-Most basically,
-the original software developer has a development environment and knowledge about the structure of the software,
-which you don't automatically get a copy of.
-<p>
-A community-friendly project will try to make it easy to create a development environment
-so that the software can be built.
-Other projects, sometimes intentionally, will make it harder to build modified versions of the software.
-<p>
-In either case, a development environment is usually relatively easy to recreate.
-<p>
-If the software is primarily used as a network service,
-there are more significant resources that are harder to recreate.
-<p>
-For a conventional local application which runs on the user's machine,
-a modified version can be compiled and the user can switch to using it with no change in functionality.
-<p>
-A network service, on the other hand,
-may use significant resources, both hardware and proprietary software,
-which a fork will not be able to access.
-<p>
-Actually running a modified but otherwise equivalent network service is therefore difficult.
-The practices and software that allow the network service to be maintained and provided
-are often completely "proprietary" - not included with a fork.
-<p>
-All this weakens the ability to fork and forces software users to depend more on exit and voice,
-even if the network service is running open source software.
-<!-- Should include more reasons here why forking can be hard - K suggests dependencies on other things can do that??? -->
+Some resources that might not be duplicated in a fork:
+<ul>
+  <li>Knowledge about the structure of the software.
+    <p>
+    This can be mitigated by good documentation, but of course can never be truly solved.
+  <li>Development environments.
+    <p>
+    This can be especially troublesome when the software depends on specialty hardware.
+    A community-friendly project will try to make it easy to create a development environment
+    so that the software can be built.
+    Other projects, sometimes intentionally, will make it harder to build modified versions of the software.
+  <li>For open source software provided as a network service:
+    The hardware and software used to host the service.
+    <p>
+    Even if a service is open source,
+    the resources used to host that service are not duplicated in a fork.
+    Most obviously, unlike normal application software which runs on the user's computer,
+    a service depends on computers controlled by the service provider.
+    To use the service, the user must set up copies of such machines,
+    rather than simply run the software locally.
+</ul>
+All this weakens the ability to fork and forces software users to depend more on exit and voice.
 </body>
 </html>
