@@ -1,8 +1,27 @@
 #+title: Things in Emacs which I think are neat
 
+* redesign
+okay so I need to start with an intro of Emacs,
+and what it is.
+and some information about it.
+
+Then I can go through and... basically just list the features I think are cool.
+
+I don't need to actually even write demos!
+
+oh yeah I can just jump straight to the manual in my talk,
+and narrow to the part I'm talking about
+* Prep
+=M-x global-command-log-mode=
+
+=C-x 5 b *command-log*=
+
+=M-x customize-face default=
+
+command-log-mode is an external package which is useful for presentations.
 * help
-As far as I know, Emacs has the most advanced help system of any piece of software in existence;
-let me know if you know of any other software that even comes close.
+As far as I know, Emacs has the most advanced help system of any program.
+Let me know if you know of any other program that even comes close.
 
 See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Help.html][C-h r m Help]] for the manual section about the help system.
 
@@ -25,8 +44,27 @@ See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Help.html][C-h r
 ** =C-h r=
   This just brings up the Emacs manual.
   Note that you can do a full-text search through the manual with just a regular =C-s=.
-** =C-h m=
-  Shows the mode of the current buffer, and what keybindings specific to that mode are available.
+** =C-h ?=
+   Shows help commands.
+
+   ? in general, after a prefix, shows the available commands; e.g. =C-x ?=.
+* query-replace
+  Humble find and replace, with =M-%=.
+  But it has some advanced features!
+
+  See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Replace.html][C-h r m Replace]] for the manual section about replacing text.
+** recursive-edit
+   You can hit =C-r= or =C-w= in the middle of a query-replace,
+   perform some edits in the buffer,
+   and then resume with =C-M-c=.
+
+   This is one use of =recursive-edit=, which is really generally quite useful.
+** Lisp in replacements
+   You can put Lisp code in a replacement string when using =query-replace-regexp= (=C-M-%)=.
+
+   For example:
+   =C-M-% \(foo.*\) RET \,(upcase \1) RET=
+   to capitalize strings starting with "foo".
 * dired
 dired is a powerful mode for navigating through, and manipulating, directories.
 
@@ -55,12 +93,10 @@ See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Shell.html][C-h 
 Running a shell from Emacs instead of a separate terminal is often much nicer.
 Plus, as usual, it works when operating on remote files.
 
-=M-|= runs a shell command on the currently selected text.
+=M-&= prompts for a shell command to run directly, output going to a buffer.
 * External packages
 ** notmuch email
    I read email in Emacs with notmuch.el.
-
-   It's much better than Gmail.
 ** magit
    magit is very useful.
 *** partial staging
@@ -72,24 +108,8 @@ Plus, as usual, it works when operating on remote files.
     Stage some changes, hit =cF=, and select a commit.
     Those changes will be turned into a fixup commit which will be immediately squashed into the selected commit.
     Very helpful when cultivating a clean commit history.
-* query-replace
-  Humble find and replace, with =C-M-%=.
-  But it has some advanced features!
-
-  See [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Replace.html][C-h r m Replace]] for the manual section about replacing text.
-** recursive-edit
-   You can hit =C-r= or =C-w= in the middle of a query-replace,
-   perform some edits in the buffer,
-   and then resume with =C-M-c=.
-
-   This is one use of =recursive-edit=, which is really generally quite useful.
-** Lisp in replacements
-   You can put Lisp code in a replacement string.
-
-   For example:
-   =C-M-% \(foo.*\) RET \,(upcase \1) RET=
-   to capitalize strings starting with "foo".
 * Misc
+** find-file-at-point
 ** narrowing
 *** form-feed-delimited page-based presentations
 ** kmacros
@@ -98,13 +118,17 @@ Plus, as usual, it works when operating on remote files.
 ** prefix to repeat commands
 ** C-x C-x to swap side of selection
 ** C-x r to do rectangular selection
+** proced
 * Things in Emacs which I think are less neat than the neatness level that everyone else seems to think they have
 ** org
-* maybe others :noexport:
-** proced?
-** calc?
-** man and/or woman?
-   I don't know what this is cool but someone mentioned it
-** dunnet
-** daemon
-no this isn't necessary because people use exceed or whatever
+* Where to learn more
+** the manual
+   Read it!
+* feedback
+** set up host for remote use
+** use visual-line-mode
+** have a list at the end
+** maybe introduce things a little more?
+** talk about org-mode (specifically we should say that it's irrelevant)
+** cut down on time
+   I took 15 minutes
