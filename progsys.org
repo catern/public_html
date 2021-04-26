@@ -8,7 +8,7 @@ a type system, even a basic one, can help with many of these complexities.
 Here are a few examples which demonstrate this in Python
 using the type system added by [[https://www.python.org/dev/peps/pep-0484/][PEP 484]].
 
-Together, these techniques make it easier to [[../run.html][run your system]].
+Together, these techniques make it easier to [[./run.html][run your system]].
 ** You can express dependencies between services using function arguments.
      When service A makes use of services B and C, we need to make sure to start B and C before A.
 
