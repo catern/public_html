@@ -1,5 +1,13 @@
-#+title: Things in Emacs which I think are neat
+#+title: Things in Emacs which are neat
 
+* Intro
+Here's a list of things that make me like Emacs.
+
+https://www.gwern.net/Choosing-Software
+
+
+(info "(emacs) Intro")
+https://www.gnu.org/software/emacs/manual/html_node/emacs/Intro.html
 * redesign
 okay so I need to start with an intro of Emacs,
 and what it is.
@@ -11,6 +19,18 @@ I don't need to actually even write demos!
 
 oh yeah I can just jump straight to the manual in my talk,
 and narrow to the part I'm talking about
+
+** intro
+yeah and I can just talk about what Emacs is to me.
+how I think it's a powerful relic from a more powerful time
+
+how Emacs flows smoothly between programming and use, if you invest the effort
+
+how it's a powerful framework for building interactive applications;
+for example, I'll often write 15 lines or so of Lisp code to build a refactoring UI,
+which takes a list of files and interactively guides me through performing refactorings on them
+** actually
+how about I just link a collection of things which together form an argument to use Emacs?
 * Prep
 =M-x global-command-log-mode=
 
@@ -132,3 +152,7 @@ Plus, as usual, it works when operating on remote files.
 ** talk about org-mode (specifically we should say that it's irrelevant)
 ** cut down on time
    I took 15 minutes
+* favorite three
+  dired + wdired
+  Tramp (demonstrating dired then opening files)
+  email
