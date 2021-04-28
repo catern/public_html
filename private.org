@@ -1,0 +1,291 @@
+* public/private qualifiers are useless
+  Just use an interface for god's sake
+
+https://dl.acm.org/doi/10.1145/800025.1198392
+
+Inheritance was invented to support intrusive lists and simplify GC implementation relative to composition.
+
+lmao
+
+okay and private attributes do have a nice part that they can't be used by subclasses,
+so if you're using inheritance from non-interfaces, you need them.
+
+!!!!
+https://www.mn.uio.no/ifi/english/about/ole-johan-dahl/bibliography/the-birth-of-object-orientation-the-simula-languages.pdf
+#+begin_quote
+The class concept as it was formulated originally, was too permissive
+for the purpose of developing large systems. There was no means of
+enforcing a programming discipline protecting local class invariants
+(such as those expressed verbally for the Simulation class
+example). This was pointed out by Jacob Palme of the Swedish defence
+research institute. He proposed hiding mechanisms for protecting
+variable attributes from unauthorised updating. The proposal was
+approved by the SSG as the last addition ever to the language
+#+end_quote
+
+aha, it was him...
+https://people.dsv.su.se/~jpalme/jp-english-curriculum-vitae.pdf
+#+begin_quote
+Specified the HIDDEN/PROTECTED facilities in SIMULA, and thereby
+invented what today is know under the term object-oriented
+programming.
+#+end_quote
+
+
+!!!!
+Palme 1976
+https://dl.acm.org/doi/10.1145/956003.956009
+
+okay... so looking at things citing that...
+https://sci-hub.do/https://www.sciencedirect.com/science/article/pii/S006524580860131X
+Advances in Computers Volume 22: Specification and Implementation of Abstract Data Types
+cites that and says:
+#+begin_quote
+Later on concern with program correctness led to the realization that
+the interface between the module and the external world should be kept
+as simple as can be. Only then can the interface be fully described by
+a formal specification that is independent of implementation
+details. Parnas (1972a,b) recognized that this has to be enforced by
+means of information hiding or encapsulation. Access to objects
+belonging to an encapsulated data type should be solely by means of
+operations that belong to this type.  Consider the stack, and suppose
+that its representation is an array. Under encapsulation this is an
+irrelevant detail once programming of the stack module has been
+completed; i.e., the representation is totally hidden from the user
+within the “capsule.” Encapsulation is a feature of most programming
+languages that support data abstraction (Hanson et d., 1979).  At
+first Simula did not provide data encapsulation, but it has been
+modified to make its classes encapsulated data types (Palme, 1976).
+#+end_quote
+
+so... parnas 1972a, b, let's look for that...
+
+Parnas, D.L. 1972
+A technique for software module specification with examples.
+http://www.laputan.org/pub/papers/p330-parnas.pdf
+seems lame
+
+On the criteria to be used in decomposing systems into modules. 
+
+
+https://kilthub.cmu.edu/articles/Survey_of_scope_issues_in_programming_languages/6610049/files/12102188.pdf
+Says
+#+begin_quote
+When Simula 67 added facilities for concealing representations,
+#+end_quote
+in reference to hidden/protected.
+It mentions subclasses...
+
+
+http://drhanson.s3.amazonaws.com/storage/documents/bigd.pdf
+this also references Palme 1976.
+indeed, adjacent to something which sounds like interfaces,
+but doesn't criticize the hidden/protected thing...
+
+Searched for the palme article in:
+https://booksc.org/fulltext/New%20feature%20for%20module%20protection%20in/?type=phrase
+
+Analysis of the “service” concept
+https://booksc.org/book/6410368/82ce90
+10.1007/bf01082479
+#+begin_quote
+Recent developments of SIMULA [15] attempt to protect the data by
+declaring parts of it as inaccessible to the environment. This
+protection may be helpful for purposes of discipline, but
+methodologically it is inadequate: a much better approach would be
+through transparency of structure and content, rather than through
+knowledge of structure and inaccessibility of content.
+#+end_quote
+!!!! yes! exactly!
+
+
+okay well... anyway, we need to read the palme article
+https://www.reddit.com/r/Scholar/comments/mztyms/article_new_feature_for_module_protection_in/
+
+but...
+it doesn't say anything about why.
+
+https://booksc.org/book/21780665/a94eaa
+HOPL III - The when, why and why not of the BETA programming language
+#+begin_quote
+Before object orientation caught on, SIMULA was very influential on
+the development of abstract data types.  Conversely, ideas from
+abstract data types later led to an extension of SIMULA with
+constructs like public, private and protected – originally proposed by
+Jakob Palme
+#+end_quote
+
+okay... what ideas lol and why didn't they realize virtual was better
+
+okay so maybe we should find the simula documentation that documented hidden and protected?
+or, these ideas had to come from somewhere, maybe the parnas stuff really is the origin?
+
+the parnas stuff is inane and talks about interfaces anyway
+
+aha!
+http://pdp-10.trailing-edge.com/decuslib10-05/01/43,50337/07/simlh1.rnm.html
+the documentation for hidden and protected
+
+except it doesn't have much more than the Palme 1976 announcement
+
+https://web.archive.org/web/20200929095848/http://simula67.at.ifi.uio.no:80/Archive/Palme-protection-1973.pdf
+says
+#+begin_quote
+<catern> sebras: I confess that I do not read swedish - a full translation
+isn't necessary, all I really want to know is if the article mentions
+his motivations or inspiration, or maybe refers to other documents
+
+<sebras> catern: well it states that the Simula Standards Group
+unanimously decided to take on Jacob Palme's proposal on September
+26th 1973
+
+<sebras> catern: nope, no references at all. Jacob just mentions that
+Simula allows for more complete error check than other comparable
+languages like PL/I, Algol 68 and Fortran.
+
+<sebras> catern: it does state that the hidden concept is intended for
+large programs developed by multiple programmers, and also intended
+for libraries of standard routines. that's it.
+#+end_quote
+so september 1973. that's pretty early relative to the 1976 announcement.
+
+ok. I feel sufficiently satisfied that they didn't consider this.
+
+hey and perfect, interfaces are fully supported:
+https://en.wikipedia.org/w/index.php?title=Simula&oldid=992047652#Classes,_subclasses_and_virtual_procedures
+
+
+DETAILS OF THE HIDDEN/PROTECTED IMPLEMENTATION for dec-10
+http://pdp-10.trailing-edge.com/decuslib20-03/01/decus/20-0078/maint/tdiid.mem.html
+not valuable/interesting
+** records request
+https://computerhistory.org/collection-requests-contact-form/
+
+Hi,
+
+I'm doing research on the history of the SIMULA programming language.
+Several innovations were first introduced in Simula for the
+DECsystem-10. Specifically of interest to me is the HIDDEN PROTECTED
+specification: https://dl.acm.org/doi/10.1145/956003.956009
+
+I'm hopeful that there will be some historical information in the
+DECsystem-10 Simula manual.
+
+The Computer History Museum appears to have a copy of this manual in
+its catalog:
+https://www.computerhistory.org/collections/catalog/102748693
+
+What is the process for getting access? Ideally, I could get a scanned
+document, but I don't know what the normal process for the CHM is.
+
+Thanks in advance,
+Spencer Baugh
+** alternatives to public/protected/private
+have the base class declare "only things in this interface that I implement are available to subclasses"
+
+well okay...
+the other use of public/protected/private is to know the size, I guess, ala C++.
+
+but if we suppose that we don't use inheritance
+(other than from interfaces, if our language requires inheriting from interfaces)
+and that our lanugage doesn't require... stack space.... thing....
+
+actually the stack space thing doesn't apply for C++ either.
+https://stackoverflow.com/questions/4921932/pimpl-idiom-without-using-dynamic-memory-allocation
+
+any good language can handle this without exposing visibility of the fields.
+
+the fundamental issue:
+instantiators of A can use it through an interface, but inheritors of A can't use it through an interface
+that's bad.
+because of this, public/protected/private was added, a second way to define an interface,
+but this one only useful for inheritors of A.
+
+ok so that can be my focus.
+and I can say, like...
+
+public/protected/private is a gross hack for inheritance...
+maybe.
+
+ok i just had a decent article framing idea which I instantly forgot
+** okay boom
+   boom I wrote the inheritance one
+
+   okay so
+   instantiators of A can use it through an interface, but inheritors of A can't use it through an interface.
+
+   public/private/protected is a weird hack,
+   to define another interface.
+
+
+   so first off I want to solicit answers to,
+   has anyone tried to support using the same interfaces for instantiation and inheritance?
+
+   okay maybe I can just talk about...
+
+   how public/private/protected is an interface for inheritance.
+
+   you only need "privacy" for the constructor.
+
+   this way you always have to define an interface if you make things private,
+   which is good actually.
+** terminology
+   C++: access specifiers
+   Java: access modifiers
+** article
+   If A implements an interface X,
+   instantiators of A can use it through interface X,
+   but inheritors of A can't use it through that interface.
+   And likewise, A can force instantiators of A to only use A through interface X,
+   by only allowing construction of A instances through a function returning X;
+   but A can't force all inheritors of A to only use A through the interface.
+
+   Since A can't enforce that inheritors use functionality of A through an interface,
+   if A can be inherited from, inheritors can violate A's internal invariants.
+
+   So either A should disallow inheritance (always an option by simply not exposing A at all),
+   or A needs a second way to define an interface that *will* take effect on inheritors.
+   That second way to define an interface is the access modifiers:
+   public, protected, and private.
+
+   By marking members as private,
+   A can force inheritors to only use a specific interface to interact with A,
+   an interface composed of exactly and only those members which are public and protected.
+
+   But this is absurd:
+   Why do we have two ways to define an interface?
+
+   Wouldn't it be better for A to be able to force inheritors to only use A through a specific interface?
+   There'd be no loss in functionlity;
+   A could have separate interfaces for instantiators and inheritors.
+   We'd just define them in the same way.
+
+   Access modifiers were originally [[https://dl.acm.org/doi/10.1145/956003.956009][invented in Simula]].
+   The inventors and users at that time seem to have not realized
+   that access modifiers duplicated the interface-defining features that were already available:
+   virtual methods and subtyping,
+   which together are sufficient to [[https://en.wikipedia.org/w/index.php?title=Simula&oldid=992047652#Classes,_subclasses_and_virtual_procedures][define interfaces in Simula]].
+
+   Access modifiers were useful, of course,
+   given that [[./inheritance.html][Simula also invented inheritance]] and made frequent use of it,
+   so some way to protect the implementation internals of base classes was necessary.
+
+   But other means could have been used;
+   a class could have defined that when it was inherited from,
+   only the methods available in some abstract base class serving as interface
+   would be available to the inheritors.
+
+   Alas, as far as I can tell, they just simply didn't realize the possibility.
+
+   And thus we've been saddled with the unnecessary duplicate feature of access modifiers.
+
+   Of course, we can still make things better in the future,
+   by not using access modifiers anymore.
+   If your class isn't available to be inherited-from (say, because it's final),
+   then there's absolutely no need to annotate it with access modifiers.
+   Protection of the internals of the class can, and should,
+   be achieved through defining an interface.
+
+   If you do really want to use implementation inheritance...
+   well, don't.
+   Inheritance was a [[./inheritance.html][hack]] in the first place.
