@@ -1,5 +1,6 @@
 <html>
   <head>
+<meta charset="utf-8">
 <title>Inheritance was invented as a performance hack</title>
 </head>
 <body>
@@ -15,34 +16,36 @@ The
   History of Programming Languages session on Simula
 </a>
 tells us the motivations behind that invention.
-<p>
-Let's examine it.
-<h2>Simpler garbage collector</h2>
+Let's take a look.
+<h2>Simplifying the garbage collector</h2>
 Simula created inheritance instead of using
 <a href="https://en.wikipedia.org/wiki/Composition_over_inheritance">composition</a>
 because it allowed their garbage collector to be simpler.
 <p>
-From Section 2.3.3:
-<blockquote>
-  Unable to find such a [memory allocation] scheme providing sufficient
+Simula had a simple reference counting and garbage collection implementation:
+<blockquote cite="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">
+  Unable to find such a [manual memory allocation] scheme providing sufficient
   programming flexibility, we implemented a reference count scheme, an idea
   borrowed from Weizenbaum (1962), and also added a "last resort" garbage
   collector.
+  <footer>
+    – <cite>Section 2.3.3, <a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">The Development Of The Simula Languages</a></cite>
+  </footer>
 </blockquote>
-Simula had a simple reference counting and garbage collection implementation.
-This was fine and good, but their GC was a little too simple.
-<p>
-From Section 2.3.3:
+Using reference counting and garbage collection is fine and good, but their GC was a little too simple:
 <blockquote>
   A process could outlive its dynamic parent, i.e., the block instance containing
   the generating expression which gave rise to the process. As a result the
   process might access nonexisting data through its formal parameters. The remedy
   chosen was to forbid all kinds of call by name parameters to processes
-  (including procedures, labels, and switches),
+  (including procedures, labels, and switches).
+  <footer>
+    – <cite>Section 2.3.3, <a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">The Development Of The Simula Languages</a></cite>
+  </footer>
 </blockquote>
-<p>
 The problem is that one can pass a stack pointer
-as an argument to an object that will be returned and be used after the stack frame is deallocated.
+as an argument to an object ("process", in Simula terminology)
+that will be returned and used after the stack frame is deallocated.
 That will make later use of that object unsafe:
 "the process might access nonexisting data".
 <p>
@@ -53,8 +56,7 @@ The simple GC implementation in Simula solved this problem and others
 by banning passing many things as arguments, including passing functions as arguments.
 In a sense, they removed the support for first-class functions
 which existed in ALGOL 60, which Simula was an extension of.
-<p>
-From Section 3.1:
+Predictably, this reduced the expressivity of the language:
 <blockquote>
 When writing simulation programs we had observed that processes often shared a
 number of common properties, both in data attributes and actions, but were
@@ -62,18 +64,25 @@ structurally different in other respects so that they had to be described by
 separate declarations. [...]  Parametrization could not provide enough
 flexibility, especially since parameters called by name, including procedure
 parameters, had been banned for processes (for good reasons, see Section 2.3.3).
+  <footer>
+    – <cite>Section 3.1, <a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">The Development Of The Simula Languages</a></cite>
+  </footer>
 </blockquote>
 <p>
 As a result of the limitations of their GC,
-they explicitly considered and dismissed what today we'd call
-<a href="https://en.wikipedia.org/wiki/Composition_over_inheritance">composition</a>.
-<h2>Support intrusive lists</h2>
-Simula's inspiration for inheritance
+they weren't able to use "parametrization"
+(what we'd call <a href="https://en.wikipedia.org/wiki/Composition_over_inheritance">composition</a>)
+to customize classes.
+Instead, they had to invent inheritance.
+<h2>Supporting intrusive lists</h2>
+Simula's direct inspiration for inheritance
 was to simplify the usage of
 <a href="https://stackoverflow.com/questions/3361145/intrusive-lists">intrusive lists</a>,
 a clever hack still used today which makes linked lists more efficient, though less flexible.
 <p>
-From Section 2.3.4:
+In the first version of Simula, before they invented inheritance and other features,
+they supported a data structure called "sets", which were arbitrary linked lists of objects
+("processes", in Simula terminology):
 <blockquote>
   In retrospect the introduction of "multimembership" sets was a mistake. First
   the "sets" were really process sequences allowing multiple process occurrences,
@@ -81,67 +90,68 @@ From Section 2.3.4:
   purposes. [...] There was an ever-present overhead in process referencing caused
   by the fact that all process pointers were directed through separately allocated
   "element" objects.
+  <footer>
+    – <cite>Section 2.3.4, <a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">The Development Of The Simula Languages</a></cite>
+  </footer>
 </blockquote>
-<p>
-In the first version of Simula, before they invented inheritance and other features, 
-they supported a data structure called "sets", which were arbitrary linked lists of objects.
-Objects could be in multiple such linked lists.
 <p>
 As usual for a traditional linked list,
 the linked list nodes (called "elements" in the blockquote) were separately allocated,
 increasing memory usage and causing memory fragmentation.
 In comparison, in an intrusive list, the list nodes are not separately allocated.
 <p>
-They decided that a simpler data structure which didn't allow an object to be in multiple linked lists,
+In later versions of Simula,
+they decided that a simpler data structure which didn't allow an object to be in multiple linked lists,
 and which didn't require inefficient "element" objects,
-would be better.
-<p>
-From Section 3.1:
+would be better:
 <blockquote>
   The element/set concepts were too clumsy as basic, general purpose mechanisms for
   list processing. Even for simulation modeling our experience showed that simple process
   pointers might be better, combined with an inherent set membership capability of pro-
   cesses, restricted to one set at a time.
+  <footer>
+    – <cite>Section 3.1, <a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">The Development Of The Simula Languages</a></cite>
+  </footer>
 </blockquote>
+They decided to replace their traditional linked lists with
+<a href="https://stackoverflow.com/questions/3361145/intrusive-lists">intrusive lists</a>,
+which are much more memory-efficient and time-efficient than traditional linked lists.
 <p>
-In later versions of Simula, they decided to replace their traditional linked lists with
-<a href="https://stackoverflow.com/questions/3361145/intrusive-lists">intrusive lists</a>.
-Intrusive lists are much more memory-efficient and time-efficient than traditional linked lists.
-But, intrusive lists require the programmer to decide up-front how many linked lists the object can be on simultaneously.
-<p>
+Intrusive lists require the programmer to decide up-front how many linked lists the object can be on simultaneously.
 For simulation scheduling purposes,
 Simula decided that objects used in simulation could be on one (and only one) intrusive linked list.
-But they didn't yet know how they'd implement it, until...
-<p>
-From Section 3.1:
+But they still didn't know how they'd implement it, until:
 <blockquote>
-The solution came suddenly, with the idea of "prefixing," in December 1966. We
-were thinking in terms of a toll booth on a bridge, with a queue of cars which
-were either trucks or buses. (This example reappears in Dahl and Nygaard, 1968.)
-A "stripped" list structure, consisting of a "set head" and a variable number of
-"links," had been written down, when we saw that both our problems could be
-solved by a mechanism for "gluing" each of the various processes (trucks, buses)
-on to a "link" to make each link-process pair one block instance.
-<p>
-[...]
-<p>
-Usually a new idea was subjected to rather violent attacks in order to test its
-strength. The prefix idea was the only exception. We immediately realized that
-we now had the necessary foundation for a completely new language approach.
+  The solution came suddenly, with the idea of "prefixing," in December 1966. We
+  were thinking in terms of a toll booth on a bridge, with a queue of cars which
+  were either trucks or buses. (This example reappears in Dahl and Nygaard, 1968.)
+  A "stripped" list structure, consisting of a "set head" and a variable number of
+  "links," had been written down, when we saw that both our problems could be
+  solved by a mechanism for "gluing" each of the various processes (trucks, buses)
+  on to a "link" to make each link-process pair one block instance.
+  <p>[...]</p>
+  Usually a new idea was subjected to rather violent attacks in order to test its
+  strength. The prefix idea was the only exception. We immediately realized that
+  we now had the necessary foundation for a completely new language approach.
+  <footer>
+    – <cite>Section 3.1, <a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">The Development Of The Simula Languages</a></cite>
+  </footer>
 </blockquote>
-<p>
 Inheritence is called "prefixing" in Simula; a base class is a "prefix".
 <p>
 So the idea of inheritance originated in
 the idea of implementing an intrusive list by having objects inherit from the intrusive list node, the "link".
-In this way, intrusive lists could be easily used by programmers.
+In this way, intrusive lists, an otherwise complex performance hack, could be easily used by programmers.
 <h2>Conclusion</h2>
-It's not actually bad to create features for performance reasons.
+It's not bad to create features for performance reasons.
+And of course, Simula was genius in many other ways.
+They invented practically every part of modern OOP, not just inheritance;
+and their use of ubiquitous concurrency in objects is a particularly interesting feature that should be copied more.
 <p>
 But it's interesting that no-one today ever talks about inheritance as a performance feature.
 They talk about the code reuse and extensibility benefits.
 <p>
-Personally, I prefer
+Personally, for code reuse and extensibility, I prefer
 <a href="https://en.wikipedia.org/wiki/Composition_over_inheritance">composition</a>
 and
 <a href="https://en.wikipedia.org/wiki/Standard_ML#Module_system">modules</a>.
