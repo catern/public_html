@@ -289,3 +289,19 @@ ok i just had a decent article framing idea which I instantly forgot
    If you do really want to use implementation inheritance...
    well, don't.
    Inheritance was a [[./inheritance.html][hack]] in the first place.
+** reword intro
+
+instantiator can be generic
+
+Apologies for the extremely boring and standard OOP example, but:
+Suppose class Car implements interface Vehicle.
+
+- Regular use works great:
+  - Users can write generic code that works for any Vehicle, and use a Car with that code.
+  - The implementer of Car can force users to only ever use Car instances through the Vehicle interface,
+    by only allow construction of Car instances through, for example, a function =make_car= with return type Vehicle.
+- But the interface doesn't work with inheritance:
+  - Users cannot write a generic class that can inherit from any Vehicle (without the addition of more complex features).
+  - The implementer of Car cannot force subclasses of Car to only use Car through the Vehicle interface.
+
+
