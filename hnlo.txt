@@ -1,0 +1,8 @@
+> HNLO mail.server.com
+250 mail.server.com
+> HNLO STINKY mail.server.com
+502 5.5.2 Error: command not recognized
+> MAIL FROM:<go@spam.com>
+250 2.1.0 Ok
+> RCPT TO:<you@ugly.com>
+554 5.7.1 <you@ugly.com>: Relay access denied
