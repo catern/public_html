@@ -1,0 +1,276 @@
+* portability is a waste of time on open source platforms
+  things to use:
+  - glibc extensions (like hsearch_r)
+  - GCC extensions
+  - Linux extensions
+
+mezcalero's (Poettering's) comment in
+https://lwn.net/Articles/430598/
+
+This is all kind of related to the fundamental, technical advantages of open source.
+
+we don't need portability between open source platforms which are themselves portable.
+
+no need to be portable on Linux;
+but below Linux, let's be portable, since all the hardware is proprietary,
+and we have no ability to change or improve or run our own version of it - all we can do is leave.
+
+(like "exit and voice" - we have little voice in hardware, so we have to preserve our ability to exit, with portability)
+
+https://en.wikipedia.org/wiki/Exit,_Voice,_and_Loyalty
+
+I guess the more interesting thing is,
+exit and voice and portability,
+in open source and proprietary software.
+
+open source gives us the ultimate voice.
+we have complete control over how the software runs;
+if we want it to behave in some way, we can just pay someone to implement that feature,
+or do it ourselves.
+
+so we don't need exit that much;
+we can just change the software, rather than abandon it completely,
+even if the people "in charge" of the software disagree with us.
+(this is something that corporate perspectives on open source sometimes have difficulty with;
+although... I'm not sure I understandhow right now....)
+a fork can still be integrated back into the mainline eventually;
+
+proprietary software (and hardware in general?) gives us very little voice.
+all we can do is ask the owner of the software to perform some change;
+but they can easily refuse.
+the more users of the proprietary software, the less voice we (individually) have,
+relative to all the other users.
+
+so we really, really need to preserve exit as an option.
+it's our only leverage, and it's our only way make a choice for ourselves.
+
+what is exit in software?
+it is portability.
+
+if you can switch to some new software easily,
+you can exit easily.
+conversely, if you have dependencies on features provided only by a specific piece of software,
+it is more difficult for you to exit.
+
+# should explain the costs of portability here!
+# we need to say that we're giving up on using features which are specific to the system.
+# portability is far from free!
+what need do we have for portability when the software we depend on is open source?
+well, the main reason to need portability is when the software is itself not portable.
+for example, software which depends on proprietary software - like cloud services, or specific hardware features.
+unportable software stops us from "exiting" proprietary platforms.
+
+but what if we only use software which is portable?
+for example, Linux.
+then we don't need to ourselves be portable.
+we can rely on features which are unique to Linux, without much worry.
+if something goes wrong with Linux, we have the source code and we can fix it or do whatever we want;
+if something goes wrong with the dependencies of Linux,
+Linux is already portable so we can swap out its dependencies - the hardware we're running on, namely.
+
+Open source allows for many intermediates between "voice" and "exit".
+You can make a patch and use it;
+you can completely fork and start your own project;
+whatever.
+
+But you don't have to give up on everything if you want to exit, like true exit
+** 
+everyone talks about "portability lets us make new implementations that are better!"
+but if we use features of thsoe new implementations, we won't be portable!!!
+and if we don't use new features so we're portable, then the new implementations won't be better!!!
+c'mon!!!
+** 
+how about, we talk about,
+that with proprietary software "exit" and "voice" are our only options
+
+but then we say, with free software, we have a third choice.
+** real examples of people not being portable
+   people using lots of libraries?
+
+   people kinda do care about portability to OS X...
+
+   portability between compilers is useless IMO,
+   but people like it because... it catches more bugs?
+   with warnings?
+
+   so what? that's a benefit of portability between compilers,
+   that you can use some features of everything, maybe
+
+   but you can't use the compiler-specific features.
+
+** focus on observations
+yeah we can just say, here's the situation,
+given that free software gives us this free software
+
+- observation: we have less need for portability
+- maybe observation: you shouldn't interact with open source in the same way as proprietary software?
+
+can I work proprietary services in here somehow?
+open source services?
+like... they aren't the same as regular open source,
+because when you leave, you don't keep all the assets:
+there's a bunch of work going into the maintenance of the service you now have to recreate.
+(and we'll leave it at that, we won't explicitly say scripts)
+yeah that's a good thing to mention heh
+** recap
+   okay so:
+
+   Exit and voice.
+
+   Free software gives us a third choice,
+   which doesn't really fit either.
+
+   
+   Maybe the metaphor is unnecessary?
+
+   Exit, voice, and fork.
+
+   Proprietary software only gives you exit and voice.
+   Fork - the ability to completely duplicate all the assets of the parent
+   is a unique ability for intellectual assets.
+
+   i wonder - this is kinda similar to agents? and ems?
+   can duplicate themselves to do more work...
+   but they can't merge I guess.
+
+   anyway.
+
+   exit... and voice...
+** article
+   title: Exit and voice in open source software
+
+   Quoting Wikipedia on the classic social science text, "[[https://en.wikipedia.org/wiki/Exit,_Voice,_and_Loyalty][Exit, Voice, and Loyalty]]":
+
+   #+begin_quote
+   The basic concept is as follows: members of an organization,
+   whether a business, a nation or any other form of human grouping,
+   have essentially two possible responses when they perceive that the
+   organization is demonstrating a decrease in quality or benefit to
+   the member: they can exit (withdraw from the relationship); or,
+   they can voice (attempt to repair or improve the relationship
+   through communication of the complaint, grievance or proposal for
+   change). For example, the citizens of a country may respond to
+   increasing political repression in two ways: emigrate or
+   protest. Similarly, employees can choose to quit their unpleasant
+   job, or express their concerns in an effort to improve the
+   situation. Disgruntled customers can choose to shop elsewhere, or
+   they ask for the manager.
+   #+end_quote
+   
+   Exit and voice are also two possible strategies for a software user
+   (who might be one person, or an organization of multiple people).
+   If the software changes in a way that the user dislikes,
+   or if the user would prefer that the software change but the software is not changing,
+   both "exit" and "voice" are available.
+
+   A user can file bugs, complain, and request that the software developer make the user's desired changes.
+
+   Or the user can switch to using some other piece of software which is more to their liking,
+   paying various switching costs, like learning to use the new software.
+
+   One interesting thing is that for open source software,
+   those are not the only options.
+
+   For open source software,
+   both the user and the original software developer have the same power to change the software.
+
+   If the original developer refuses to make some change,
+   the user can find some other person with programming skill,
+   and ask (or pay) them to make the change instead.
+   
+   Let's call this ability "fork".
+   That's a bit of a misnomer, because this sense of "forking" doesn't have to be acrimonious or even public.
+   A user might make some private change to the software
+   which they know wouldn't be accepted into the main version,
+   while still making other changes as part of the main community.
+
+   The ability to "fork" has implications for "exit" and "voice".
+*** Exit is less important
+    In different situations - not just in software - "exit" can be easier or harder.
+    For example, someone working in a small town will have fewer job opportunities than someone working in a big city,
+    so exiting a bad job is harder.
+    Since exit is essentially one's only option if voice fails,
+    people will do things to make exit easier - like taking a job in a big city where they'll have lots of options.
+    
+    One of the key influences on the ability to "exit" in software is portability.
+    Portable software can be used on different platforms or with different dependencies
+    and portable data formats can be read by different programs.
+
+    For example,
+    if a piece of software depends on a certain non-portable feature of a proprietary library,
+    that piece of software is completely reliant on "voice" to make sure that the proprietary library changes in good ways.
+    If the piece of software doesn't depend on such non-portable features of the proprietary library,
+    then if the proprietary library changes in a bad way,
+    the proprietary library can just be switched out for some other library.
+
+    Portability has other advantages too, besides that it enables easy "exit",
+    but "exit" is a primary driver for portability.
+
+    With the ability to fork,
+    exit becomes less important,
+    and so portability becomes less of a priority.
+
+    If, as in the example before, a piece of software depends on a non-portable feature of an open source library,
+    and the open source library changes in a bad way,
+    the piece of software can fork the open source library and continue using it.
+
+    So portability of software using open source dependencies and platforms is less important.
+*** TODO Voice becomes different
+    hm mm mm mm
+
+    basically I just want to say here that, like...
+
+    you don't talk to an open source developer like they're some pie in the sky!
+    if you want a change, do it!
+
+    also, maintainers can dismiss you more!
+    voice is weaker because you have another option!
+    and they know it!
+
+    yeah so basically voice is a less important part,
+    because things can be demonstrated by doing them.
+
+    (this translates into less politics which I like :) )
+    instead of voice, we rely on a kind of tamed version of competition/exit.
+    it's kind of like a super-powered version of exit,
+    since it can be merged back in
+
+    yeah, right, so,
+    voice is less important.
+    since action is possible cheaply, without convincing anyone.
+    so just doing something rather than asking to do it, is preferred
+
+    This user has more power to break off negotiations with the developer
+*** Services weaken forking
+    The "fork" ability relies on the user being able to
+    get a complete copy of the resources used by the original software developer.
+    Anything the original software developer can do, the user can now do.
+
+    This is only an approximation of the truth, of course.
+
+    Most basically,
+    the original software developer has a development environment and knowledge about the structure of the software,
+    which you don't automatically get a copy of.
+
+    A community-friendly project will try to make it easy to create a development environment
+    so that the software can be built.
+    Other projects, sometimes intentionally, will make it harder to build modified versions of the software.
+
+    In either case, a develoment environment is usually relatively easy to recreate.
+    
+    If the software is primarily used as a network service,
+    there are more significant resources that are harder to recreate.
+
+    For a conventional local application which runs on the user's machine,
+    a modified version can be compiled and the user can switch to using it with no change in functionality.
+
+    A network service, on the other hand,
+    may use significant resources, both hardware and proprietary software,
+    which a fork will not be able to access.
+
+    Actually running an equivalent network service is therefore difficult.
+    The practices and software that allow the network service to be maintained and provided
+    are often completely "proprietary" - not included with a fork.
+
+    All this weakens the ability to fork and forces software users to depend more on exit and voice,
+    even if the network service is running open source software.
