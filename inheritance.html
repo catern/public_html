@@ -12,9 +12,7 @@ and simplify the garbage collector.
 It's well known that
 <a href="https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)">inheritance was invented by Simula</a>.
 The
-<a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">
-  History of Programming Languages session on Simula
-</a>
+<a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">History of Programming Languages session on Simula</a>
 tells us the motivations behind that invention.
 Let's take a look.
 <h2>Simplifying the garbage collector</h2>
@@ -80,7 +78,7 @@ was to simplify the usage of
 <a href="https://stackoverflow.com/questions/3361145/intrusive-lists">intrusive lists</a>,
 a clever hack still used today which makes linked lists more efficient, though less flexible.
 <p>
-In the first version of Simula, before they invented inheritance and other features,
+In the first version of Simula, before they invented inheritance and other OOP features,
 they supported a data structure called "sets", which were arbitrary linked lists of objects
 ("processes", in Simula terminology):
 <blockquote>
@@ -96,7 +94,7 @@ they supported a data structure called "sets", which were arbitrary linked lists
 </blockquote>
 <p>
 As usual for a traditional linked list,
-the linked list nodes (called "elements" in the blockquote) were separately allocated,
+the linked list nodes (called "elements" in the quote) were separately allocated,
 increasing memory usage and causing memory fragmentation.
 In comparison, in an intrusive list, the list nodes are not separately allocated.
 <p>
@@ -107,8 +105,8 @@ would be better:
 <blockquote>
   The element/set concepts were too clumsy as basic, general purpose mechanisms for
   list processing. Even for simulation modeling our experience showed that simple process
-  pointers might be better, combined with an inherent set membership capability of pro-
-  cesses, restricted to one set at a time.
+  pointers might be better, combined with an inherent set membership capability of processes,
+  restricted to one set at a time.
   <footer>
     – <cite>Section 3.1, <a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">The Development Of The Simula Languages</a></cite>
   </footer>
@@ -117,10 +115,9 @@ They decided to replace their traditional linked lists with
 <a href="https://stackoverflow.com/questions/3361145/intrusive-lists">intrusive lists</a>,
 which are much more memory-efficient and time-efficient than traditional linked lists.
 <p>
-Intrusive lists require the programmer to decide up-front how many linked lists the object can be on simultaneously.
-For simulation scheduling purposes,
-Simula decided that objects used in simulation could be on one (and only one) intrusive linked list.
-But they still didn't know how they'd implement it, until:
+However, intrusive lists require that the linked list node be part of the definition of the class that will be on the list.
+Traditional composition techniques would be insufficient for this, even if they were available in Simula.
+The Simula authors didn't know how they'd implement it, until:
 <blockquote>
   The solution came suddenly, with the idea of "prefixing," in December 1966. We
   were thinking in terms of a toll booth on a bridge, with a queue of cars which
@@ -137,13 +134,13 @@ But they still didn't know how they'd implement it, until:
     – <cite>Section 3.1, <a href="https://www.cs.tufts.edu/comp/150FP/archive/kristen-nygaard/hopl-simula.pdf">The Development Of The Simula Languages</a></cite>
   </footer>
 </blockquote>
-Inheritence is called "prefixing" in Simula; a base class is a "prefix".
+In Simula, inheritence was called "prefixing"; a base class is a "prefix".
 <p>
 So the idea of inheritance originated in
 the idea of implementing an intrusive list by having objects inherit from the intrusive list node, the "link".
-In this way, intrusive lists, an otherwise complex performance hack, could be easily used by programmers.
+In this way, intrusive lists, an otherwise complex performance hack, could be easily used.
 <h2>Conclusion</h2>
-It's not bad to create features for performance reasons.
+It's certainly not bad to create features for performance reasons.
 And of course, Simula was genius in many other ways.
 They invented practically every part of modern OOP, not just inheritance;
 and their use of ubiquitous concurrency in objects is a particularly interesting feature that should be copied more.
