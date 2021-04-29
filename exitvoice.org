@@ -274,3 +274,64 @@ yeah that's a good thing to mention heh
 
     All this weakens the ability to fork and forces software users to depend more on exit and voice,
     even if the network service is running open source software.
+* rebasing a fork
+  okay....
+  so when it's hard to rebase a fork,
+  that makes exit and voice more important.
+
+  hm.
+
+  which is kind of related to the size of the backwards-incompatible-block I guess
+
+  cuz you can kind of analogize changing headers/implementations to changing library interfaces.
+
+  yeah I guess this is an important factor when a library changes in a bad way,
+  which you aren't portable over,
+  and you fork it,
+  you need to rebase.
+
+  which, as that becomes harder, makes you want more to be portable.
+
+  ok so yeah harder rebasing makes exit and voice more important.
+
+  ok so what do I think about that?
+
+  another forking difficulty is that "larger" forks are more difficult.
+
+  yeah I think rebasing cost is primarily in terms of how substantial your changes are.
+
+  most active projects, I'd say... have a pretty constant breaking-change rate,
+  invariant in size.
+
+  and this also promotes upstreaming your changes I guess.
+
+  yeah okay so if you have a big set of changes,
+  that makes forking harder,
+  which makes you more want to exit and voice.
+
+  I want to write a little bit about the factors that make it dificult to maintain a fork of a project with some changes on top of the project, and in particular the cost of rebasing a set of changes on top of upstream changes.
+
+  I have a vague sense that the rate of "breaking" changes in a project is, empirically, roughly constant in the number of people working on the project; i.e., a project with lots of contributors will make breaking changes at about the same rate as a project with only a few contributors. (due to various theoretical factors)
+
+  Anyone know of any empirical research on this kind of question? I'm basically completely unfamiliar with the SE field so maybe this is a well-established field of study. :)
+
+  I want to characterize how often breaking changes happen 
+  I'm curious because 
+
+
+  I(my theory is that the rate of breaking changes is roughly constant in the size of the project,
+  i.e. a small project in a 
+
+  Another factor is that changes on top of a fork usually must be regularly rebased on top of the upstream project.
+  The more significant your changes from upstream, the harder this becomes.
+  Thus the more you diverge from mainstream usage and the fewer people who agree with your approach,
+  the higher the cost of maintaining your fork,
+  and the more important it becomes to persuade others with voice or exit to a more friendly project.
+
+
+
+  Since the rate of breaking changes is roughly constant in the number of contributors ([[http://benedante.blogspot.com/2017/07/nicolas-berdyaevs-amazing-footnote.html][source]]),
+  the only factor
+
+https://www.ics.uci.edu/~iftekha/pdf/paper15.pdf
+https://cmustrudel.github.io/papers/fse19forks.pdf
