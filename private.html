@@ -60,18 +60,19 @@ given that <a href="./inheritance.html">Simula invented and heavily used inherit
 so they needed to find some way to protect the implementation internals of base classes.
 <p>
 But other means could have been used, which reused the existing interface abilities of Simula.
-For example, as we said above,
+For example,
 Car could specify in the definition of Car that when Car is subclassed,
-only the methods available in the base class Vehicle
+only the fields declared in the base class Vehicle
 are available to the subclass.
 <p>
 Alas, as far as I can tell, they just simply didn't realize the possibility.
-and thus we've ended up with the unnecessary duplicate feature of access modifiers,
+And thus we've ended up with the unnecessary duplicate feature of access modifiers,
 carried on into language after language for the sake of backwards-compatibility.
 <p>
 Of course, we can still make things better in the future,
 by just not using access modifiers.
 If your class isn't available to be subclassed (say, because it's final),
+and you're restricting construction of it as in point 2 above,
 then there's absolutely no need to annotate it with access modifiers.
 Protection of the internals of the class can, and should,
 be achieved through defining an interface.
