@@ -22,7 +22,6 @@ is fundamentally flawed and must be fixed;
 and a dedicated process supervisor, running as a daemon, is a good way to approach fixing such problems.
 <p>
 But ultimately, the dedicated process supervisor daemon isn't necessary.
-<p>
 Starting and waiting on child processes is something any Unix program can do.
 There's no need for a specialized process supervision daemon.
 <p>
@@ -38,7 +37,6 @@ waiting on those child processes and performing any maintenance tasks necessary 
 This is a naturally recursive structure,
 where a given process might spawn more child processes to perform its task,
 each of which might in turn spawn still more child processes.
-<p>
 This recursive structure ultimately bottoms out at the init process - systemd or something else.
 <p>
 With systemd, a weak form of this recursive structure is always the case:
@@ -52,7 +50,6 @@ with a lifecycle tied to that single application.
 <p>
 The best way to achieve further such recursion is to simply write a regular Unix program
 which just starts its own child processes and waits on them.
-<p>
 Indeed, this is already how most applications which run child processes work.
 They don't delegate the core Unix primitive of "fork and exec" to some system service;
 they simply perform it themselves.
@@ -75,7 +72,6 @@ it's easier than ever to write Unix programs which start and wait on collections
 When building your next multi-process system,
 consider starting and monitoring processes directly,
 instead of using a process supervisor.
-<p>
 It can make sophisticated designs much easier,
 and also combines well with <a href="./progsys.html">richly typed designs</a>.
 </body>
