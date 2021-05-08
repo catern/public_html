@@ -21,7 +21,7 @@ Apologies for the unoriginal OOP example, but: Suppose class Car implements inte
 We'll ignore point 3, and focus on point 4.
 <p>
 Since Car can't restrict subclasses to only use an interface,
-any subclasses can violate A's internal invariants.
+any subclasses can violate Car's internal invariants.
 <p>
 So either Car should disallow inheritance
 (always an option by simply not exposing the Car type at all, as in point 2),
@@ -30,7 +30,7 @@ or Car needs another way to define an interface that <em>will</em> take effect o
 That other way to define an interface which works for subclasses is the access modifiers:
 public, protected, and private.
 By marking members as private,
-Car can force subclasses to only use a specific interface to interact with A,
+Car can force subclasses to only use a specific interface to interact with Car,
 an interface composed of exactly and only those members which are public and protected.
 <p>
 But this is absurd:

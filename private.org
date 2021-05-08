@@ -1,4 +1,11 @@
 * public/private qualifiers are useless
+helpful:
+https://ininet.org/concepts-and-terminology-in-the-simula-programming-language.html
+
+Concepts and terminology in the Simula Programming Language
+An introduction to Simula for a presentation in “Sonen” 3/3-2015
+
+
   Just use an interface for god's sake
 
 https://dl.acm.org/doi/10.1145/800025.1198392
