@@ -18,6 +18,7 @@ class Data:
 class Directory:
     "A directory, in which we can create files"
     def create_file(self, name: str) -> File: ...
+    def for_each_file(self, f: t.Callable[[File], None]) -> None: ...
 
 class File:
     "A file, to which we can append several types of values"
@@ -46,6 +47,10 @@ def prog(dir: Directory, arg1: Data, arg2: Data) -> File:
     arg2_file = create_file_with_contents(dir, "arg2", arg2)
     paths.append_str("arg2 file path:")
     paths.append_path(arg2_file)
+    paths.append_str("all paths:")
+    def f(file: File) -> None:
+        paths.append_path(file)
+    dir.for_each_file(f)
     return paths
 
 
@@ -73,10 +78,15 @@ class IODirectory(Directory):
 
         """
         path = self.path + "/" + name
-        f = open(path, 'w')
+        file = open(path, 'w')
         if size:
-            f.truncate(size)
-        return IOFile(path, f)
+            file.truncate(size)
+        return IOFile(path, file)
+
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        for name in os.listdir(self.path):
+            path = self.path + "/" + name
+            f(IOFile(path, open(path, 'r')))
 
 @dataclass
 class IOFile(File):
@@ -115,6 +125,11 @@ class TestDirectory(Directory):
         # throws on non-existent file
         f = open(path, 'r')
         return TestFile(path, f)
+
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        for name in os.listdir(self.path):
+            path = self.path + "/" + name
+            f(TestFile(path, open(path, 'r')))
 
 @dataclass
 class TestFile(File):
@@ -158,35 +173,66 @@ def testmain():
 ##### Pretty printing
 # This implementation of Data/Directory/File pretty-prints the program
 # it's passed to.
+import contextlib
+import textwrap
+
+@dataclass
+class Program:
+    statements: t.List[str]
+    name: str
+
+    def var(self, name: str) -> str:
+        "Generate a fresh, unused variable name from this name"
+        if self.name:
+            return self.name + "_" + name + str(len(self.statements))
+        else:
+            return name + str(len(self.statements))
+
+    @contextlib.contextmanager
+    def in_function(self, name: str, args: t.List[str]) -> str:
+        parent_statements, parent_name = self.statements, self.name
+        self.statements, self.name = [], self.var(name)
+        yield self.name
+        defn = "def " + self.name + "(" + ", ".join(args) + "):\n"
+        body = textwrap.indent("\n".join(self.statements), "    ")
+        parent_statements.append(defn + body)
+        self.statements, self.name = parent_statements, parent_name
+
 @dataclass
 class PPDirectory(Directory):
     "A staged directory, which writes lines of code to perform requested operations"
-    program: t.List[str]
+    program: Program
     variable_name: str
 
     def create_file(self, name: str) -> PPFile:
         "Write a line of code to create a file and store it in an arbitrarily named variable"
-        file = PPFile(self.program, f"file{len(self.program)}")
-        self.program.append(f"{file.variable_name} = {self.variable_name}.create_file('{name}')")
+        file = PPFile(self.program, self.program.var("file"))
+        self.program.statements.append(f"{file.variable_name} = {self.variable_name}.create_file('{name}')")
         return file
+
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        file = PPFile(self.program, self.program.var("file"))
+        with self.program.in_function('f', [file.variable_name]) as func_name:
+            f(file)
+        self.program.statements.append(f"{self.variable_name}.for_each_file({func_name})")
 
 @dataclass
 class PPFile(File):
     "A staged file, which writes lines of code to perform requested operations"
-    program: t.List[str]
+    program: Program
     variable_name: str
 
     def append_str(self, data: str) -> None:
         "Write a line of code to append this string to this file"
-        self.program.append(f"{self.variable_name}.append_str('{data}')")
+        self.program.statements.append(f"{self.variable_name}.append_str('{data}')")
 
     def append_data(self, data: PPData) -> None:
         "Convert data to a variable name, and write a line of code to append it to this file"
-        self.program.append(f"{self.variable_name}.append_data({data.variable_name})")
+        self.program.statements.append(f"{self.variable_name}.append_data({data.variable_name})")
 
     def append_path(self, data: PPFile) -> None:
         "Convert data to a variable name, and write a line of code to append it to this file"
-        self.program.append(f"{self.variable_name}.append_path({data.variable_name})")
+        self.program.statements.append(f"{self.variable_name}.append_path({data.variable_name})")
 
 @dataclass
 class PPData(Data):
@@ -194,12 +240,13 @@ class PPData(Data):
     variable_name: str
 
 def ppmain():
-    dir = PPDirectory([], "mydir")
+    program = Program([], "")
+    dir = PPDirectory(program, "mydir")
     arg1 = PPData("somearg")
     arg2 = PPData("otherarg")
-    prog(dir, arg1, arg2)
-    print(f"def func({dir.variable_name}, {arg1.variable_name}, {arg2.variable_name}):")
-    print("    " + "\n    ".join(dir.program))
+    with program.in_function('main', [dir.variable_name, arg1.variable_name, arg2.variable_name]):
+        prog(dir, arg1, arg2)
+    print(program.statements[0])
 
 # ppmain()
 # Output:
@@ -235,6 +282,10 @@ class ProfilingDirectory(Directory):
         file = ProfilingFile(path)
         self.files[name] = file
         return file
+
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        # depends on data in the filesystem; not statically known
+        pass
 
     def optimized(self) -> OptimizedDirectory:
         "Return an optimized directory which performs profiled space allocations all at once"
@@ -274,6 +325,9 @@ class OptimizedDirectory(IODirectory):
             return super().create_file(name, size=profiler_result.size)
         else:
             return super().create_file(name)
+
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        super().for_each_file(f)
 
 def optimized_main():
     arg1 = StrData("somearg")
