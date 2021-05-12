@@ -25,6 +25,7 @@ class File:
     def append_str (self, data: str ) -> None: ...
     def append_data(self, data: Data) -> None: ...
     def append_path(self, data: File) -> None: ...
+    def close(self) -> None: ...
 
 def create_file_with_contents(dir: Directory, name: str, arg: Data) -> File:
     "A helper function to create a file containing some data"
@@ -44,12 +45,15 @@ def prog(dir: Directory, arg1: Data, arg2: Data) -> File:
     arg1_file = create_file_with_contents(dir, "arg1", arg1)
     paths.append_str("arg1 file path:")
     paths.append_path(arg1_file)
+    arg1_file.close()
     arg2_file = create_file_with_contents(dir, "arg2", arg2)
     paths.append_str("arg2 file path:")
     paths.append_path(arg2_file)
+    arg2_file.close()
     paths.append_str("all paths:")
     def f(file: File) -> None:
         paths.append_path(file)
+        file.close()
     dir.for_each_file(f)
     return paths
 
@@ -104,6 +108,9 @@ class IOFile(File):
     def append_path(self, data: IOFile) -> None:
         self.file.write(data.path)
 
+    def close(self) -> None:
+        self.file.close()
+
 
 ##### Testing
 # This implementation inverts the expected sense of Data/Directory/File.
@@ -153,6 +160,9 @@ class TestFile(File):
 
     def append_path(self, data: TestFile) -> None:
         self.append_str(data.path)
+
+    def close(self) -> None:
+        self.file.close()
 
 def testmain():
     """Test IODirectory by running TestDirectory.
@@ -234,6 +244,9 @@ class PPFile(File):
         "Convert data to a variable name, and write a line of code to append it to this file"
         self.program.statements.append(f"{self.variable_name}.append_path({data.variable_name})")
 
+    def close(self) -> None:
+        self.program.statements.append(f"{self.variable_name}.close()")
+
 @dataclass
 class PPData(Data):
     "A staged piece of data, which exists only as a variable name"
@@ -309,6 +322,9 @@ class ProfilingFile(File):
         "Record how much file space writing this path would consume"
         self.append_str(data.path)
 
+    def close(self) -> None:
+        pass
+
 @dataclass
 class OptimizedDirectory(IODirectory):
     """An optimized directory, which will allocate space all at once instead of in small chunks
@@ -338,7 +354,53 @@ def optimized_main():
     prog(dir, arg1, arg2)
 
 # optimized_main()
+
+##### Linear types
+@dataclass
+class TypecheckingDirectory(Directory):
+    def create_file(self, name: str) -> TypecheckingFile:
+        "Make a file which profiles the space usage of operations performed on it"
+        return TypecheckingFile(open=True)
 
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        # run f to type check it against the input typestate...
+        f(TypecheckingFile(open=True))
+        # ...and then run f again to check it against its own output typestate.
+        f(TypecheckingFile(open=True))
+
+@dataclass
+class TypecheckingFile(File):
+    open: bool
+
+    def append_str(self, data: str) -> None:
+        assert self.open
+
+    def append_data(self, data: Data) -> None:
+        assert self.open
+
+    def append_path(self, data: File) -> None:
+        assert self.open
+
+    def close(self) -> None:
+        assert self.open
+        self.open = False
+
+def badprog(dir: Directory) -> File:
+    paths = dir.create_file("paths")
+    def f(file: File) -> None:
+        paths.append_path(file)
+        paths.close()
+    dir.for_each_file(f)
+    return paths
+
+def typechecking_main():
+    prog(TypecheckingDirectory(), Data(), Data())
+    try:
+        badprog(TypecheckingDirectory())
+    except Exception:
+        pass
+
+typechecking_main()
 
 ##### Type-correct interfaces
 # The type declarations for the Data/File/Directory interfaces at the start are
