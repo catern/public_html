@@ -73,11 +73,13 @@ Most of this will require getting rid of the setuid bit as a prerequisite.
   and when I close that FD the process exits.
 
   see ~clone_fd~, pdfork
-** decent, unprivileged process groups
+** DONE decent, unprivileged process groups
    We have cgroups but 1. the API sucks, 2. they're privileged
 
    I still hold out hope for something integrated with the traditional process tree,
    or at least something informed by a FD-api for processes
+
+   (I did this with [[http://catern.com/process.html][supervise]])
 ** process supervisor which can function as bash, gdb, systemd, tmux, etc.
    Having separate process supervisors hurts flexibility;
    I want to be able to start debugging a program started in my shell,
@@ -87,12 +89,14 @@ Most of this will require getting rid of the setuid bit as a prerequisite.
    a sane model for *ownership* of processes is needed.
 
    Perhaps they should be a single program.
-** or, composable process supervision
+** DONE or, composable process supervision
    Better yet, perhaps an FD api would allow sharing ownership;
    or even borrowing, and revocability.
 
    Or possibly it should be possible to move/share process ownership between the programs;
    an FD API could allow that.
+
+   (This is in the kernel now: [[https://lwn.net/Articles/794707/][pidfd]])
 * enhanced interactive shell
    shell/command line interface is still best.
    it works remotely and can be detach'd from.
@@ -109,7 +113,7 @@ Most of this will require getting rid of the setuid bit as a prerequisite.
    this might be difficult to do at the same time as adding new features;
    maybe backwards compatibility is useful, and tolerable if new features are added in a clean way?
 * Improved terminal/GUI
-   shell is still best interface, no buttons are needed
+   shell is still best interface, no buttons are needed;
    but it could still have a better display engine:
    display of completions, inline docs, incremental results, etc., will all enhance the shell
 
@@ -127,7 +131,7 @@ Most of this will require getting rid of the setuid bit as a prerequisite.
    Possibly support a new convention for a passed-in FD, "stddisplay" or "stdgui",
    on which a tool can send and receive GUI information?
 
-   Of course this is just the same as DISPLAY in X or WAYLAND_DISPLAY in Wayland.
+   Of course this is just the same as =DISPLAY= in X or =WAYLAND_DISPLAY= in Wayland.
 ** pass in dirfd to extensibly provide new interfaces to command line tools
 * better Linux-native scripting language
   I want something that makes advanced Linux primitives natively available.
@@ -141,25 +145,34 @@ Most of this will require getting rid of the setuid bit as a prerequisite.
   etc.
 
   It should be GC'd and type-safe.
-** expressive library for using Linux features in existing scripting language
+** DONE expressive library for using Linux features in existing scripting language
    Python? C++? OCaml?
 
    I want something with the fluidity of Go,
    which achieves it through using Linux kernel APIs and syscalls to the maximum degree possible.
-* forkat(), file-descriptor API for distributed computing
-  Doesn't make sense that I can fork() and start competing to consume more of a global resource
-  Instead I should have to forkat() some passed-in reference to a scheduler timeslice
+
+   (This is now [[https://github.com/catern/rsyscall][rsyscall]])
+* DONE forkat(), file-descriptor API for distributed computing
+  Doesn't make sense that I can fork() and start competing to consume more of a global resource.
+  Instead I should have to forkat() some passed-in reference to a scheduler timeslice,
+  ala seL4.
   And that scheduler might be remote,
-  or it might be a timeslice provided by my parent from subdividing their own
+  or it might be a timeslice provided by my parent from subdividing their own.
+
+  (This was one of the ideas behind [[https://github.com/catern/rsyscall][rsyscall]];
+  a file descriptor which represents *control over* a process,
+  which you can of course use to fork in the same place as that process)
 ** generalized ssh which returns an fd for use with forkat
-   Likewise with containe
+   Likewise with containers, I guess.
 ** shell that understands running on remote systems through this mechanism
+   (Emacs kind of already does this with TRAMP.
+   And someday I'll write an rsyscall library for Emacs...)
 * remove the implicit authority of the UID
-  Any process with my UID can screw with any of my other processes, that's not good
+  Any process with my UID can screw with any of my other processes, that's not good.
 ** dynamically allocated users?
    A userspace daemon accessible over IPC,
    which responds to requests by returning
-   a setuid executable owned by an unused UID which does nothing but execvp its arguments
+   a setuid executable owned by an unused UID which does nothing but execvp its arguments.
 
    The holder of one of these executables can then switch into that UID.
    The executable is basically the capability to switch in the UID, reified.
