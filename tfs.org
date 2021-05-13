@@ -37,12 +37,14 @@ class Data:
 class Directory:
     "A directory, in which we can create files"
     def create_file(self, name: str) -> File: ...
+    def for_each_file(self, f: t.Callable[[File], None]) -> None: ...
 
 class File:
     "A file, to which we can append several types of values"
     def append_str (self, data: str ) -> None: ...
     def append_data(self, data: Data) -> None: ...
     def append_path(self, data: File) -> None: ...
+    def close(self) -> None: ...
 #+end_src
 
 And a short program that uses that interface:
@@ -53,16 +55,27 @@ def create_file_with_contents(dir: Directory, name: str, arg: Data) -> File:
     file.append_data(arg)
     return file
 
-def prog(dir: Directory, arg1: Data, arg2: Data) -> File:
+def prog(dir: Directory, arg1: Data, arg2: Data) -> None:
     "A simple program manipulating files and directories"
     paths = dir.create_file("paths")
+
     arg1_file = create_file_with_contents(dir, "arg1", arg1)
     paths.append_str("arg1 file path:")
     paths.append_path(arg1_file)
+    arg1_file.close()
+
     arg2_file = create_file_with_contents(dir, "arg2", arg2)
     paths.append_str("arg2 file path:")
     paths.append_path(arg2_file)
-    return paths
+    arg2_file.close()
+
+    paths.append_str("all paths:")
+    def f(file: File) -> None:
+        paths.append_path(file)
+        file.close()
+    dir.for_each_file(f)
+
+    paths.close()
 #+end_src
 
 By passing different implementations of the interfaces to this program,
@@ -99,6 +112,12 @@ class IODirectory(Directory):
             f.truncate(size)
         return IOFile(path, f)
 
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        "Call `f` with each file in this directory"
+        for name in os.listdir(self.path):
+            path = self.path + "/" + name
+            f(IOFile(path, open(path, 'r')))
+
 @dataclass
 class IOFile(File):
     "A file in the filesystem, to which we'll write"
@@ -113,6 +132,9 @@ class IOFile(File):
 
     def append_path(self, data: IOFile) -> None:
         self.file.write(data.path)
+
+    def close(self) -> None:
+        self.file.close()
 #+end_src
 
 We can then run =prog= with this implementation,
@@ -159,6 +181,15 @@ class TestDirectory(Directory):
         f = open(path, 'r')
         return TestFile(path, f)
 
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        """Call `f` with each file in this directory.
+
+        Same as for IODirectory.
+        """
+        for name in os.listdir(self.path):
+            path = self.path + "/" + name
+            f(TestFile(path, open(path, 'r')))
+
 @dataclass
 class TestFile(File):
     "A file in the filesystem, which we'll read from"
@@ -181,6 +212,9 @@ class TestFile(File):
 
     def append_path(self, data: TestFile) -> None:
         self.append_str(data.path)
+
+    def close(self) -> None:
+        self.file.close()
 #+end_src
 
 Now we can test the results of the IO implementation by running the Test implementation.
@@ -209,36 +243,74 @@ Variable names are generated to store any returned values,
 and used when later method calls are made with those values.
 
 #+begin_src python
+class Program:
+    statements: t.List[str]
+    name: str
+
+    def var(self, name: str) -> str:
+        "Generate a fresh, unused variable name from this name"
+        return self.name + "_" + name + str(len(self.statements))
+
+    @contextlib.contextmanager
+    def def_function(self, name: str, args: t.List[str]) -> str:
+        """Helper for pretty-printing function definitions
+
+        Statements performed inside this context manager are part of the
+        function definition.
+
+        """
+        parent_statements, parent_name = self.statements, self.name
+        self.statements, self.name = [], self.var(name)
+        yield self.name
+        parent_statements.append(
+            f"def {self.name}(" + ", ".join(args) + "):\n" +
+            textwrap.indent("\n".join(self.statements), "    "))
+        self.statements, self.name = parent_statements, parent_name
+
 @dataclass
 class PPDirectory(Directory):
-    program: t.List[str]
+    "A staged directory, which writes lines of code to perform requested operations"
+    program: Program
     variable_name: str
 
     def create_file(self, name: str) -> PPFile:
-        "Write a line of code to create a file and store it in an arbitrarily named variable"
-        file = PPFile(self.program, f"file{len(self.program)}")
-        self.program.append(f"{file.variable_name} = {self.variable_name}.create_file('{name}')")
+        "Write a line of code to call .create_file and store the result in an arbitrarily named variable"
+        file = PPFile(self.program, self.program.var("file"))
+        self.program.statements.append(f"{file.variable_name} = {self.variable_name}.create_file('{name}')")
         return file
+
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        "Render the passed function as a function definition, then write a line of code to call .for_each_file with it."
+        file = PPFile(self.program, self.program.var("file"))
+        with self.program.def_function('f', [file.variable_name]) as func_name:
+            f(file)
+        self.program.statements.append(f"{self.variable_name}.for_each_file({func_name})")
 
 @dataclass
 class PPFile(File):
-    program: t.List[str]
+    "A staged file, which writes lines of code to perform requested operations"
+    program: Program
     variable_name: str
 
     def append_str(self, data: str) -> None:
-        "Write a line of code to append this string to this file"
-        self.program.append(f"{self.variable_name}.append_str('{data}')")
+        "Write a line of code to call .append_str with this string constant"
+        self.program.statements.append(f"{self.variable_name}.append_str('{data}')")
 
     def append_data(self, data: PPData) -> None:
-        "Convert data to a variable name, and write a line of code to append it to this file"
-        self.program.append(f"{self.variable_name}.append_data({data.variable_name})")
+        "Convert data to a variable name, and write a line of code to call .append_str with it"
+        self.program.statements.append(f"{self.variable_name}.append_data({data.variable_name})")
 
     def append_path(self, data: PPFile) -> None:
-        "Convert data to a variable name, and write a line of code to append it to this file"
-        self.program.append(f"{self.variable_name}.append_path({data.variable_name})")
+        "Convert data to a variable name, and write a line of code to call .append_path with it"
+        self.program.statements.append(f"{self.variable_name}.append_path({data.variable_name})")
+
+    def close(self) -> None:
+        "Write a line of code to call .close"
+        self.program.statements.append(f"{self.variable_name}.close()")
 
 @dataclass
 class PPData(Data):
+    "A staged piece of data, which exists only as a variable name"
     variable_name: str
 #+end_src
 
@@ -246,30 +318,36 @@ We can run =prog= with this implementation, picking arbitrary initial variable n
 
 #+begin_src python
 def ppmain():
-    program = []
+    program = Program([], "")
     dir = PPDirectory(program, "mydir")
     arg1 = PPData("somearg")
     arg2 = PPData("otherarg")
-    # run prog to pretty-print the program
-    prog(dir, arg1, arg2)
-    # wrap the pretty-printed program in a function declaration and print it to stdout
-    print(f"def func({dir.variable_name}, {arg1.variable_name}, {arg2.variable_name}):")
-    print("    " + "\n    ".join(program))
+    with program.def_function('main', [dir.variable_name, arg1.variable_name, arg2.variable_name]):
+        prog(dir, arg1, arg2)
+    print(program.statements[0])
 #+end_src
 
 This outputs a pretty-printed program to stdout:
 
 #+begin_src python
-def func(mydir, somearg, otherarg):
-    file0 = mydir.create_file('paths')
-    file1 = mydir.create_file('arg1')
-    file1.append_data(somearg)
-    file0.append_data('arg1 file path:')
-    file0.append_data(file1)
-    file5 = mydir.create_file('arg2')
-    file5.append_data(otherarg)
-    file0.append_data('arg2 file path:')
-    file0.append_data(file5)
+def _main0(mydir, somearg, otherarg):
+    _main0_file0 = mydir.create_file('paths')
+    _main0_file1 = mydir.create_file('arg1')
+    _main0_file1.append_data(somearg)
+    _main0_file0.append_str('arg1 file path:')
+    _main0_file0.append_path(_main0_file1)
+    _main0_file1.close()
+    _main0_file6 = mydir.create_file('arg2')
+    _main0_file6.append_data(otherarg)
+    _main0_file0.append_str('arg2 file path:')
+    _main0_file0.append_path(_main0_file6)
+    _main0_file6.close()
+    _main0_file0.append_str('all paths:')
+    def _main0_f12(_main0_file12):
+        _main0_file0.append_path(_main0_file12)
+        _main0_file12.close()
+    mydir.for_each_file(_main0_f12)
+    _main0_file0.close()
 #+end_src
 
 Not the most beautiful pretty-printing,
@@ -305,6 +383,10 @@ class ProfilingDirectory(Directory):
         self.files[name] = file
         return file
 
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        "Does nothing; this depends on data in the filesystem, so we can't statically profile this"
+        pass
+
     def optimized_dir(self, path: str) -> OptimizedDirectory:
         "Return an optimized directory which performs profiled space allocations all at once"
         return OptimizedDirectory(path, self.files)
@@ -325,6 +407,9 @@ class ProfilingFile(File):
     def append_path(self, data: ProfilingFile) -> None:
         "Record how much file space writing this path would consume"
         self.append_str(data.path)
+
+    def close(self) -> None:
+        pass
 
 @dataclass
 class OptimizedDirectory(IODirectory):
@@ -351,7 +436,101 @@ def optimized_main():
     prog(profile_dir.optimized_dir("adir"), arg1, arg2)
     prog(profile_dir.optimized_dir("bdir"), arg1, arg2)
 #+end_src
+** Linear type inference and checking
+This implementation infers linear types for expressions and functions in our program,
+and checks their consistency.
+Specifically, we statically track the open/closed state of files
+to ensure that files cannot be used after they are closed.
 
+Note that the inferred linear types are not actually made explicit as data in the type-checker;
+they are left implicit.
+This allows a very simple typechecker implementation.
+
+#+begin_src python
+@dataclass
+class TypecheckingDirectory(Directory):
+    def create_file(self, name: str) -> TypecheckingFile:
+        "Make a file which profiles the space usage of operations performed on it"
+        return TypecheckingFile(open=True)
+
+    def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        # run f to type check it against the input typestate...
+        try:
+            f(TypecheckingFile(open=True))
+        except AssertionError:
+            e.args = ("function passed to for_each_file uses closed file on the first run",)
+            raise
+        # ...and then run f again to check it against its own output typestate.
+        try:
+            f(TypecheckingFile(open=True))
+        except AssertionError as e:
+            e.args = ("function passed to for_each_file uses closed files on second and future runs",)
+            raise
+
+@dataclass
+class TypecheckingFile(File):
+    open: bool
+
+    def append_str(self, data: str) -> None:
+        assert self.open
+
+    def append_data(self, data: Data) -> None:
+        assert self.open
+
+    def append_path(self, data: File) -> None:
+        assert self.open
+
+    def close(self) -> None:
+        assert self.open
+        self.open = False
+#+end_src
+
+Now we can run our program with =TypecheckingDirectory= to typecheck it.
+To illustrate that this works,
+we'll also run with =badprog=, which fails typechecking:
+
+#+begin_src python
+def badprog(dir: Directory) -> File:
+    paths = dir.create_file("paths")
+    def f(file: File) -> None:
+        paths.append_path(file)
+        # oops, we meant to close "file", not "paths"!
+        paths.close()
+    dir.for_each_file(f)
+    return paths
+
+def typechecking_main():
+    prog(TypecheckingDirectory(), Data(), Data())
+    try:
+        badprog(TypecheckingDirectory())
+    except Exception:
+        pass
+#+end_src
+
+The failure in =badprog= is indicated with a regular Python exception,
+thrown at type-checking time:
+
+#+begin_src python
+Traceback (most recent call last):
+  File "tfs.py", line 416, in <module>
+    typechecking_main()
+  File "tfs.py", line 414, in typechecking_main
+    badprog(TypecheckingDirectory())
+  File "tfs.py", line 409, in badprog
+    dir.for_each_file(f)
+  File "tfs.py", line 381, in for_each_file
+    f(TypecheckingFile(open=True))
+  File "tfs.py", line 406, in f
+    paths.append_path(file)
+  File "tfs.py", line 397, in append_path
+    assert self.open
+AssertionError: function passed to for_each_file uses closed files on second and future runs
+#+end_src
+
+The stack trace tells us the concrete reason why type-checking fails for =badprog=:
+=f= uses a closed file after its first run,
+specifically =paths= in the =paths.append_path(file)= statement.
+=paths= is closed because we called =paths.close()= at the end of =f=.
 * Conclusion
 Passing arguments to functions is fun and powerful.
 
@@ -367,6 +546,8 @@ which makes both branches visible to the implementation.
 - [[https://www.researchgate.net/publication/2302111_Type-Directed_Partial_Evaluation][Type-Directed Partial Evaluation]].
   This paper discusses (in part) the pretty-printing technique used here
   and how it can be generalized.
+- [[http://okmij.org/ftp/Computation/types.html#sessions][Session types without sophistry]].
+  This paper studies the type-checker implementation technique from this post in greater detail.
 - [[http://www.object-oriented-security.org/lets-argue/singletons][Singletons Considered Harmful]].
   This post explains, in object-oriented terms,
   why it's preferable to pass dependencies as arguments rather than use globals.
@@ -865,4 +1046,300 @@ yeah let's go with the Result thing, that's FUD-y enough that people won't quest
 everyone loves returning monadic errors days...
 
 maybe I'll just say words
+** new list and types example
+   so maybe we don't want to return a list from map,
+   because, we can't introspect that list.
+
+   hmm appending to a list is also bad
+
+   what we really want is maybe,
+   one function which writes each file A in dir to another file B and closes A,
+
+   then we have another one which is a typo, which closes B instead of A.
+
+   okay so for the trace for the mapfiles...
+   that's a bit tricky because I need to change where the sideeffect of pushing a line of code,
+   happens.
+
+   okay, wait...
+
+   how do we handle for_each_file with the test mode?
+
+   oh it should just work fine.
+   except, I guess, that the order is random. but still it should be fine,
+   I'm not super concerned here...
+
+   okay so we won't both checking that the file is closed...
+   that's something we could do, but it's complex, so we won't bother.
+   we'll just check it's affine.
+   or... something like that, anyway.
+
+   ah hm okay how about we mutate a dict, referenced from file,
+   which maps files to open/closed.
+
+   and then we assert... hmm...
+
+   okay so...
+
+   I'm not totally sure what's corrct here, hm.
+
+   I guess...
+
+   we run through maintaining the state of the variables...
+
+   and then have some output typestate...
+
+   maybe when we try to close something...
+   we check that against the output? to see if we can add a closed there?
+
+   nah... nah...
+
+   let's just run it twice...
+
+   yeah that's perfect!
+
+   yeah so we can just describe this as some advanced typestate stuff.
+   and, we don't actually make the type of each expression and function explicit,
+   we just use the typestate directly.
+
+   types are data
+   type inference just extracts some form of data from the functions
+
+   and then we use that data to do checking
+
+   but why don't we just keep the data in the form of the function itself?
+   ya...
+
+* encoding more advanced types in TFS :noexport:
+http://functorial.com/Embedding-a-Full-Linear-Lambda-Calculus-in-Haskell/linearlam.pdf
+
+the encoding of existentials as universals is kinda like a lambda-encoding,
+so it's promising
+
+it would be cool to translate this linear lambda calculus to Python...
+
+uhhhh they use some fancy type class machinery...
+
+i don't know about a direct translation...
+
+but it seems like it should be possible to break this stuff down!
+
+in the same way that I broke down the typeclasses used in TFS, to just passing objects as arguments!
+** email
+Subject: TFS for DSLs with a more powerful type system than the host?
+
+Hi Professor Kiselyov,
+
+As preface,
+I'm a huge fan of your work on tagless final style.
+I use your techniques all the time 
+and I've even worked on a basic pseudo-TFS tutorial for Python users: http://catern.com/tfs.html
+
+I've often used, and suggested that others use, TFS to implement DSLs.
+But when the DSLs has a more sophisticated type system than the host,
+it's not clear to me how to do that.
+I read with great interest your embedding of linear lambda calculus using TFS in
+http://okmij.org/ftp/tagless-final/cookbook.html#linear
+but I don't know how this technique would be generalized for,
+e.g., dependent types, or modal types,
+or other fancy type system features.
+
+Is there a general way to use TFS (or other) techniques
+such that a DSL can express type system features that aren't present than the host language?
+Do you have any pointers to papers on this?
+
+One thought I had along these lines is that perhaps just as TFS lambda-encodes data,
+maybe all fancy type-system features could be "lambda-encoded" with universals,
+in a generalization of the well-known encoding of existentials as universals.
+But I don't know what such a generalization would look like.
+
+Thanks,
+Spencer Baugh
+
+
+For example,
+One thing that I've wondered about
+** reply and paper
+   hm staging
+
+   but we'd really want to run those terms at "compile time"!
+   along the rest of our typechecking/compilation process...
+
+   hmm build steps...
+
+   I do like the idea of writing an interpreter that just,
+   does typechecks and stuff...
+   and generates more code I guess.
+   or, it doesn't really need to,
+   since we can just have another interpreter to evaluate the code.
+*** canonical structures
+    like implicits but much more powerful?
+    basically, proof search?
+    interesting insight that typeclasses are proof search,
+    that's going in the iceberg!
+
+    so implicits are proof search...
+    does this mean dynamic scope is proof search?
+    hmmm........
+    it does "search" up the stack...
+
+    but I don't have alpha-equivalence, how do I remove the name and do type-based resolution instead?
+    encode the type in the name?
+    also it won't do synthesis...
+*** asking lisp people
+    I thought I recalled that one known technique for adding static type checking to a dynamic system like Lisp,
+    was to do it through staging; static type checks become dynamic type checks in a staged code generator.
+    Anyone have any papers/good examples of this in action?
+**** hmm
+     phrasing
+
+     I think they phrase it as,
+     "static checks are just dynamic checks at an earlier stage",
+     so who needs the static checks?
+*** hmm
+    so really I just want to have... a type checker that interprets the program.
+
+    I can insert type annotations with regular function calls, that's kinda cool.
+    like, just have the type represented at the term level.
+    and just separate the syntax classes with the meta-type-system.
+*** example in python
+    okay so I can have a map taking a function,
+    and I can have it close the file,
+    and I can show that results in an error.
+
+    like... by closing it and then that breaks something?
+    i'm not sure how that naturally works,
+    but I'm sure there's a natural imperative way to do it.
+
+    oh, maybe just run it twice?
+
+    once to see the outputs,
+
+    and once to see that the inputs match the outputs?
+
+    is that... sound?
+
+    sure! I mean, we need, uh, basically
+
+    Γ, Δ ⊢ e : t, Δ
+
+    like the inputs and the outputs are the same.
+
+    ummmm
+
+    or...
+    i guess maybe we can just directly compare?
+
+    yeah sure!
+
+    we synthesize from the function,
+    what objects it requires to be open,
+    and what objects it closes.
+    um, objects it closes are required to be open of course.
+
+    so it can't really close anything. but, anyway.
+
+    so we check the inputs against the outputs,
+    and ensure those are the same. sure.
+
+    okay so I guess I can add...
+
+    close() to the main program...
+
+    and a .map thing.
+
+    I guess the .map will be... over... what?
+
+    not sure.. I guess a file is the obvious choice.
+
+    sure, yeah, easy... I guess... maybe...
+
+    oh let's just add opendir.
+
+    aha yes yes... we'll add opendir...
+
+    and then maplines? hmm.
+    sounds a bit complex...
+
+    oh maybe we'll not add opendir,
+    we'll just add mapfiles, kinda thing,
+    and pass in another directory for it.
+
+    or... maybe, MAYBE,
+    we can have a mapfiles at the end?
+
+    sure that could be good.
+
+    so... yeah...
+    mapfiles at the end... which... does what?
+    I guess we iterate over the filenames and...
+    maybe...
+    write them somewhere?
+    or no, we have to iterate over the files.
+
+    ok so we iterate over the files.
+
+    and at the end of the function we validate they're closed...
+    and, yeah, if they aren't, we fail it.
+**** further example
+     actual dynamic type checking?
+     could be interesting...
+
+     as in, implementing a type system for Python in TFS-style
+
+     but I think my basic example is better...
+
+     on the other hand, having an actual use case for types in TFS would be better still
+
+     but, still, it would be cool to have this example.
+*** turnstile in racket
+*** practical implementation details
+    well okay so it's obviously quite annoying that,
+    when you run your regular compiler,
+    you get type errors,
+    but you don't get type errors from the DSL.
+
+    and... I guess this is just because, otherwise arbitrary user code could cause problems.
+    although... people typically run macros at compile time and then type-check,
+    so why shouldn't this be run at compile time??
+** reply
+   Very interesting, thank you for the link!
+   I see how staged type-checking in this way could be extended to arbitrarily fancy type systems.
+   I already can see how this technique could be used to add more sophisticated types
+   to the embedded languages I've implemented with TFS,
+   so thank you for handing me a ready solution!
+
+   This is a very pedestrian concern, apologies,
+   but do you anticipate that code generation for staged computations 
+   would be run at "compile time" - for example, when ocamlc is run?
+   Or would users need to run code generation as a separate step (perhaps once for each DSL term),
+   and only get type errors at that step?
+   It seems like the inability to run term-level computation at compile time
+   would make this technique a little more awkward for users who might be expecting type errors.
+   
+
+   It seems that if there are many staged computations,
+   it would be preferable for them
+
+   and perhaps I missed this in your paper,
+   but it seems that the additional staging steps may be annoying to users;
+   running the compiler alone doesn't do all the type-checking,
+   the user must also run code generation steps for all embedded DSLs.
+   Do you anticipate that these code generation steps would be run at compile time?
+
+   I notice the paper mentions proc_deploy
+   
+
+   For example, running the compi
+
+   but it seems undesirable that running the type-checker the additional steps of staging might 
+
+ it might be annoying to users to have to support these additional steps of staging.
+   
+
+
+   Apologies for this pedestrian concern. 
+   but how 
+    
+
 

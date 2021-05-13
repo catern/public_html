@@ -33,7 +33,7 @@ def create_file_with_contents(dir: Directory, name: str, arg: Data) -> File:
     file.append_data(arg)
     return file
 
-def prog(dir: Directory, arg1: Data, arg2: Data) -> File:
+def prog(dir: Directory, arg1: Data, arg2: Data) -> None:
     """A simple program manipulating files and directories
 
     We will be reinterpreting this program in different ways by passing it
@@ -55,7 +55,7 @@ def prog(dir: Directory, arg1: Data, arg2: Data) -> File:
         paths.append_path(file)
         file.close()
     dir.for_each_file(f)
-    return paths
+    paths.close()
 
 
 ##### IO
@@ -88,6 +88,7 @@ class IODirectory(Directory):
         return IOFile(path, file)
 
     def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        "Call `f` with each file in this directory"
         for name in os.listdir(self.path):
             path = self.path + "/" + name
             f(IOFile(path, open(path, 'r')))
@@ -134,6 +135,10 @@ class TestDirectory(Directory):
         return TestFile(path, f)
 
     def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        """Call `f` with each file in this directory.
+
+        Same as for IODirectory.
+        """
         for name in os.listdir(self.path):
             path = self.path + "/" + name
             f(TestFile(path, open(path, 'r')))
@@ -193,19 +198,22 @@ class Program:
 
     def var(self, name: str) -> str:
         "Generate a fresh, unused variable name from this name"
-        if self.name:
-            return self.name + "_" + name + str(len(self.statements))
-        else:
-            return name + str(len(self.statements))
+        return self.name + "_" + name + str(len(self.statements))
 
     @contextlib.contextmanager
-    def in_function(self, name: str, args: t.List[str]) -> str:
+    def def_function(self, name: str, args: t.List[str]) -> str:
+        """Helper for pretty-printing function definitions
+
+        Statements performed inside this context manager are part of the
+        function definition.
+
+        """
         parent_statements, parent_name = self.statements, self.name
         self.statements, self.name = [], self.var(name)
         yield self.name
-        defn = "def " + self.name + "(" + ", ".join(args) + "):\n"
-        body = textwrap.indent("\n".join(self.statements), "    ")
-        parent_statements.append(defn + body)
+        parent_statements.append(
+            f"def {self.name}(" + ", ".join(args) + "):\n" +
+            textwrap.indent("\n".join(self.statements), "    "))
         self.statements, self.name = parent_statements, parent_name
 
 @dataclass
@@ -215,14 +223,15 @@ class PPDirectory(Directory):
     variable_name: str
 
     def create_file(self, name: str) -> PPFile:
-        "Write a line of code to create a file and store it in an arbitrarily named variable"
+        "Write a line of code to call .create_file and store the result in an arbitrarily named variable"
         file = PPFile(self.program, self.program.var("file"))
         self.program.statements.append(f"{file.variable_name} = {self.variable_name}.create_file('{name}')")
         return file
 
     def for_each_file(self, f: t.Callable[[File], None]) -> None:
+        "Render the passed function as a function definition, then write a line of code to call .for_each_file with it."
         file = PPFile(self.program, self.program.var("file"))
-        with self.program.in_function('f', [file.variable_name]) as func_name:
+        with self.program.def_function('f', [file.variable_name]) as func_name:
             f(file)
         self.program.statements.append(f"{self.variable_name}.for_each_file({func_name})")
 
@@ -233,18 +242,19 @@ class PPFile(File):
     variable_name: str
 
     def append_str(self, data: str) -> None:
-        "Write a line of code to append this string to this file"
+        "Write a line of code to call .append_str with this string constant"
         self.program.statements.append(f"{self.variable_name}.append_str('{data}')")
 
     def append_data(self, data: PPData) -> None:
-        "Convert data to a variable name, and write a line of code to append it to this file"
+        "Convert data to a variable name, and write a line of code to call .append_str with it"
         self.program.statements.append(f"{self.variable_name}.append_data({data.variable_name})")
 
     def append_path(self, data: PPFile) -> None:
-        "Convert data to a variable name, and write a line of code to append it to this file"
+        "Convert data to a variable name, and write a line of code to call .append_path with it"
         self.program.statements.append(f"{self.variable_name}.append_path({data.variable_name})")
 
     def close(self) -> None:
+        "Write a line of code to call .close"
         self.program.statements.append(f"{self.variable_name}.close()")
 
 @dataclass
@@ -257,7 +267,7 @@ def ppmain():
     dir = PPDirectory(program, "mydir")
     arg1 = PPData("somearg")
     arg2 = PPData("otherarg")
-    with program.in_function('main', [dir.variable_name, arg1.variable_name, arg2.variable_name]):
+    with program.def_function('main', [dir.variable_name, arg1.variable_name, arg2.variable_name]):
         prog(dir, arg1, arg2)
     print(program.statements[0])
 
@@ -297,7 +307,7 @@ class ProfilingDirectory(Directory):
         return file
 
     def for_each_file(self, f: t.Callable[[File], None]) -> None:
-        # depends on data in the filesystem; not statically known
+        "Does nothing; this depends on data in the filesystem, so we can't statically profile this"
         pass
 
     def optimized(self) -> OptimizedDirectory:
@@ -342,9 +352,6 @@ class OptimizedDirectory(IODirectory):
         else:
             return super().create_file(name)
 
-    def for_each_file(self, f: t.Callable[[File], None]) -> None:
-        super().for_each_file(f)
-
 def optimized_main():
     arg1 = StrData("somearg")
     arg2 = StrData("otherarg")
@@ -364,9 +371,17 @@ class TypecheckingDirectory(Directory):
 
     def for_each_file(self, f: t.Callable[[File], None]) -> None:
         # run f to type check it against the input typestate...
-        f(TypecheckingFile(open=True))
+        try:
+            f(TypecheckingFile(open=True))
+        except AssertionError:
+            e.args = ("function passed to for_each_file uses closed file on the first run",)
+            raise
         # ...and then run f again to check it against its own output typestate.
-        f(TypecheckingFile(open=True))
+        try:
+            f(TypecheckingFile(open=True))
+        except AssertionError as e:
+            e.args = ("function passed to for_each_file uses closed files on second and future runs",)
+            raise
 
 @dataclass
 class TypecheckingFile(File):
@@ -389,16 +404,14 @@ def badprog(dir: Directory) -> File:
     paths = dir.create_file("paths")
     def f(file: File) -> None:
         paths.append_path(file)
+        # oops, we meant to close "file", not "paths"!
         paths.close()
     dir.for_each_file(f)
     return paths
 
 def typechecking_main():
     prog(TypecheckingDirectory(), Data(), Data())
-    try:
-        badprog(TypecheckingDirectory())
-    except Exception:
-        pass
+    badprog(TypecheckingDirectory())
 
 typechecking_main()
 
