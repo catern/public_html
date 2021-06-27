@@ -1,0 +1,49 @@
+* post idea: when you suggest something, give a constructive proof
+[goes in software engineering section]
+or maybe:
+title: Give a constructive proof of your suggestions
+I like that better
+title: Give a constructive proof for your suggestion
+title: Give constructive proofs for your suggestions
+title: Give a constructive proof of your suggestion
+title: Give constructive proofs of your suggestions
+
+** 3 perspectives:
+- suggesting something
+- evaluating someone else's suggestion,
+- and creating an environment where suggestions are made
+  (markers of an environment not condusive are X Y Z)
+** related to me writing posts
+- this is related to me not writing posts until recently:
+  I don't like to write posts which aren't fully fleshed out with concrete examples,
+  I regard anything less than that as a mere assertion,
+  which is practically useless and which anyone can create.
+  (we'll say that in the start, when comparing constructive-proof-having stuff,
+  to mere assertions)
+  
+  This article itself is not constructive;
+  I don't show that this will result in good outcomes, I just assert it.
+  But, most people don't seem to care about constructive evidence
+  for these kinds of assertions,
+  so I figure I might as well publish them.
+** related to ideologies/theories:
+- constructive logic
+- do-ocracy
+- open source contributions
+** environment
+requiring a constructive proof requires that you be able to use the constructed artifact,
+even if your proof isn't accepted.
+
+otherwise a demand for a constructive proof is just a club you can use to stop things.
+
+(like demanding that I write my post before determining if it's acceptable to be released)
+* TODO add a link to the constructive article to exitvoice.html
+  specifically the voice section of exitvoice.html where I discuss basically this.
+  I can shorten that section...
+* 
+  an idea is worth nothing,
+  implementation is everything
+* you can't tell people anything
+http://habitatchronicles.com/2004/04/you-cant-tell-people-anything/
+
+very related
