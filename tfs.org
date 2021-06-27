@@ -2,6 +2,9 @@
 #+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
 
 * Explanation
+  :PROPERTIES:
+  :CUSTOM_ID: explanation
+  :END:
 To convert a function into some other type
 (executable code, or a pretty-printed string, or something else),
 the easiest way is to call the function,
@@ -21,13 +24,23 @@ The function will speak to you in a language determined by the arguments you pas
   it will speak to you in the language of executable code.
 
 The fewer global variables and types that a function refers to,
-the more the function can speak in the language we desire,
+the more the function can speak in the language you desire,
 rather than a hard-coded predetermined langauge.
+
+In this way, one can replace compilers,
+which inspect syntax trees and operate on the meta-level,
+with regular code operating on the object-level.
 * Examples
+  :PROPERTIES:
+  :CUSTOM_ID: examples
+  :END:
 That koan alone may not bring you to enlightment,
 so here's some examples
 in working, type-annotated Python 3.
 ** The interface and program
+   :PROPERTIES:
+   :CUSTOM_ID: program
+   :END:
 First, an interface:
 #+begin_src python
 class Data:
@@ -82,6 +95,9 @@ By passing different implementations of the interfaces to this program,
 we will reinterpret the program
 as doing different things and producing different results.
 ** IO
+   :PROPERTIES:
+   :CUSTOM_ID: io
+   :END:
 First, the obvious implementation:
 One which just writes to the filesystem.
 
@@ -151,6 +167,9 @@ def main():
 So far, this is all completely conventional.
 
 ** Testing
+   :PROPERTIES:
+   :CUSTOM_ID: testing
+   :END:
 We can pass an implementation which transforms our program into a test.
 At each point, instead of performing an operation,
 the program asserts that the operation has been performed correctly.
@@ -235,6 +254,9 @@ Then we run =prog= with TestDirectory to check that the files are there,
 and have the correct contents.
 
 ** Pretty printing
+   :PROPERTIES:
+   :CUSTOM_ID: pprint
+   :END:
 This implementation of =Data=, =Directory=, and =File= pretty-prints the program that they are passed to.
 
 Whenever a method is called,
@@ -437,6 +459,9 @@ def optimized_main():
     prog(profile_dir.optimized_dir("bdir"), arg1, arg2)
 #+end_src
 ** Linear type inference and checking
+   :PROPERTIES:
+   :CUSTOM_ID: types
+   :END:
 This implementation infers linear types for expressions and functions in our program,
 and checks their consistency.
 Specifically, we statically track the open/closed state of files
@@ -532,6 +557,9 @@ The stack trace tells us the concrete reason why type-checking fails for =badpro
 specifically =paths= in the =paths.append_path(file)= statement.
 =paths= is closed because we called =paths.close()= at the end of =f=.
 * Conclusion
+  :PROPERTIES:
+  :CUSTOM_ID: conclusion
+  :END:
 Passing arguments to functions is fun and powerful.
 
 Other constructs not shown in these examples,
@@ -541,6 +569,9 @@ in general by ensuring that control flow or lambda creation is done through an i
 For example, an if-check on an error code can be done with a =Result.or_else= interface,
 which makes both branches visible to the implementation.
 * Further reading
+  :PROPERTIES:
+  :CUSTOM_ID: further_reading
+  :END:
 - [[http://okmij.org/ftp/tagless-final/index.html][Tagless-final style]].
   This is where I first learned about this technique.
 - [[https://www.researchgate.net/publication/2302111_Type-Directed_Partial_Evaluation][Type-Directed Partial Evaluation]].
@@ -552,6 +583,9 @@ which makes both branches visible to the implementation.
   This post explains, in object-oriented terms,
   why it's preferable to pass dependencies as arguments rather than use globals.
 * Addendum: Type-correct interfaces
+  :PROPERTIES:
+  :CUSTOM_ID: type-correct
+  :END:
 The type declarations for the =Data=, =Directory=, and =File= interfaces at the start are simple and correct,
 but need to be made a little more generic to support our implementations;
 otherwise we get some type errors.
