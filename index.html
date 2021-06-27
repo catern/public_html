@@ -17,57 +17,68 @@ Would you like an RSS feed, or information about changes?
 Or maybe you want to read some raw .org files?
 This site is <a href="https://github.com/catern/public_html">on Github</a>.
 <!-- also you can just clone http://catern.com directly -->
-<h2>Programming languages and systems (are the same thing)</h2>
+<h2>Making it easier to run distributed software</h2>
+Distributed software, which accesses and depends on remote resources,
+is harder to run than local-only software.
+I'm interested in making it easier to run distributed software
+for both programmers and end-users.
+I think this will promote the development and use of open source distributed software,
+which will in turn lead to more high-quality distributed software being available.
 <ul>
 <li><a href=./config.html>Write code, not configuration</a>
 <li><a href=./progsys.html>Deploying a distributed system? A type system helps a lot</a>
+<li><a href=./run.html>You need to be able to run your system</a>
+<li><a href=./usertests.html>Your users are a test suite</a>
+<li><a href=./supervisors.html>Beyond process supervisors</a>
+<li><a href=./process.html>The Unix process API is unreliable and unsafe</a>
 <li><a href=./mobilelibs.html>For fast protocols, be backwards-compatible in the client, not on the wire</a>
+<!-- this one is just such terrible, inane clickbait. everyone knows this already! -->
+<li><a href=./services.html>Write libraries instead of services, where possible</a>
+<li><a href=./computers.html>For me, the best number of computers is one</a>
+<li><a href=./exitvoice.html>Exit and voice in free/open source software</a>
+</ul>
+<h2>Taking lambda-abstraction as far as it can go</h2>
+I'm interested in doing practical programming with just lambda-abstraction and application.
+Many features,
+both at the level of surface syntax (such as pattern matching, DSLs)
+and type system (such as effect systems, access controls, DSLs)
+are easily implementable with just lambda-abstraction and application,
+and this allows them to be used productively in languages without such advanced features built-in.
+I'm interested in taking this further, because I think this helps make such innovations more widely usable.
+<ul>
 <li><a href=./tfs.html>Write code, not compilers</a>
 <li><a href=./iceberg.html>Cursed PL Iceberg</a>
 <li><a href="https://github.com/catern/rsyscall/blob/master/python/dneio/__init__.py">Concurrency based on shift/reset and object-oriented effect handlers</a>
-<!-- this one is just such terrible, inane clickbait. everyone knows this already! -->
-<li><a href=./services.html>Write libraries instead of services, where possible</a>
 <li><a href=./inheritance.html>Inheritance was invented as a performance hack</a>
 <li><a href=./private.html>public/protected/private is an unnecessary feature</a>
 </ul>
-
-<h2>Those which relate to Linux and operating systems</h2>
+<h2>Improving Linux</h2>
+Linux is the world's largest software project and the world's most successful open source project,
+so it will probably be a foundation for my work for many years.
+So, naturally, I'm interested in improvements to Linux.
 <ul>
-<li><a href=./supervisors.html>Beyond process supervisors</a>
-<li><a href=./process.html>The Unix process API is unreliable and unsafe</a>
 <li><a href=./timerfd_eventfd.html>timerfd is a specialized kind of eventfd</a>
 <li><a href=./ideas.html>Miscellaneous Linux ideas</a>
 </ul>
 
-<h2>"Software engineering"</h2>
-<ul>
-<li><a href=./run.html>You need to be able to run your system</a>
-<li><a href=./usertests.html>Your users are a test suite</a>
-<li><a href=./exitvoice.html>Exit and voice in free/open source software</a>
-</ul>
-
 <h2>Some tips on tools I use, or don't use</h2>
+I use some tools; some tools, I don't use.
 <ul>
-<li><a href=./computers.html>For me, the best number of computers is one</a>
 <li><a href=./emacs.html>My reasons to use Emacs</a>
 <li><a href=./terminal_quirks.html>Terminals are weird</a>
 <li><a href=./docker.html>Docker Considered Harmful</a>
 <li><a href=./libvirt.html>The Excellence of libvirt</a>
 <li><a href=./pipes.html>Simple, Fast, Easy Parallelism in Shell Pipelines</a>
 <li><a href=./gnometextconf.html>Plain text configuration of GNOME</a>
+<li><a href="./2014/02/14/rlwrap-history.html">Moving rlwrap history out of your home directory</a>
+<li><a href="./2014/05/15/nexus-7-netbook.html">A Nexus 7 as a primary computer</a>
 </ul>
 
 <h2>Life</h2>
+I have a life.
 <ul>
 <li><a href=./optimize.html>Finding the optimal tradeoff between career and art</a>
-<li><a href=./chili.jpg>This chili recipe</a>
+<li><a href=./chili.jpg>Chicken chili recipe</a>
 </ul>
-
-<h2>Those included in this classification</h2>
-<ul>
-<li><a href=./index.html>¯\_(ツ)_/¯</a>
-<li><a href=./old_index.html>My old blog, with some posts already linked above, and some posts I care about less</a>
-</ul>
-
 </body>
 </html>
