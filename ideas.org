@@ -1,6 +1,5 @@
 #+title: Miscellaneous Linux ideas
 #+HTML_HEAD: <style type="text/css">body{ max-width:50em; margin-left:auto; margin-right:auto; }</style>
-
 All of this should be usable without privileges.
 Most of this will require getting rid of the setuid bit as a prerequisite.
 
@@ -8,9 +7,11 @@ Most of this will require getting rid of the setuid bit as a prerequisite.
 ** replace chroot with explicitly passing in a root dirfd
    You would need to disallow ".." for this to work.
 ** replace cwd with explicitly passing in a cwd dirfd
-** replace mount with two syscalls: one creating a dirfd, one mounting it
+** DONE replace mount with two syscalls: one creating a dirfd, one mounting it
    This way we can start a filesystem and access it,
    and keep it private without creating a mount namespace
+
+   (this is essentially possible [[https://lwn.net/Articles/759499/][with the new mount API]])
 ** or, replace kernel mount with per-process userspace mount tables
    Instead of mounting in the kernel,
    just let a process multiplex between a set of dirfds that it has access to.
@@ -44,7 +45,10 @@ Most of this will require getting rid of the setuid bit as a prerequisite.
   the filesystem setuid bit is a big limiting factor,
   we should get userspace ready for a world without the setuid bit.
 ** IPC-based sudo replacement
-   ssh can work for this purpose
+   ssh can work for this purpose.
+   There's also s6-sudo and systemd-run,
+   but I think ssh is the most plausible way to do this,
+   since it's very popular and powerful already.
 ** alternatives for mutating inherited environment in privileged ways
    How do we inherit our current environment,
    while mutating it in some way that requires privs?
