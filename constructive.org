@@ -47,3 +47,270 @@ otherwise a demand for a constructive proof is just a club you can use to stop t
 http://habitatchronicles.com/2004/04/you-cant-tell-people-anything/
 
 very related
+
+also related:
+https://byorgey.wordpress.com/2009/01/12/abstraction-intuition-and-the-monad-tutorial-fallacy/
+you can't just explain things...
+* nice attributes
+- gives you a working implementation
+- can't be faked
+- requires you to put skin in the game
+- no possibility of politics or stupidity getting in the way (as can happen with persuasion)
+
+but it does have a downside...
+creation of a proof might require investment...
+* notes
+hmmmmm
+
+so really I just prefer constructive proofs...
+
+
+If you want to convince someone that something is true,
+the best way to do it is with a constructive proof.
+If you have some idea that can be implemented: do it, and show that it works.
+If you... have a...
+suggestion about...
+if you have a prediction: Bet on it.
+
+policy suggestions
+
+
+I guess... making a constructive proof is a bet.
+you're betting the invested resources are worth it...?
+
+but if you're just interested in the idea for its own sake...
+and you just care about persuading people...
+or something like that...
+then you don't care about the cost?
+
+title: To prove your idea works, implement it
+** right uhhh
+   if you have an idea that can be implemented, you are blessed.
+   prove it correct by just implementing it.
+
+   when an idea can be implemented, the best way is to do that.
+   discussion is pointless.
+   telling people is pointless.
+   ideas are pointless.
+
+   implementations solve the problem.
+
+   right so...
+
+   be thankful when you have an idea that can be implemented, and do it.
+   (and thereby save lots of effort?)
+   (and try to make your ideas implementable?)
+   (and not all ideas can be implemented easily?)
+
+   title: Don't waste time on persuasion. To prove an idea works, implement it.
+
+   that could be toned down a bit,
+   to just suggest avoiding persuasion.
+   since not all ideas can be easily implemented...
+
+   title: To prove an idea works, spend less time on persuasion, more time on implementation.
+
+   but then it's more obvious that it's a bravery debate...
+
+   If you have an idea that can be implemented, do it.
+
+   like... if you can implement it straightforwardly, just do that.
+
+   I think people are too focused on persuasion...
+
+   implementation is the ultimate persuasion technique
+
+   title: To persuade people that your idea works, implement it.
+
+   title: Implementation is the ultimate persuasion technique
+
+   yeah because...
+   it's not always available.
+   but when it is, you should do it.
+
+   it's available pretty dang often.
+
+   Constructive proof is the ultimate persuasion technique
+
+   title: The best way to persuade people that your idea works is to implement it.
+
+   so I think implementation is available often enough that I can just say this.
+
+   it's basically always available...
+
+   well maybe I'll just say:
+
+   title: Implement your ideas rather than persuade people of them
+
+   but that's wordy so:
+
+   title: Give constructive proofs of your ideas
+
+   but that's not very approachable...
+   (it won't be good clickbait)
+
+   title: Prove your ideas work by implementing them
+
+   title: Don't bother with persuasion. Prove your idea works by implementing it.
+
+   yeah. That reads good I think...
+
+   or better yet!
+
+   title: Don't bother with persuasion. Prove an idea works by implementing it.
+   title: Don't bother with persuasion. Prove ideas work by implementing them.
+
+   I prefer the singular.
+
+   title: Don't bother with persuasion. Prove an idea works by implementing it.
+   title: Don't waste time with persuasion. Prove an idea works by implementing it.
+   title: Don't spend time on persuasion. Prove an idea works by implementing it.
+   title: Don't waste time on persuasion. Prove an idea works by implementing it.
+
+there's a continuum of persuasion vs implementing...
+
+I just want to point out the option...
+
+Like...
+
+I mean, it's just that I choose to do it this way...
+
+ok ok.
+
+Implementing an idea is like providing a constructive proof that it works.
+
+The ultimate technique for showing that an idea works is to provide a constructive proof that it works, by implementing it.
+
+Implementing an idea is the most powerful way to show that it works.
+In software, this is easier than in many other areas,
+so it should be pursued more often.
+
+The most effective way for one person to 
+** post again
+   title: Give constructive proofs for ideas
+
+The best way to show that an idea will work is to provide a working implementation of the idea;
+that is, to provide a constructive proof.
+
+There are three perspectives on this:
+When one has an idea,
+when one is evaluating someone else's idea,
+and when one is designing an organization (designing rules? choosing policies?) to promote idea formation.
+
+(maybe I should put the idea-evaluator first?)
+*** When one is evaluating someone else's idea
+*** When one has an idea
+What is the benefit of persuading other people of your idea before implementing it?
+In theory, they'll support you with resources, possibly time and effort.
+
+However, persuasion is both too difficult and its benefits are too tenuous to be worth it.
+
+(let's consider two different kinds of persuasion:
+"shallow" persuasion and "deep" persuasion.
+If you want venture capital funding, you might persuade someone shallowly.
+If you want someone to work on a project with you, you'll need to persuade them deeply.
+eh but I don't think that's really true...
+they're both big investments!
+)
+
+Persuasion is good, of course.
+But 
+
+
+In practice, persuasion 
+
+You have an idea.
+Humans are social animals, so you might want to tell other peopl
+
+okay, so, one might start with persuasion...
+
+There's a balance between time spent persuading people that your idea is good,
+and time spent working on
+*** persuasion
+One alternative is persuasion:
+You can assert that an idea will work, and support that assertion with evidence.
+
+Persuasion has many flaws, however.
+- It's almost impossible to [[http://habitatchronicles.com/2004/04/you-cant-tell-people-anything/][tell someone an idea]] that they don't already understand;
+  they'll approximate it to the nearest idea they do understand, which might be very far indeed.
+- Persuasion is difficult
+- The idea will change during implementation;
+  answering objections that might have been raised,
+  and making the effort spent on persuasion wasted.
+  Issues which seemed relevant while talking in theory
+  will become irrelevant in practice,
+  and vice versa.
+  This also means that a persuasive document is rarely the best explanation of an idea after it's been implemented.
+  (but you'll be tempted to avoid writing new documentation)
+  (persuasion is about a different idea from what you'll implement)
+- The idea *should* change during implementation.
+  But if you spent a long time on persuasion,
+  (the ideas you persuaded people of will have a gravity that draws your attention)
+  you'll be tempted to implement what you persuaded people of, not what's best.
+- Persuasion ossifies the idea.
+  And also tones it down.
+  By explaining an idea to people who don't have the idea,
+  you have to bridge the inferential gap by toning down the idea,
+  compromising the quality of the idea.
+  Better to show the idea in all its glory.
+  (persuasion is about a different idea from the original)
+- Time spent on persuasion is time not spent on implementation.
+  After you implement it, persuasion becomes moot;
+  it provides no further value,
+  because the value of the idea is clear from the implementation.
+  (But what about documenting design decisions?)
+  That time is wasted after an implementation is complete;
+  the best way to explain an implementation is rarely the best way to persuade someone that an idea will work.
+
+  The idea will change during implementation
+  A persuasive document is rarely the right choice after an implementation is complete;
+  an implementatio
+
+  If you'll implement it anyway,
+  
+  If you think the idea will work, you'll be implementing it anyway,
+  and then persuasion will become moot.
+
+One can try to persuade
+** persuasion has many flaws
+- you can't tell people anything (that is, they won't understand you)
+- it's hard to get people on board
+- it distracts you from more important stuff
+
+that's just from an idea-haver perspective. from the idea-evaluator perspective:
+
+- it wastes the time of the people you're persuading
+* post
+The most effective way to show the worth of an idea is to actually do it, and show that you've done it.
+
+The most effective way to show the worth of an idea is with a constructive proof:
+actually do it, and show that you've done it.
+
+
+
+If an idea is a theory, an implementation is a constructive proof of that theory:
+It proves the theory by constructing an example of it.
+
+This can be evaluated from three perspectives.
+** perspectives
+*** When one has an idea
+you can't tell people anything.
+*** When one is evaluating someone else's idea
+an idea is worth nothing, implementation is everything.
+*** When one is designing an organization to promote idea formation
+make it easier to do small implementations
+** continue
+This is related to me writing posts [...]
+
+This article isn't constructive.
+* random find
+https://guzey.com/ideas-not-mattering-is-a-psyop/
+
+well I think ideas don't matter because there are so many good ones.
+ummmmm right because,
+for god's sake, there's so many ideas in software
+* another example
+  Linux requires this - you need userspace users before you can get in-kernel.
+
+  and, you don't post on the list saying "hey here's an idea" in open source.
+  you implement it!!
