@@ -1,0 +1,720 @@
+#+title: No more DSLs: Using typed Python to deploy distributed systems directly
+#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
+* Introduction
+At $DAYJOB we have 
+a sophisticated collection of libraries for running components in our distributed system,
+collectively called "integration libraries".
+I describe them here as a constructive proof of
+the posts linked in this introduction.
+(Although since these libraries and components are unfortunately proprietary,
+I can't provide running code.)
+# (link constructive proof post)
+
+# conjectural?
+# the theoretical/speculative/generalities/vague posts below?
+
+# Although these libraries are proprietary, as are the components they run,
+# so this article isn't as constructive as I would like.
+
+Each team maintains an integration library for their components, but not their dependencies.
+They're maintained in a single repository to reduce compatibility issues.
+By using multiple such libraries together, one can [[http://catern.com/run.html][run the full system]],
+for production or for [[http://catern.com/usertests.html][testing the system against its users]].
+
+The integration libraries
+[[http://catern.com/progsys.html][use Python 3's static type system to handle distributed system issues]]
+like service discovery and startup ordering;
+services are [[http://catern.com/config.html]["configured" by passing arguments, in normal code]].
+
+A key part of this is that
+[[http://catern.com/progsys.html][regular function arguments are used to express dependencies between services]];
+for each service, there's a function which takes that service's dependencies as arguments,
+starts that service up,
+and returns a value that can be passed as an argument (a dependency) for other services.
+
+These functions directly run each service as a subprocess,
+[[http://catern.com/supervisors.html][rather than delegating to a process supervisor service]].
+Functionality is shared
+[[http://catern.com/services.html][through libraries rather than by delegating to orchestration systems]],
+making the integration libraries completely self-contained.
+# Maybe don't use TestCase boilerplate?
+# nah I think that's good...
+* Running a system with integration libraries
+We'll see this in action with an example.
+** orderd: an order entry daemon
+- Accepts or rejects orders sent over a TCP listening socket
+- Updates the =positiond= service with the positions
+- Stores order data in a SQLite database
+
+=orderd= is a real daemon, with a few details removed.
+We're looking at =orderd= specifically
+because it has only the three dependencies we've already mentioned.
+
+For our example, we'll start up =orderd=
+and its dependencies (just =positiond=) for a test,
+using functions from the integration libraries to run each service.
+
+Note that =orderd= itself is not necessarily written in Python;
+the =orderd= integration library just gives us a Python API for running it;
+the same applies for =orderd='s dependencies.
+
+First some boilerplate for the test:
+#+begin_src python
+from orderd import start_orderd
+
+class TestOrderd(unittest.TestCase):
+  def setUp(self) -> None:
+    # TODO start up orderd and its dependencies
+    self.orderd = start_orderd(...)
+
+  def test(self) -> None:
+    self.assertTrue("Do test stuff")
+#+end_src
+
+To write =setUp=,
+we'll proceed by looking at the signature of the =start_orderd= function,
+provided by the =orderd= integration library.
+
+#+begin_src python
+# in the "orderd" module
+async def start_orderd(
+  nursery: trio.Nursery,
+  thread: rsyscall.Thread,
+  positiond: positiond.Positiond,
+  listening_sock: rsyscall.FileDescriptor,
+  database: orderd.Database,
+) -> Orderd:
+#+end_src
+
+We'll look at =start_orderd= line by line,
+creating each argument individually,
+and at the end we'll call =start_orderd= and have a running instance of =orderd=.
+
+The first three lines of the function signature 
+(up to and including =thread: rsyscall.Thread,=)
+are essentially common to all service starting functions.
+The last four lines 
+(starting with =positiond: Positiond,=)
+are specific to =orderd=.
+** =async def start_orderd(=
+#+begin_src python
+async def start_orderd(
+#+end_src
+
+=start_orderd= is an async function.
+In Python, this simply means that it can run in parallel with other functions,
+which allows us to start services up in parallel,
+using Python-specific techniques which are mostly irrelevant
+and which we won't show in this example.
+Other than that, it's a completely normal function,
+which is called with =await start_orderd(...)= from any other async function,
+and which blocks execution until it's returned.
+
+Since =start_orderd= is async, we need to run it from an async runner.
+We'll use the open source library =trio= for that,
+which means we'll need to tweak our boilerplate slightly to use =TrioTestCase=.
+
+#+begin_src python
+from trio_unittest import TrioTestCase
+
+class TestOrderd(TrioTestCase):
+  async def asyncSetUp(self) -> None:
+    self.orderd = await start_orderd(...)
+#+end_src
+
+The fact that =start_orderd= is async is mostly irrelevant,
+and you can completely ignore the "async" and "await" annotations used in these examples.
+Nothing asynchronous is happening in these examples,
+and "await foo()" will block until foo is done executing,
+just like a normal function call.
+** =nursery: trio.Nursery,=
+#+begin_src python
+  nursery: trio.Nursery,
+#+end_src
+
+=trio.Nursery= is a capability,
+defined by the open source =trio= library,
+which provides the ability to start up functions in the background.
+We pass it in to =start_orderd=
+so that =start_orderd= can start a function in the background
+to monitor the running =orderd= process.
+If the =orderd= process exits, the monitoring function will throw,
+and the resulting exception will be propagated to the =trio.Nursery=,
+which will deal with it in some way specific to how the =trio.Nursery= was produced.
+
+In this case, we'll use =self.nursery= as provided by =TrioTestCase=,
+which turns any failure in a background task into a failure of the whole test.
+
+#+begin_src python
+  async def asyncSetUp(self) -> None:
+    # self.nursery provided by TrioTestCase
+    self.orderd = await start_orderd(
+      self.nursery,
+      ...,
+    )
+#+end_src
+** =thread: rsyscall.Thread,=
+#+begin_src python
+  thread: rsyscall.Thread,
+#+end_src
+
+=rsyscall.Thread= is another capability,
+defined by the open source =rsyscall= library,
+which provides the ability to run system calls, including running subprocesses.
+We pass it in to =start_orderd=
+so that =start_orderd= can start the =orderd= subprocess,
+as well as perform other operations to prepare the environment for =orderd=.
+An =rsyscall.Thread= may operate on a local or remote host,
+or inside a container or VM, or on other kinds of nodes,
+depending on how the =rsyscall.Thread= was produced,
+but it provides a completely common interface regardless of where it runs.
+
+In this case, we'll use =local_thread= imported from =rsyscall=
+and assigned to =self.thread=;
+=local_thread= runs on the same thread as the Python interpreter
+ - that is, on localhost.
+
+#+begin_src python
+from rsyscall import local_thread
+
+  async def asyncSetUp(self) -> None:
+    self.thread = local_thread
+    self.orderd = await start_orderd(
+      ..., self.thread, ...,
+    )
+#+end_src
+** =positiond: Positiond,=
+#+begin_src python
+  positiond: Positiond,
+#+end_src
+
+This is the first =orderd=-specific argument.
+
+=positiond= is a service which =orderd= updates with information about its position.
+All the information required to connect to and use =positiond=
+is contained in the =Positiond= class.
+
+Since =positiond= is its own service, we need to use =start_positiond= to start it.
+
+#+begin_src python
+async def start_positiond(
+  nursery: trio.Nursery,
+  thread: rsyscall.Thread,
+  workdir: rsyscall.Path,
+) -> Positiond: ...
+#+end_src
+
+The first two arguments are shared with =orderd=.
+The third argument, =workdir=, is unique to positiond.
+=workdir= is a path in the filesystem that =positiond= will use;
+in this case, =positiond= will use it
+to store shared memory communication mechanisms and persistent data.
+
+We'll pass a path in a temporary directory in this example.
+#+begin_src python
+    # Make a temporary directory
+    self.tmpdir = await self.thread.mkdtemp()
+    self.orderd = await start_orderd(
+      ...,
+      await start_positiond(self.nursery, self.thread, self.tmpdir/"positiond"),
+      ...,
+    )
+#+end_src
+** =database: orderd.Database,=
+#+begin_src python
+  database: orderd.Database,
+#+end_src
+
+This is a database with the orderd schema - implemented with SQLite, in this case.
+
+#+begin_src python
+    self.orderd = await start_orderd(
+      ...,
+      await orderd.Database.make(self.thread, self.tmpdir/"db"),
+      ...,
+    )
+#+end_src
+** =listening_sock: FileDescriptor,=
+#+begin_src python
+  listening_sock: FileDescriptor,
+#+end_src
+
+This is a listening socket,
+passed down to =orderd= through file descriptor inheritance,
+and used to listen for TCP connections.
+
+This is standard Unix socket programming, so we won't go into this in depth;
+although note that we create this with =self.thread=,
+so that it it's on the same host as =orderd=.
+
+#+begin_src python
+  async def asyncSetUp(self) -> None:
+    # Make a TCP socket...
+    sock = await self.thread.socket(AF.INET, SOCK.STREAM)
+    # ...bind to a random port on localhost...
+    await sock.bind(await self.thread.ptr(SockaddrIn(0, "127.0.0.1")))
+    # ...and start listening.
+    await sock.listen(1024)
+    self.orderd = await start_orderd(
+      ..., sock, ...,
+    )
+#+end_src
+
+** =) -> Orderd:=
+#+begin_src python
+) -> Orderd:
+#+end_src
+
+Like all good integration libraries,
+=start_orderd= returns an =Orderd= class
+which contains all the information required to connect to =Orderd=,
+such as an address and port, a shared memory segment, or a path in the filesystem.
+
+=start_orderd=, again like all good integration libraries,
+will only return when the =orderd= communication mechanisms have been fully created,
+and therefore the =Orderd= class can be [[http://0pointer.de/blog/projects/socket-activation.html][immediately used to connect]] to =orderd=.
+
+** Full example
+Here's the full, working example:
+#+begin_src python
+class TestOrderd(TrioTestCase):
+  async def asyncSetUp(self) -> None:
+    # self.nursery provided by TrioTestCase
+    self.thread = local_thread
+    self.tmpdir = await self.thread.mkdtemp()
+    sock = await self.thread.socket(AF.INET, SOCK.STREAM)
+    await sock.bind(await self.thread.ptr(SockaddrIn(0, "127.0.0.1")))
+    await sock.listen(1024)
+    self.orderd = await start_orderd(
+      self.nursery, self.thread, 
+      await start_positiond(self.nursery, self.thread, self.tmpdir/"positiond")
+      await Database.make(self.thread, self.tmpdir/"db"),
+      sock,
+    )
+#+end_src
+
+Then we can proceed to [[http://catern.com/usertests.html][test by running user code]].
+
+* Implementation of integration libraries
+Now we'll step through an example of how an integration library is implemented.
+
+This daemon is packaged and deployed with Nix;
+at $DAYJOB we use a proprietary package manager with similar APIs.
+
+Here's the full code for the =exampled= integration library:
+#+begin_src python
+import rsyscall
+import nix_rsyscall
+import trio
+# a Nix-specific generated module, containing the information required
+# to deploy the exampled package, as specified by a line in setup.py.
+import exampled._nixdep
+
+class Exampled:
+    def __init__(self, path: rsyscall.Path) -> None:
+        self.path = path
+
+async def start_exampled(
+    nursery: trio.Nursery,
+    thread: rsyscall.Thread,
+    path: rsyscall.Path,
+) -> Exampled:
+    # deploy the exampled package and its dependencies; this doesn't deploy the
+    # package for this Python library, but rather the exampled daemon
+    package = await nix_rsyscall.deploy(thread, exampled._nixdep.closure)
+    # build the command to actually run
+    command = package.bin('exampled').args("--verbose", "--do-stuff-fast")
+    # make the thread that we'll run that exampled command in;
+    # this child_thread is a process under our control, see http://rsyscall.org
+    child_thread = await thread.clone()
+    # change the CWD of the child thread; CWD is inherited over exec, so it will be used by exampled
+    await child_thread.mkdir(path)
+    await child_thread.chdir(path)
+    # exec the command in the child thread; this exec helper method returns a monitorable child process object
+    child_process = await child_thread.exec(command)
+    # monitor the child process in the background; see https://trio.readthedocs.io/
+    # we'll get an exception if it exits uncleanly
+    nursery.start_soon(child_process.check)
+    # return a class containing exampled's communication mechanisms;
+    # it communicates with the world only by creating files under `path'
+    return Exampled(path)
+#+end_src
+# Going line by line here in comments, rather than by arguments,
+# because this is an implementation of an abstraction,
+# not just a manipulation of abstractions
+** versions? :noexport:
+versioning is controlled by which version of the integration library we use.
+
+(I mean, that's the ideal, anyway...)
+(actually that's true-ish since lnc_library works that way)
+(but, we'll just omit any mention of versioning I think)
+(we'll see what test readers think)
+* Conclusion
+[need some feedback first to know what to put here]
+* notes :noexport:
+ok so we want the big example section still,
+with the concrete code... hmmm....
+
+we'll call it... toplevel?
+
+yeah I still like the name toplevel
+
+so the title can be something like...
+
+Toplevel: A library for running
+
+
+maybe I should say...
+
+a library and style?
+
+a style... for running distributed systems programmatically
+
+coding standards?
+an approach?
+
+a way?
+a path?
+a paradigm?
+
+paradigm is a bit pretentious
+
+also the existing paper
+
+a pattern???
+I like pattern
+a pattern for deploying distributed system programmatically
+
+well!
+I really am talking about the library of functions here.
+
+I've already explained the pattern
+
+I'm just talking about the library
+
+i'm worried about my explanation style here...
+
+maybe I should have the concrete examples to explain the theory,
+instead of going through the dependencies one by one?
+
+MAYBE I should just unite them?
+
+Should I just extend the distributed systems article!??
+
+Yeah! that actually would be good.
+
+
+hmm it does make the article really long though...
+
+maybe I should just cite it quickly, with the core point of,
+expressing dependencies as arguments?
+not the further examples of type parametrization and multiple environments?
+yeah yeah that seems good.
+
+so I can just reproduce that explanation
+
+
+okay and so, we can show that we're looking at a test of orderd,
+because it's completely self-contained; (a test is traditionally completely self-contained)
+we don't have to posit any external hosts or nodes that we'll run orderd on,
+we just do it totally self contained.
+
+yeah,
+"we could substitute more sophisticated values for thread and nursery here,
+to get more sophisticated behaviors".
+
+
+okay so:
+- ???
+- dependencies as arguments, link to "type systems for deploying distributed systems"
+- ???
+- "we'll look at a test because it's self-contained and a clean slate;
+   we don't have to assume we have other multiple hosts that we'll use,
+   and we don't have to worry about using persistent storage for data storage."
+- example with "orderd"
+
+So I guess I won't start by talking about tests;
+we'll introduce tests later on as an example.
+
+We'll start with a link to the distributed systems thing.
+And also run your system. and code as config...
+
+hmm.
+
+or maybe not? we'll explain it more anecdotally;
+at my job we have a library,
+built along the lines blah blah,
+
+or, wait. I want to say it concisely.
+** post
+At $DAYJOB we have 
+a sophisticated collection of libraries for running components in our distributed system,
+collectively called "integration libraries".
+I describe them here as a constructive proof of (link constructive proof post)
+the theory I've described elsewhere. (link each word)
+
+- We use it to run our system, which is very important.
+- A brief summary of the theory. [blah blah dependencies as arguments]
+
+- The libraries consists of a collection of functions
+
+** thoughts
+okay so...
+can we just say that we need to run our distributed system?
+
+I mean, do we need to explain why we can't use other things?
+maybe we don't need to do that, hm.
+
+yeah I don't think we need this justification section,
+which explains why we don't use kubernetes etc
+(that can be... underdefined... and let people draw their own conclusions)
+
+oho!
+I can link "constructive proof" in the introduction,
+to my new constructive proof article!
+
+so no discussion of the justification versus other systems;
+we'll just say, it's for running our system,
+citing the "run your system" post.
+
+well, kai says we should get to the point quickly.
+
+I guess we can have one sentence about running the system...
+at the start?
+yeah and include a link to usertests too.
+
+the key important prep is that dependencies are arguments;
+we'll inline just that,
+then we'll go into the actual example.
+
+right so...
+
+* title :noexport:
+come up with a title!
+
+Running a system with types in practice?
+
+okay. so...
+
+"Running a distributed system with "integration libraries""
+
+or...
+
+Running a distributed system programmatically
+
+Infrastructure as code?
+
+what actually is it?
+
+it's an example of everything.
+
+A real example of..
+
+Running a distributed system, in practice
+
+A concrete program which runs a distributed system
+
+Distributed deployment with Python
+Practical distributed deployment with Python
+Concrete distributed deployment with Python
+
+I should mention Python because that makes it clear these are real programs,
+in a real language,
+with real libraries.
+
+Deploying a distributed system with Python
+Examples of deploying a distributed system with Python
+Examples of distributed system deployment with Python
+
+we want to make sure that it's clear that the distributed system is not written in python
+
+Using Python to deploy a distributed system
+Examples of using Python to deploy a distributed system
+An example of using Python to deploy a distributed system
+Concrete usage of Python to deploy a distributed system
+Concrete usage of a real language to deploy a distributed system
+No more YAML: Using Python to deploy a distributed system
+
+
+Yeah a tagline might be good
+
+No configs: Using Python to deploy a distributed system
+
+except it's not no configs,
+that's what supernet does, it also uses python AFAIK,
+the tricky part is...
+well it just configures a bunch of services in a haphazard way,
+with no guarantee that services are actually correctly configured.
+
+Maybe, using *typed* Python?
+
+Using typed Python to deploy a distributed system correctly
+Using richly-typed Python to deploy a distributed system correctly
+Using richly-typed Python to deploy a distributed system
+
+hmmmm....
+
+No more DSLs: Using richly-typed Python to deploy a distributed system
+
+yeah that sounds kind of good.
+but, we want to be a little more concrete.
+
+like... hmm...
+
+we want to express that it's a concrete example...
+but I don't know if that's necessary?
+
+I mean, my previous article was just saying,
+use a type system.
+and it had a python pseudocode example.
+
+Oh how about:
+
+No more DSLs: Using richly-typed Python to deploy a distributed system directly
+
+well, I mean, that's just what we're doing I guess.
+which I've outlined in previous articles, which I'll link...
+
+yeah okay. I mean, this title integrates all those other articles.
+
+and is concrete: this is Python, this is a distributed system.
+
+what about:
+
+Using richly-typed Python to deploy a distributed system directly
+Using richly-typed Python to deploy a distributed system directly, no DSLs
+Using richly-typed Python to deploy a distributed system directly, without DSLs
+
+No I like the initial little tag, "No more DSLs".
+
+and the article is the constructive proof;
+linking to other articles to explain the theory.
+
+okay, so that's a good preliminary title:
+
+No more DSLs: Using richly-typed Python to deploy a distributed system directly
+
+hmm it's kind of long
+
+No DSLs: Using richly-typed Python to deploy a distributed system directly
+No DSLs: Using typed Python to deploy a distributed system directly
+No DSLs: Using typed Python to deploy a system directly
+No more DSLs: Using typed Python to deploy a distributed system directly
+No more DSLs: Using typed Python to deploy distributed systems directly
+No more DSLs: With typed Python, deploy distributed systems directly
+No more DSLs: Using typed Python to deploy distributed systems directly
+
+yes, there we go:
+
+No more DSLs: Using typed Python to deploy distributed systems directly
+
+** explain no more DSLs?
+I guess with that little "No more DSLs" tag,
+I should maybe explain the alternative to Kubernetes...
+
+that's probably another article yet again.
+
+oh but I can just link the libraries instead of services article!
+
+is there anything in there that isn't part of libraries vs services?
+
+I guess open source exit vs voice, specifically the section about making forking easy,
+that services make that hard.
+
+but, still...
+it's not just "No more DSLs",
+it's also "No more orchestration/deployment services".
+
+which is kind of implied in libraries vs services,
+and also in the process superivors article.
+yeah I don't think I need to explain that.
+it's kind of related to SDN though.
+** DONE make small excerpt explaining "direct" as mentioned above
+I might have one excerpt though;
+in addition to the "typed" paragraph,
+I'll talk about "direct".
+that should cover it, yeah.
+
+and I can link the supervisors and libraries vs services articles there.
+
+"instead of writing a library to generate configs to configure a service which deploys your services,
+write a library to deploy your services."
+
+"instead of making a service to deploy services, write a library to deploy services"
+** maybe explain that we deploy on VMs, and so-called "bare metal"?
+not containers?
+
+I might mention that in the threads section...
+but maybe not...
+just might make it a little more explicit that we're mutating the Nix store?
+
+well, we'll just see how beta readers take it.
+* thoughts :noexport:
+Should I justify writing a test?
+
+- "we'll look at a test because it's self-contained and a clean slate;
+   we don't have to assume we have other multiple hosts that we'll use,
+   and we don't have to worry about using persistent storage for data storage."
+
+but maybe not?
+
+well, I don't have to justify it if I make a real example of running it elsewhere after that.
+
+eh it's good enough
+
+* TPS redesign :noexport:
+  hey maybe I could merge the iqueue and the database?
+
+  what I could do, maybe...
+  is put the JSON after the delta message in the iqueue.
+
+  I'm guessing posdelta won't mind that...
+
+  just, that would be nice because,
+  that would get rid of one of the stateful arguments
+
+
+* TODO note the two advantages of passing dependencies as arguments :noexport:
+  startup ordering and service discovery
+* more notes :noexport:
+maybe we should do the old style with an integration class?
+
+actually the integration class might be confusing.
+** TODO real prod example
+we should probably have a real prod example though.
+that will probably clear things up...
+
+and prevent confusion...
+** DONE link libraries vs services, that explains why not to use Kubernetes
+link it in the links section, that is
+* feedback :noexport:
+** boopy
+The writeup doesn't have much...
+The writeup is kind of just explaining the code, no interpretation
+
+
+White squares????
+
+Weird framing when you shrink the screen?
+
+so at each point...
+
+I just need to know the earliest valid byte...
+** tm007
+*** TODO my reaction
+it seems like he's concerned about compatibility?
+
+the issues inherent in having this split across multiple libraries?
+
+maybe I can just say there's one library...
+
+or, say that they're maintained in a monorepo?
+
+that might be a more direct way to say it...
+
+
+okay I think I can add a line in the introduction saying,
+"They're maintained in a single repository to reduce compatibility issues."
+
+but this increase compatibility issues with your own components!
+but, meh, maybe people are less likely to notice that.
