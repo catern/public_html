@@ -1,7 +1,7 @@
 #+title: No more DSLs: Using typed Python to deploy distributed systems directly
-#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
+#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; } body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
 * Introduction
-At $DAYJOB we have 
+At $DAYJOB we have
 a sophisticated collection of libraries for running components in our distributed system,
 collectively called "integration libraries".
 I describe them here as a constructive proof of
@@ -30,7 +30,7 @@ A key part of this is that
 [[http://catern.com/progsys.html][regular function arguments are used to express dependencies between services]];
 for each service, there's a function which takes that service's dependencies as arguments,
 starts that service up,
-and returns a value that can be passed as an argument (a dependency) for other services.
+and returns a value that can be passed as an argument (a dependency) to other service starting functions.
 
 These functions directly run each service as a subprocess,
 [[http://catern.com/supervisors.html][rather than delegating to a process supervisor service]].
@@ -55,11 +55,12 @@ and its dependencies (just =positiond=) for a test,
 using functions from the integration libraries to run each service.
 
 Note that =orderd= itself is not necessarily written in Python;
-the =orderd= integration library just gives us a Python API for running it;
-the same applies for =orderd='s dependencies.
+the =orderd= integration library just gives us a Python API for running it.
+The same applies for =orderd='s dependencies.
 
-First some boilerplate for the test:
+First some [[https://docs.python.org/3/library/unittest.html][=unittest=]] boilerplate for the test:
 #+begin_src python
+import unittest
 from orderd import start_orderd
 
 class TestOrderd(unittest.TestCase):
@@ -108,10 +109,10 @@ using Python-specific techniques which are mostly irrelevant
 and which we won't show in this example.
 Other than that, it's a completely normal function,
 which is called with =await start_orderd(...)= from any other async function,
-and which blocks execution until it's returned.
+and which blocks execution until it returns.
 
 Since =start_orderd= is async, we need to run it from an async runner.
-We'll use the open source library =trio= for that,
+We'll use the open source library [[https://trio.readthedocs.io/][=trio=]] for that,
 which means we'll need to tweak our boilerplate slightly to use =TrioTestCase=.
 
 #+begin_src python
@@ -125,15 +126,15 @@ class TestOrderd(TrioTestCase):
 The fact that =start_orderd= is async is mostly irrelevant,
 and you can completely ignore the "async" and "await" annotations used in these examples.
 Nothing asynchronous is happening in these examples,
-and "await foo()" will block until foo is done executing,
+and =await foo()= will block until foo is done executing,
 just like a normal function call.
 ** =nursery: trio.Nursery,=
 #+begin_src python
   nursery: trio.Nursery,
 #+end_src
 
-=trio.Nursery= is a capability,
-defined by the open source =trio= library,
+[[https://trio.readthedocs.io/en/stable/reference-core.html#trio.Nursery][=trio.Nursery=]] is a [[http://habitatchronicles.com/2017/05/what-are-capabilities/][capability]],
+defined by the open source [[https://trio.readthedocs.io/][=trio=]] library,
 which provides the ability to start up functions in the background.
 We pass it in to =start_orderd=
 so that =start_orderd= can start a function in the background
@@ -158,8 +159,8 @@ which turns any failure in a background task into a failure of the whole test.
   thread: rsyscall.Thread,
 #+end_src
 
-=rsyscall.Thread= is another capability,
-defined by the open source =rsyscall= library,
+[[http://rsyscall.org/rsyscall/][=rsyscall.Thread=]] is another [[http://habitatchronicles.com/2017/05/what-are-capabilities/][capability]],
+defined by the open source [[https://github.com/catern/rsyscall][=rsyscall=]] library,
 which provides the ability to run system calls, including running subprocesses.
 We pass it in to =start_orderd=
 so that =start_orderd= can start the =orderd= subprocess,
@@ -170,9 +171,8 @@ depending on how the =rsyscall.Thread= was produced,
 but it provides a completely common interface regardless of where it runs.
 
 In this case, we'll use =local_thread= imported from =rsyscall=
-and assigned to =self.thread=;
-=local_thread= runs on the same thread as the Python interpreter
- - that is, on localhost.
+and assigned to =self.thread=.
+=local_thread= runs on the same thread as the Python interpreter - that is, on localhost.
 
 #+begin_src python
 from rsyscall import local_thread
@@ -225,7 +225,7 @@ We'll pass a path in a temporary directory in this example.
   database: orderd.Database,
 #+end_src
 
-This is a database with the orderd schema - implemented with SQLite, in this case.
+This is a completely conventional SQLite database, initialized with the orderd schema.
 
 #+begin_src python
     self.orderd = await start_orderd(
@@ -301,23 +301,28 @@ Now we'll step through an example of how an integration library is implemented.
 This daemon is packaged and deployed with Nix;
 at $DAYJOB we use a proprietary package manager with similar APIs.
 
-Here's the full code for the =exampled= integration library:
+Below is the full code for the =exampled= integration library,
+with comments inline to explain it.
+# Going line by line here in comments, rather than by arguments,
+# because this is an implementation of an abstraction,
+# not just a manipulation of abstractions
+
 #+begin_src python
-import rsyscall
 import nix_rsyscall
+import rsyscall
 import trio
 # a Nix-specific generated module, containing the information required
-# to deploy the exampled package, as specified by a line in setup.py.
+# to deploy the exampled package; generated by setup.py.
 import exampled._nixdep
 
 class Exampled:
-    def __init__(self, path: rsyscall.Path) -> None:
-        self.path = path
+    def __init__(self, workdir: rsyscall.Path) -> None:
+        self.workdir = workdir
 
 async def start_exampled(
     nursery: trio.Nursery,
     thread: rsyscall.Thread,
-    path: rsyscall.Path,
+    workdir: rsyscall.Path,
 ) -> Exampled:
     # deploy the exampled package and its dependencies; this doesn't deploy the
     # package for this Python library, but rather the exampled daemon
@@ -328,20 +333,17 @@ async def start_exampled(
     # this child_thread is a process under our control, see http://rsyscall.org
     child_thread = await thread.clone()
     # change the CWD of the child thread; CWD is inherited over exec, so it will be used by exampled
-    await child_thread.mkdir(path)
-    await child_thread.chdir(path)
+    await child_thread.mkdir(workdir)
+    await child_thread.chdir(workdir)
     # exec the command in the child thread; this exec helper method returns a monitorable child process object
     child_process = await child_thread.exec(command)
     # monitor the child process in the background; see https://trio.readthedocs.io/
     # we'll get an exception if it exits uncleanly
     nursery.start_soon(child_process.check)
     # return a class containing exampled's communication mechanisms;
-    # it communicates with the world only by creating files under `path'
-    return Exampled(path)
+    # it communicates with the world only by creating files under `workdir'
+    return Exampled(workdir)
 #+end_src
-# Going line by line here in comments, rather than by arguments,
-# because this is an implementation of an abstraction,
-# not just a manipulation of abstractions
 ** versions? :noexport:
 versioning is controlled by which version of the integration library we use.
 
@@ -351,6 +353,8 @@ versioning is controlled by which version of the integration library we use.
 (we'll see what test readers think)
 * Conclusion
 [need some feedback first to know what to put here]
+
+# something about DSLs? and how this replaces them? Ansible, YAML, etc...
 * notes :noexport:
 ok so we want the big example section still,
 with the concrete code... hmmm....
@@ -691,17 +695,12 @@ link it in the links section, that is
 ** boopy
 The writeup doesn't have much...
 The writeup is kind of just explaining the code, no interpretation
-
-
-White squares????
+*** formatting issues
+White squares???? (fixed with =pre.src-python:before { color: #000000; }=)
 
 Weird framing when you shrink the screen?
-
-so at each point...
-
-I just need to know the earliest valid byte...
 ** tm007
-*** TODO my reaction
+*** DONE my reaction
 it seems like he's concerned about compatibility?
 
 the issues inherent in having this split across multiple libraries?
@@ -718,3 +717,22 @@ okay I think I can add a line in the introduction saying,
 
 but this increase compatibility issues with your own components!
 but, meh, maybe people are less likely to notice that.
+** Logos01
+*** my reaction
+he's saying I'm not explaining the problem
+
+that sounds kinda like tm007's initial confusion about what the point was
+
+yeah okay that's fair and true.
+
+tm007 was also asking about the domain...
+
+maybe the conclusion should say, this approach is applicable everywhere.
+and summarize again the links in the introduction;
+maybe rewording them to talk more about the problem.
+
+Logos01 didn't really read it tho...
+
+maybe I should reword the second paragraph to emphasize the purpose first:
+To run the system, for production or testing.
+yes, that would be perfect.
