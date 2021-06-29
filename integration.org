@@ -2,8 +2,9 @@
 #+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; } body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
 * Introduction
 At $DAYJOB we have
-a sophisticated collection of libraries for running components in our distributed system,
-collectively called "integration libraries".
+a sophisticated collection of Python libraries for running our distributed system, called "integration libraries".
+Each integration library contains richly-typed Python code
+for directly deploying and running one component in our distributed system.
 I describe them here as a constructive proof of
 the posts linked in this introduction.
 (Although since these libraries and components are unfortunately proprietary,
@@ -16,9 +17,9 @@ I can't provide running code.)
 # Although these libraries are proprietary, as are the components they run,
 # so this article isn't as constructive as I would like.
 
-Each team maintains an integration library for their components, but not their dependencies.
-They're maintained in a single repository to reduce compatibility issues.
-By using multiple such libraries together, one can [[http://catern.com/run.html][run the full system]],
+Each team maintains integration libraries for their own components, but not their dependencies.
+The integration libraries are maintained in a single repository to reduce compatibility issues.
+By using multiple such libraries together, one can write programs which [[http://catern.com/run.html][run the full system]],
 for production or for [[http://catern.com/usertests.html][testing the system against its users]].
 
 The integration libraries
