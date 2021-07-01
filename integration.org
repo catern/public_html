@@ -2,11 +2,11 @@
 #+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; } body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
 * Introduction
 At $DAYJOB we have
-a sophisticated collection of Python libraries for running our distributed system, called "integration libraries".
+a sophisticated collection of Python libraries for [[http://catern.com/run.html][running our distributed system]], called "integration libraries".
 Each integration library contains richly-typed Python code
 for directly deploying and running one component in our distributed system.
 I describe them here as a constructive proof of
-the posts linked in this introduction.
+the essays linked in this introduction.
 (Although since these libraries and components are unfortunately proprietary,
 I can't provide running code.)
 # (link constructive proof post)
@@ -356,6 +356,10 @@ versioning is controlled by which version of the integration library we use.
 [need some feedback first to know what to put here]
 
 # something about DSLs? and how this replaces them? Ansible, YAML, etc...
+
+# In some sense, a program written with the integration libraries *is* a distributed system
+
+# REPLs?
 * notes :noexport:
 ok so we want the big example section still,
 with the concrete code... hmmm....
@@ -737,3 +741,28 @@ Logos01 didn't really read it tho...
 maybe I should reword the second paragraph to emphasize the purpose first:
 To run the system, for production or testing.
 yes, that would be perfect.
+** nedbat
+<nedbat> i'll take a look
+> thank you! much obliged, sorry for the repeated message heh. here it is, any feedback is appreciated: http://catern.com/integration.html
+<nedbat> i think your introduction could use more of an introduction.
+<nedbat> i had to wrap my head around the idea that there are interlinked essays here, and this piece claims to validate the others, but i haven't seen the others yet.
+> let me say right away that they aren't necessary context, no need to look at them
+<nedbat> that's what i would have thought, but you say this essay's whole point is to support those, sort of.
+<nedbat> "First some unittest boilerplate for the test: "  what test? I thought we were starting up services. that could use some connective text.
+<nedbat> you say that the async stuff isn't really relevant.  could you literally remove all the async parts, to truly focus on the parts you want to focus on?
+<nedbat> "capability" is new to me, and I wonder how important it is to your points.
+> (just want to say all this feedback so far is great, thank you)
+<nedbat> is your conclusion something like, "Orchestrating services is often done with bash or dockerfiles, but you can use typed Python functions to achieve the same effect, with better testability"?
+<nedbat> btw, capabilities might be something you still want to reference, but again you can do it in a way that gives people permission to skip over it if they want
+> thanks, I'll just remove capabilities - you're right that it's irrelevant
+> just to be clear, is that your understanding of the point of the article?
+> ("is your conclusion something like")
+<nedbat> catern: that's what I'm getting from it.
+> yes, that's (a key of) the conclusion
+> key part of*
+<nedbat> if you put that statement in the introduction, it will help people understand where you are headed, and why you are showing them this
+> yes, I'll definitely work on incorporating that and the rest of this feedback
+> thanks again for reading it!
+<nedbat> ok! :)
+*** my reaction
+great feedback, great...
