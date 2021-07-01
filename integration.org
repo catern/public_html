@@ -50,16 +50,12 @@ We'll see this in action with an example.
 =orderd= is a real daemon, with a few details removed.
 We're looking at =orderd= specifically
 because it has only the three dependencies we've already mentioned.
+Note that =orderd= itself is not necessarily written in Python.
 
-For our example, we'll start up =orderd=
-and its dependencies (just =positiond=) for a test,
+For our example, we'll write a test of our distributed system.
+We'll start up =orderd= and its dependencies (just =positiond=) for the test,
 using functions from the integration libraries to run each service.
-
-Note that =orderd= itself is not necessarily written in Python;
-the =orderd= integration library just gives us a Python API for running it.
-The same applies for =orderd='s dependencies.
-
-First some [[https://docs.python.org/3/library/unittest.html][=unittest=]] boilerplate for the test:
+First, some [[https://docs.python.org/3/library/unittest.html][=unittest=]] boilerplate:
 #+begin_src python
 import unittest
 from orderd import start_orderd
