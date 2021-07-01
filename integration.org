@@ -5,19 +5,19 @@ At $DAYJOB we have
 a sophisticated collection of Python libraries for [[http://catern.com/run.html][running our distributed system]], called "integration libraries".
 Each integration library contains richly-typed Python code
 for directly deploying and running one component in our distributed system.
-I describe them here as a constructive proof of
-the essays linked in this introduction.
-(Although since these libraries and components are unfortunately proprietary,
-I can't provide running code.)
-# (link constructive proof post)
 
-# conjectural?
-# the theoretical/speculative/generalities/vague posts below?
+# (link constructive proof post)
+I describe these libraries here as a demonstration of
+a language-focused, library-focused approach to running distributed systems.
+Although the integration libraries are proprietary,
+and specific to the proprietary components in $DAYJOB's distributed system,
+they're built on top of open source libraries
+which can be used today by anyone to build integration libraries.
 
 # Although these libraries are proprietary, as are the components they run,
 # so this article isn't as constructive as I would like.
 
-Each team maintains integration libraries for their own components, but not their dependencies.
+Each team at $DAYJOB maintains integration libraries for their own components, but not their dependencies.
 The integration libraries are maintained in a single repository to reduce compatibility issues.
 By using multiple such libraries together, one can write programs which [[http://catern.com/run.html][run the full system]],
 for production or for [[http://catern.com/usertests.html][testing the system against its users]].
