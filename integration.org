@@ -84,7 +84,7 @@ async def start_orderd(
 ) -> Orderd:
 #+end_src
 
-We'll look at =start_orderd= line by line,
+We'll look at the =start_orderd= signature line by line,
 creating each argument individually,
 and at the end we'll call =start_orderd= and have a running instance of =orderd=.
 
@@ -102,8 +102,7 @@ async def start_orderd(
 =start_orderd= is an async function.
 In Python, this simply means that it can run in parallel with other functions,
 which allows us to start services up in parallel,
-using Python-specific techniques which are mostly irrelevant
-and which we won't show in this example.
+using Python-specific techniques which we won't show in this example.
 Other than that, it's a completely normal function,
 which is called with =await start_orderd(...)= from any other async function,
 and which blocks execution until it returns.
@@ -120,19 +119,19 @@ class TestOrderd(TrioTestCase):
     self.orderd = await start_orderd(...)
 #+end_src
 
-The fact that =start_orderd= is async is mostly irrelevant,
-and you can completely ignore the "async" and "await" annotations used in these examples.
-Nothing asynchronous is happening in these examples,
-and =await foo()= will block until foo is done executing,
-just like a normal function call.
+Other than this change in boilerplate,
+Python async functions work like any others;
+you can safely ignore the "async" and "await" annotations.
+We won't use any async features in this =TestCase= example;
+the only use of async features will be later, with =start_exampled=,
+when we look at how an integration library is implemented.
 ** =nursery: trio.Nursery,=
 #+begin_src python
   nursery: trio.Nursery,
 #+end_src
 
-[[https://trio.readthedocs.io/en/stable/reference-core.html#trio.Nursery][=trio.Nursery=]] is a [[http://habitatchronicles.com/2017/05/what-are-capabilities/][capability]],
-defined by the open source [[https://trio.readthedocs.io/][=trio=]] library,
-which provides the ability to start up functions in the background.
+[[https://trio.readthedocs.io/en/stable/reference-core.html#trio.Nursery][=trio.Nursery=]] is defined by the open source [[https://trio.readthedocs.io/][=trio=]] library,
+and it provides the ability to start up functions in the background.
 We pass it in to =start_orderd=
 so that =start_orderd= can start a function in the background
 to monitor the running =orderd= process.
@@ -156,9 +155,8 @@ which turns any failure in a background task into a failure of the whole test.
   thread: rsyscall.Thread,
 #+end_src
 
-[[http://rsyscall.org/rsyscall/][=rsyscall.Thread=]] is another [[http://habitatchronicles.com/2017/05/what-are-capabilities/][capability]],
-defined by the open source [[https://github.com/catern/rsyscall][=rsyscall=]] library,
-which provides the ability to run system calls, including running subprocesses.
+[[http://rsyscall.org/rsyscall/][=rsyscall.Thread=]] is defined by the open source [[https://github.com/catern/rsyscall][=rsyscall=]] library,
+and it provides the ability to run system calls, including running subprocesses.
 We pass it in to =start_orderd=
 so that =start_orderd= can start the =orderd= subprocess,
 as well as perform other operations to prepare the environment for =orderd=.
@@ -335,7 +333,7 @@ async def start_exampled(
     # exec the command in the child thread; this exec helper method returns a monitorable child process object
     child_process = await child_thread.exec(command)
     # monitor the child process in the background; see https://trio.readthedocs.io/
-    # we'll get an exception if it exits uncleanly
+    # we'll get an exception if it exits uncleanly; this is our one use of async features.
     nursery.start_soon(child_process.check)
     # return a class containing exampled's communication mechanisms;
     # it communicates with the world only by creating files under `workdir'
@@ -349,13 +347,23 @@ versioning is controlled by which version of the integration library we use.
 (but, we'll just omit any mention of versioning I think)
 (we'll see what test readers think)
 * Conclusion
-[need some feedback first to know what to put here]
-
 # something about DSLs? and how this replaces them? Ansible, YAML, etc...
 
 # In some sense, a program written with the integration libraries *is* a distributed system
 
 # REPLs?
+There are many advantages of this style,
+but they all lead back to one thing:
+[[http://catern.com/run.html][Being able to run the system]]
+flexibly, robustly,
+in a long-term maintainable way.
+
+The techniques used in the integration libraries
+are explained in greater detail in the posts linked in the introduction.
+With those techniques,
+and with the open source libraries [[https://github.com/catern/rsyscall][rsyscall]] and [[https://trio.readthedocs.io/][trio]],
+anyone can write their own integration libraries for their own components,
+and combine them with other libraries to run their distributed system in its entirety.
 * notes :noexport:
 ok so we want the big example section still,
 with the concrete code... hmmm....
