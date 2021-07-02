@@ -1,14 +1,17 @@
-#+title: No more DSLs: Using typed code to deploy distributed systems directly
+#+title: Write a distributed system as a single richly-typed directly-runnable program
 #+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; }</style>
 * Introduction
 At $DAYJOB we have
-a sophisticated collection of libraries for [[http://catern.com/run.html][running our distributed system]], called "integration libraries".
+a sophisticated collection of libraries called "integration libraries".
 Each integration library contains richly-typed code in a general-purpose language
-for directly deploying and running one component in our distributed system.
+for running and customizing one distributed system component.
+By using multiple such libraries together, one can write a distributed system as a single program,
+and run that program to [[http://catern.com/run.html][run the full system]],
+for production or for testing the system [[http://catern.com/usertests.html][against its users]].
 
 # (link constructive proof post)
 I describe these libraries here as a demonstration of
-a language-focused, library-focused approach to running distributed systems.
+this language-focused, library-focused approach to writing distributed systems.
 Although these integration libraries are proprietary,
 and specific to the proprietary components in $DAYJOB's distributed system,
 they're built on top of open source libraries
@@ -22,8 +25,8 @@ and this article should be comprehensible and useful to anyone interested in dis
 
 Each team at $DAYJOB maintains integration libraries for their own components, but not their dependencies.
 The integration libraries are maintained in a single repository to reduce compatibility issues.
-By using multiple such libraries together, one can write programs which [[http://catern.com/run.html][run the full system]],
-for production or for testing the system [[http://catern.com/usertests.html][against its users]].
+Components are mostly services written in other languages, mostly C/C++/Java.
+A typical Python integration library will use that foreign code by running it as a subprocess.
 
 The integration libraries
 use normal programming language features, including Python 3's static type system, to [[http://catern.com/progsys.html][handle distributed systems issues]].
@@ -861,6 +864,10 @@ Writing distributed systems
 Writing distributed systems with 
 
 Writing distributed systems without DSLs, without 
+
+Write a distributed system as a single richly-typed directly-runnable program
+
+yeah okay, much more focused on writing distributed systems now...
 ** dbohdan
 <dbohdan> catern: Even after rereading, I have questions about your distributed system.  I know it isn't what the article is about, but I am left wanting more context.
 > dbohdan: thanks for the feedback about the supervisors, and hmm I'll try and think of a way to deal with the code blocks...
