@@ -27,8 +27,9 @@ and this article should be comprehensible and useful to anyone interested in dis
 # so this article isn't as constructive as I would like.
 
 Each team at $DAYJOB maintains integration libraries for their own components, but not their dependencies.
-Components are mostly services written in other languages; mostly C/C++/Java.
+Components are mostly services written in other languages, mostly C/C++/Java.
 A typical Python integration library will use that foreign code by running it as a subprocess.
+In this way, the performance-sensitive components of the distributed system can be written in faster languages than Python.
 All integration libraries are maintained in a single repository to reduce compatibility issues.
 
 The integration libraries
@@ -46,6 +47,15 @@ Functionality is shared through [[http://catern.com/services.html][libraries]] r
 making the integration libraries completely self-contained.
 This allows the integration libraries to be used for deployment in any environment,
 whether that's bare-metal, virtual machines, containers, or a single developer's machine.
+
+The "integration library" approach allows a distributed system to be treated holistically as a single program.
+There are purpose-specific distributed languages which have the same goal,
+but such languages assume the presence of a great deal of distributed systems infrastructure
+that is maintained outside the language.
+A program written in such a language is then only one component in a larger distributed system.
+The "integration library" approach allows, instead,
+for one to write a program which manages *every* aspect of the distributed system above the hardware level,
+such that the program and the distributed system really can be said to be the same thing.
 # Maybe don't use TestCase boilerplate?
 # nah I think that's good...
 * Running a system with integration libraries
@@ -117,7 +127,7 @@ async def start_orderd(
 #+end_src
 
 =start_orderd= is an async function.
-In Python, this simply means that it can run in parallel with other functions,
+In Python, this simply means that it can run concurrently with other functions,
 which allows us to start services up in parallel,
 using Python-specific techniques which we won't show in this example.
 Other than that, it's a completely normal function,
@@ -927,3 +937,96 @@ physical servers, virtual machines, containers, and cutting-edge cloud nonsense 
 
 and, multiple instances...
 we should express that different instances can be configured for different 
+** xkapastel
+<xkapastel> i guess the idea is to absorb all those special purpose languages in
+to one host language with nice integration between everything
+...
+<xkapastel> i'm not an expert on writing or anything so i don't want
+to boss you around, but what i would do is take this sentence > By
+using multiple such libraries together, one can write a distributed
+system as a single program, and run that program to run the full
+system, for production or for testing the system against its users.
+*** my reaction
+lol he says this right after I delete "No more DSLs"
+
+okay so I clearly should add some more contrasts
+
+maybe at the end of the introduction?
+
+These techniques allow a distributed system to be treated holistically as a single program.
+There are purpose-specific distributed languages which have the same goal,
+but they generally depend on substantial amounts of existing infrastructure:
+there is no single program you can run to run the distributed system,
+you have to deploy large amounts of code and set up nodes.
+
+but such languages assume that their environment is already well-set-up;
+that any external services they talk to are guaranteed to be there,
+that language runtimes have already been configured on appropriate nodes,
+etc.
+
+but such languages assume that they're running in a specifically configured and prepared environment;
+
+
+The "integration library" approach allows a distributed system to be treated holistically as a single program.
+There are purpose-specific distributed languages which have the same goal,
+but such languages assume the presence of a great deal of distributed systems infrastructure
+that is maintained outside the language.
+A program written in such a language is then only one component in a larger distributed system. 
+The "integration library" approach allows, instead,
+for one to write a program which manages *every* aspect of the distributed system above the hardware level,
+such that the program and the distributed system really can be said to be the same thing.
+
+
+
+These techniques, instead,
+assume nothing about the environment,
+and set it up from scratch...
+
+
+by assuming almost nothing about
+
+
+These techniques
+
+
+but such languages assume that they are running on nodes that have already been configured,
+and in general 
+
+
+but they're generally substantially less expansive in their scope 
+but they require using a different language,
+and they generally are 
+and they generally don't handle their own deployment
+but they don't work with 
+and they 
+
+Collectively, these techniques replace
+many services and 
+significant 
+
+significant amounts of code 
+
+Collectively, these techniques replace large amounts of distributed system 
+** ChoHag
+*** my reaction
+useless
+** koo555
+<koo555> catern, well, it says that you use some libs and typed python
+to write service wrappers and a "service manager" to configure the sw
+you build at your $job ... I had ran a friends homemade "service
+manager" configured by yaml for some time ... i've checked out
+something similar kinda unix-standard once ... i'm kinda familiar with
+the concepts and some user-level usage of init scripts and systemd,
+and i'm well aware of struggles for ..lets say ...unifying a
+dev env with a production env .... my $dayjob sw is currently managed
+by a python configurator/wrapper/generator for a docker stack/swarm
+thing ... and i'm aware of the problem of making services wait for
+each other, for example .. i reckon this is what "service mesh"
+offerings also promise to tackle .. Anyway, generally i'm a fan of
+"configuration as code" .. and i can only wish that one day we'll have
+a neat declarative way to make something like your sys also
+able to manage dockerized services meaningfully .. Your approach
+obviously has limits, like, it doesn't actually route the messaging
+between your services, and so can't, let's say, hold one service while
+another is restarting ..  But the focus on typing is good..
+*** lol
