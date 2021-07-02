@@ -1,6 +1,9 @@
 #+title: Write a distributed system as a single richly-typed directly-runnable program
 #+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; }</style>
 * Introduction
+  :PROPERTIES:
+  :CUSTOM_ID: introduction
+  :END:
 At $DAYJOB we have
 a sophisticated collection of libraries called "integration libraries".
 Each integration library contains richly-typed code in a general-purpose language
@@ -24,9 +27,9 @@ and this article should be comprehensible and useful to anyone interested in dis
 # so this article isn't as constructive as I would like.
 
 Each team at $DAYJOB maintains integration libraries for their own components, but not their dependencies.
-The integration libraries are maintained in a single repository to reduce compatibility issues.
-Components are mostly services written in other languages, mostly C/C++/Java.
+Components are mostly services written in other languages; mostly C/C++/Java.
 A typical Python integration library will use that foreign code by running it as a subprocess.
+All integration libraries are maintained in a single repository to reduce compatibility issues.
 
 The integration libraries
 use normal programming language features, including Python 3's static type system, to [[http://catern.com/progsys.html][handle distributed systems issues]].
@@ -46,8 +49,14 @@ whether that's bare-metal, virtual machines, containers, or a single developer's
 # Maybe don't use TestCase boilerplate?
 # nah I think that's good...
 * Running a system with integration libraries
+  :PROPERTIES:
+  :CUSTOM_ID: running
+  :END:
 We'll see this in action with an example.
 ** orderd: an order entry daemon
+   :PROPERTIES:
+   :CUSTOM_ID: orderd
+   :END:
 - Accepts or rejects orders sent over a TCP listening socket
 - Updates the =positiond= service with the positions
 - Stores order data in a SQLite database
@@ -100,6 +109,9 @@ The last four lines
 (starting with =positiond: Positiond,=)
 are specific to =orderd=.
 ** =async def start_orderd(=
+   :PROPERTIES:
+   :CUSTOM_ID: async_def
+   :END:
 #+begin_src python
 async def start_orderd(
 #+end_src
@@ -131,6 +143,9 @@ We won't use any async features in this =TestCase= example;
 the only use of async features will be later, with =start_exampled=,
 when we look at how an integration library is implemented.
 ** =nursery: trio.Nursery,=
+   :PROPERTIES:
+   :CUSTOM_ID: nursery
+   :END:
 #+begin_src python
   nursery: trio.Nursery,
 #+end_src
@@ -156,6 +171,9 @@ which turns any failure in a background task into a failure of the whole test.
     )
 #+end_src
 ** =thread: rsyscall.Thread,=
+   :PROPERTIES:
+   :CUSTOM_ID: thread
+   :END:
 #+begin_src python
   thread: rsyscall.Thread,
 #+end_src
@@ -188,6 +206,9 @@ from rsyscall import local_thread
     )
 #+end_src
 ** =positiond: Positiond,=
+   :PROPERTIES:
+   :CUSTOM_ID: positiond
+   :END:
 #+begin_src python
   positiond: Positiond,
 #+end_src
@@ -225,11 +246,19 @@ We'll pass a path in a temporary directory in this example.
     )
 #+end_src
 ** =database: orderd.Database,=
+   :PROPERTIES:
+   :CUSTOM_ID: database
+   :END:
 #+begin_src python
   database: orderd.Database,
 #+end_src
 
 This is a completely conventional SQLite database, initialized with the orderd schema.
+
+Here, for a test, we're calling =orderd.Database.make= to make a fresh database, every time.
+If we wanted to persist state between runs of =orderd=,
+we'd pass in a =orderd.Database= instance from a previous run,
+recovered from some known path in the filesystem with =order.Database.recover(path)=.
 
 #+begin_src python
     self.orderd = await start_orderd(
@@ -239,6 +268,9 @@ This is a completely conventional SQLite database, initialized with the orderd s
     )
 #+end_src
 ** =listening_sock: FileDescriptor,=
+   :PROPERTIES:
+   :CUSTOM_ID: listening_sock
+   :END:
 #+begin_src python
   listening_sock: FileDescriptor,
 #+end_src
@@ -265,6 +297,9 @@ so that it it's on the same host as =orderd=.
 #+end_src
 
 ** =) -> Orderd:=
+   :PROPERTIES:
+   :CUSTOM_ID: return_value
+   :END:
 #+begin_src python
 ) -> Orderd:
 #+end_src
@@ -279,6 +314,9 @@ will only return when the =orderd= communication mechanisms have been fully crea
 and therefore the =Orderd= class can be [[http://0pointer.de/blog/projects/socket-activation.html][immediately used to connect]] to =orderd=.
 
 ** Full example
+   :PROPERTIES:
+   :CUSTOM_ID: full_example
+   :END:
 Here's the full, working example:
 #+begin_src python
 class TestOrderd(TrioTestCase):
@@ -300,6 +338,9 @@ class TestOrderd(TrioTestCase):
 Then we can proceed to [[http://catern.com/usertests.html][test by running user code]].
 
 * Implementation of integration libraries
+  :PROPERTIES:
+  :CUSTOM_ID: implementation
+  :END:
 Now we'll step through an example of how an integration library is implemented.
 
 This daemon is packaged and deployed with Nix;
