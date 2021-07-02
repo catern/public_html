@@ -1,18 +1,21 @@
-#+title: No more DSLs: Using typed Python to deploy distributed systems directly
-#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; } body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
+#+title: No more DSLs: Using typed code to deploy distributed systems directly
+#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; }</style>
 * Introduction
 At $DAYJOB we have
-a sophisticated collection of Python libraries for [[http://catern.com/run.html][running our distributed system]], called "integration libraries".
-Each integration library contains richly-typed Python code
+a sophisticated collection of libraries for [[http://catern.com/run.html][running our distributed system]], called "integration libraries".
+Each integration library contains richly-typed code in a general-purpose language
 for directly deploying and running one component in our distributed system.
 
 # (link constructive proof post)
 I describe these libraries here as a demonstration of
 a language-focused, library-focused approach to running distributed systems.
-Although the integration libraries are proprietary,
+Although these integration libraries are proprietary,
 and specific to the proprietary components in $DAYJOB's distributed system,
 they're built on top of open source libraries
-which can be used today by anyone to build integration libraries.
+which can be used today by anyone.
+Our integration libraries are all in Python because of its wide use,
+but this approach is in no way tied to Python,
+and this article should be comprehensible and useful to anyone interested in distributed systems.
 
 # Although these libraries are proprietary, as are the components they run,
 # so this article isn't as constructive as I would like.
@@ -20,24 +23,23 @@ which can be used today by anyone to build integration libraries.
 Each team at $DAYJOB maintains integration libraries for their own components, but not their dependencies.
 The integration libraries are maintained in a single repository to reduce compatibility issues.
 By using multiple such libraries together, one can write programs which [[http://catern.com/run.html][run the full system]],
-for production or for [[http://catern.com/usertests.html][testing the system against its users]].
+for production or for testing the system [[http://catern.com/usertests.html][against its users]].
 
 The integration libraries
-[[http://catern.com/progsys.html][use Python 3's static type system to handle distributed system issues]]
-like service discovery and startup ordering;
-services are [[http://catern.com/config.html]["configured" by passing arguments, in normal code]].
-
-A key part of this is that
-[[http://catern.com/progsys.html][regular function arguments are used to express dependencies between services]];
+use normal programming language features, including Python 3's static type system, to [[http://catern.com/progsys.html][handle distributed systems issues]].
+For example, regular function arguments are used to express service discovery and dependencies between services;
 for each service, there's a function which takes that service's dependencies as arguments,
-starts that service up,
+starts that service up using those arguments,
 and returns a value that can be passed as an argument (a dependency) to other service starting functions.
+In general, services are "configured" by passing arguments, [[http://catern.com/config.html][in normal code]],
+and multiple instances can be created just by calling functions multiple times with different arguments.
 
-These functions directly run each service as a subprocess,
-[[http://catern.com/supervisors.html][rather than delegating to a process supervisor service]].
-Functionality is shared
-[[http://catern.com/services.html][through libraries rather than by delegating to orchestration systems]],
+These service-starting functions directly run each service as a subprocess,
+rather than delegating to a [[http://catern.com/supervisors.html][process supervisor]] service.
+Functionality is shared through [[http://catern.com/services.html][libraries]] rather than by delegating to external orchestration systems,
 making the integration libraries completely self-contained.
+This allows the integration libraries to be used for deployment in any environment,
+whether that's bare-metal, virtual machines, containers, or a single developer's machine.
 # Maybe don't use TestCase boilerplate?
 # nah I think that's good...
 * Running a system with integration libraries
@@ -47,7 +49,7 @@ We'll see this in action with an example.
 - Updates the =positiond= service with the positions
 - Stores order data in a SQLite database
 
-=orderd= is a real daemon, with a few details removed.
+=orderd= is a real daemon ("d" is [[https://unix.stackexchange.com/questions/72587/why-do-some-linux-files-have-a-d-suffix][short for "daemon"]]), with a few details removed.
 We're looking at =orderd= specifically
 because it has only the three dependencies we've already mentioned.
 Note that =orderd= itself is not necessarily written in Python.
@@ -55,7 +57,7 @@ Note that =orderd= itself is not necessarily written in Python.
 For our example, we'll write a test of our distributed system.
 We'll start up =orderd= and its dependencies (just =positiond=) for the test,
 using functions from the integration libraries to run each service.
-First, some [[https://docs.python.org/3/library/unittest.html][=unittest=]] boilerplate:
+First, some testing boilerplate:
 #+begin_src python
 import unittest
 from orderd import start_orderd
@@ -164,6 +166,10 @@ An =rsyscall.Thread= may operate on a local or remote host,
 or inside a container or VM, or on other kinds of nodes,
 depending on how the =rsyscall.Thread= was produced,
 but it provides a completely common interface regardless of where it runs.
+
+Integration library code itself never runs distributed across multiple nodes;
+there's a single Python interpreter on a single host.
+All distributed operations are performed by method calls on =rsyscall.Thread= objects.
 
 In this case, we'll use =local_thread= imported from =rsyscall=
 and assigned to =self.thread=.
@@ -364,6 +370,11 @@ With those techniques,
 and with the open source libraries [[https://github.com/catern/rsyscall][rsyscall]] and [[https://trio.readthedocs.io/][trio]],
 anyone can write their own integration libraries for their own components,
 and combine them with other libraries to run their distributed system in its entirety.
+** list of things this replaces? :noexport:
+systemd
+ansible
+kubernetes
+hashicorp vault
 * notes :noexport:
 ok so we want the big example section still,
 with the concrete code... hmmm....
@@ -770,3 +781,101 @@ yes, that would be perfect.
 <nedbat> ok! :)
 *** my reaction
 great feedback, great...
+** amogorkon
+<amogorkon> catern, i would refrain from using "cute" names, why not full words?
+> amogorkon: er, sorry, I don't know what you mean
+<amogorkon> "orderd"
+<graingert> isn't that a daemon that does orders
+<amogorkon> positiond
+> amogorkon: ah, I see, thanks for the feedback
+<amogorkon> yw
+*** my reaction
+hmm yeah maybe this is true.
+
+hMmmMMmmmMmmmm yeah it's not immediately familiar to people
+
+so maybe I'll give them other names...
+
+or just call it `order_daemon`
+
+ohHH HmMMMM
+
+they aren't really daemons though because they're running in the foreground... kinda...
+
+hmmmmMMMMm
+** corbin simpson
+*** my reaction
+he seems to not fully comprehend the dependencies-as-arguments approach
+
+
+
+maybe I should clarify that there's no distributed Python execution going on?
+
+
+(but Corbin can't understand anything. so...)
+
+
+but yeah, definitely I should say that there's no distributed execution.
+
+maybe in the rsyscall.Thread section?
+** feep
+<feep> catern: I kinda stopped reading because it seemed *inapplicable*
+<feep> it seemed like the sort of article I'd read if I was interested in deploying services with python, and ... I'm not
+
+...
+<feep> catern: um, you misunderstand me, the problem wasn't the python
+<feep> the problem is that I to a first approximation don't care about distributed systems.
+> oops, very well
+<feep> python probably doesn't put people off fwiw
+<feep> or like ... distributed deployment, I guess, to put better
+> nah I still think this is a good change
+<feep> there's people into that sort of integration stuff, I'm just not one~
+> feep: what if I was to include a line along the lines of "this is a new object-capability secure way to write distributed systems, like existing distributed languages such as Erlang and E but supporting any language"
+<feep> I'm ... like, the problem isn't that I don't understand the reason why I should think this is cool
+<feep> catern: you're just giving me more evidence why I don't find the topic of the article interesting :p
+> feep: no no that's fine, you just corrected "I don't care about distributed systems" to "I don't care about distributed deployment", so what if I told you that it's really about the former, than the latter
+<feep> oh hm
+<feep> hm
+<feep> idk, I just sort of bounced off
+<feep> hm
+<feep> catern: okay, I tentatively grant that this should maybe interest me, I just bounced off the topic around the time you started pulling in python libraries
+> yes that's fine, it's kind of oriented towards someone who *does* care about distributed deployment right now, but that's not necessarily good :)
+<feep> orient it towards people who care!
+<feep> don't try to pivot to people who aren't interested, that kills articles (and browsers, cough firefox cough)
+<feep> I feel the right way to do stuff is to fully commit to people who are interested back
+*** my reaction
+I'm guessing this is the title
+
+and also the repeated mention of Python
+
+maybe I should say, Python isn't important...
+
+oh 
+hm
+it wasn't the python, it was the distributed deployment.
+
+maybe I need to change the title
+
+Writing distributed systems 
+
+Writing distributed systems with 
+
+Writing distributed systems without DSLs, without 
+** dbohdan
+<dbohdan> catern: Even after rereading, I have questions about your distributed system.  I know it isn't what the article is about, but I am left wanting more context.
+> dbohdan: thanks for the feedback about the supervisors, and hmm I'll try and think of a way to deal with the code blocks...
+> dbohdan: ah, thanks for the feedback. what questions do you have? and, if you don't mind, could you summarize very briefly your understanding of the article?
+> (if you feel you can)
+<dbohdan> catern: For example, are there multiple instances of each component in your system?
+If there are, how do they interact/are they prevented from interacting?
+Is this a something you deploy to physical servers, containers, or some cutting-edge cloud nonsense?
+For me the deployment code is left hanging in the air without being able to imagine these things more concretely.
+<dbohdan> "Prevented from interacting" is re: your use of SQLite
+*** my reaction
+great questions!!!
+
+okay, so I should probably say explicitly we use this to deploy to... all three!
+physical servers, virtual machines, containers, and cutting-edge cloud nonsense if you want it.
+
+and, multiple instances...
+we should express that different instances can be configured for different 
