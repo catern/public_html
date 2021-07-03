@@ -5,31 +5,32 @@
   :CUSTOM_ID: introduction
   :END:
 At $DAYJOB we have
-a sophisticated collection of libraries called "integration libraries".
+a sophisticated collection of libraries which we call "integration libraries".
 Each integration library contains richly-typed code in a general-purpose language
-for running and customizing one distributed system component.
+for running one component of a distributed system.
 By using multiple such libraries together, one can write a distributed system as a single program,
 and run that program to [[http://catern.com/run.html][run the full system]],
 for production or for testing the system [[http://catern.com/usertests.html][against its users]].
 
 # (link constructive proof post)
 I describe these libraries here as a demonstration of
-this language-focused, library-focused approach to writing distributed systems.
-Although these integration libraries are proprietary,
+this approach to writing distributed systems.
+Although $DAYJOB's integration libraries are proprietary,
 and specific to the proprietary components in $DAYJOB's distributed system,
-they're built on top of open source libraries
+they're built with open source libraries
 which can be used today by anyone.
 Our integration libraries are all in Python because of its wide use,
 but this approach is in no way tied to Python,
 and this article should be comprehensible and useful to anyone interested in distributed systems.
-
 # Although these libraries are proprietary, as are the components they run,
 # so this article isn't as constructive as I would like.
 
-Each team at $DAYJOB maintains integration libraries for their own components, but not their dependencies.
-Components are mostly services written in other languages, mostly C/C++/Java.
-A typical Python integration library will use that foreign code by running it as a subprocess.
-In this way, the performance-sensitive components of the distributed system can be written in faster languages than Python.
+Each team at $DAYJOB maintains integration libraries for their components.
+Some components are in Python,
+but others are written in other languages (mostly C/C++/Java)
+and run in a separate process.
+In this way, performance-sensitive components of a distributed system can be written in faster languages than Python,
+in the same way that a Fortran library can be used to accelerate math in Python programs.
 All integration libraries are maintained in a single repository to reduce compatibility issues.
 
 The integration libraries
@@ -41,14 +42,28 @@ and returns a value that can be passed as an argument (a dependency) to other se
 In general, services are "configured" by passing arguments, [[http://catern.com/config.html][in normal code]],
 and multiple instances can be created just by calling functions multiple times with different arguments.
 
-These service-starting functions directly run each service as a subprocess,
+When a service-starting function starts a C/C++/Java process,
+it starts the process directly as a subprocess,
+which the program will continue to monitor directly,
 rather than delegating to a [[http://catern.com/supervisors.html][process supervisor]] service.
-Functionality is shared through [[http://catern.com/services.html][libraries]] rather than by delegating to external orchestration systems,
+Functionality for distributed execution and monitoring
+is shared through [[http://catern.com/services.html][libraries]] rather than by delegating to external orchestration systems,
 making the integration libraries completely self-contained.
 This allows the integration libraries to be used for deployment in any environment,
 whether that's bare-metal, virtual machines, containers, or a single developer's machine.
 
-The "integration library" approach allows a distributed system to be treated holistically as a single program.
+The resulting program is *direct*.
+That is to say, it's not a DSL;
+it doesn't get processed by some tool and turned into a list of actions to perform.
+It's interpreted by a normal Python interpreter,
+and when the program calls =start_foo=,
+the program starts up the =foo= process, then and there.
+When everything is started,
+the program continue running, [[http://catern.com/supervisors.html][monitoring each process]]
+and providing interfaces (the Python REPL, UIs, etc)
+to [[http://rsyscall.org/wish/][interact]] with the running system.
+
+This approach allows a distributed system to be treated holistically as a single program.
 There are purpose-specific distributed languages which have the same goal,
 but such languages assume the presence of a great deal of distributed systems infrastructure
 that is maintained outside the language.
@@ -165,9 +180,15 @@ and it provides the ability to start up functions in the background.
 We pass it in to =start_orderd=
 so that =start_orderd= can start a function in the background
 to monitor the running =orderd= process.
-If the =orderd= process exits, the monitoring function will throw,
+If the =orderd= process exits, the background function monitoring that process will throw,
 and the resulting exception will be propagated to the =trio.Nursery=,
 which will deal with it in some way specific to how the =trio.Nursery= was produced.
+Upon seeing an exception in a background function,
+the logic for a =trio.Nursery= might call =start_orderd= again immediately,
+it might kill the other background functions and start them all up again with =start_= functions,
+or it might ultimately prompt for operator intervention [[http://rsyscall.org/wish/][through various means]].
+An operator might then work at a UI or a REPL to fix the issue,
+by calling =start_orderd= with different arguments.
 
 In this case, we'll use =self.nursery= as provided by =TrioTestCase=,
 which turns any failure in a background task into a failure of the whole test.
@@ -407,23 +428,18 @@ versioning is controlled by which version of the integration library we use.
 (but, we'll just omit any mention of versioning I think)
 (we'll see what test readers think)
 * Conclusion
-# something about DSLs? and how this replaces them? Ansible, YAML, etc...
-
-# In some sense, a program written with the integration libraries *is* a distributed system
-
-# REPLs?
-There are many advantages of this style,
-but they all lead back to one thing:
-[[http://catern.com/run.html][Being able to run the system]]
-flexibly, robustly,
-in a long-term maintainable way.
+This approach allows one to write a single type-safe program which runs the entire distributed system,
+delegating to libraries to share functionality and subprocesses to improve performance.
+The alternative is writing ten programs and a thousand config files
+for configuration management, service discovery, orchestration, etc.
+I believe the advantages are self-explanatory.
 
 The techniques used in the integration libraries
 are explained in greater detail in the posts linked in the introduction.
 With those techniques,
 and with the open source libraries [[https://github.com/catern/rsyscall][rsyscall]] and [[https://trio.readthedocs.io/][trio]],
 anyone can write their own integration libraries for their own components,
-and combine them with other libraries to run their distributed system in its entirety.
+and combine them with other libraries to write a distributed system in one program.
 ** list of things this replaces? :noexport:
 systemd
 ansible
@@ -1031,4 +1047,151 @@ able to manage dockerized services meaningfully .. Your approach
 obviously has limits, like, it doesn't actually route the messaging
 between your services, and so can't, let's say, hold one service while
 another is restarting ..  But the focus on typing is good..
-*** lol
+*** my reaction
+** sakasama
+<sakasama> The examples are intuitive enough. I am unimpressed by the article, however, for a more fundamental reason.
+<sakasama> The article is obviously intended to introduce and promote a tool for service management,
+but I see no attempt to address the singular most important concern I have with such systems:
+what actions are available to an operator when the automated logic fails?
+*** my reaction
+maybe I should mention REPLs?
+
+UIs? debuggers? other interactive stuff?
+
+yeah clearly I should...
+
+OK I added a note in the nursery section.
+I think that may be helpful.
+** mzan
+*** DSL
+<mzan> catern: I will be sincere, the approach can be good (probably) but I think you have a rather confusing exposition style.
+<mzan> I don't like the title, because your Python code is in the end another "DSL" one had to master for writing distribuited system.
+
+*** introduction
+<mzan> The introduction part is confusing in the begining.
+<mzan> It starts making sense from "The integration libraries use normal programming language features, including Python 3's static type system, to handle distributed systems issues. For example, regular function arguments are used to express service discovery and dependencies between services; for each ser..."
+<mzan> because one can figure out the scope of the tool.
+
+*** TODO style fixes
+<mzan> There are also minor style annoiance like
+<mzan> "At $DAYJOB we have a sophisticated collection of libraries called "integration libraries". "
+<mzan> You have "library called integration libraries" or you have "integration libraries".
+<mzan> "a general-purpose language for running and customizing one distributed system component. "
+<mzan> ^ usually one customize and then run a distribuited system.
+
+# partially done, but should rework the first sentence still...
+*** summary
+<mzan> In the end, if I understood correctly, you are describing a devop tool, using Python as configuration and management language.
+<mzan> Because you are using Python, you can code some services directly in Python, and so you can use Python + your tool also for describing directly services and launch them.
+<mzan> But many times, you only configure and launch services written in other languages.
+
+*** TODO style
+<mzan> A minor detail, about your style, but sentences like these
+<mzan> "There are many advantages of this style, but they all lead back to one thing: Being able to run the system flexibly, robustly, in a long-term maintainable way. "
+<mzan> IMHO are very irritating...
+<mzan> because you mention many advantages, but then you say there is only one, then you list many of them.
+<mzan> A simple sentence like "The advantages of this approach are: ..." is better IMHO
+
+*** DONE "style"
+<mzan> Also about the style. The title says: "Write a distributed system as a single richly-typed directly-runnable program"
+<mzan> ^ but in reality you are mainly configuring a distribuited system using a single program
+<mzan> Because the majority of services are standalone applications.
+<mzan> From the title it seems you are coding all the parts of the system.
+
+*** DONE running
+mzan: yes, that's one approach for sure, though there are others... although I'm not sure if you understand that the program here keeps running, it doesn't stop after "finishing deployment"
+<mzan> catern: no, I thought to a single run program
+*** my reaction 2
+
+*** my reaction
+ah he doesn't get that the program continues to run!
+
+that's probably a major confusion, indeed...
+
+maybe.. hmm...
+maybe I need to talk more about async stuff...
+
+because the fact that it's monitoring the system is maybe what's relevant...
+
+argh, no, I just need to show a real example, I guess.
+otherwise it's too unclear!
+
+and that real example could also include some error handling...
+
+no I need to say that the program continues to run early on.
+It's kind of implicit in what I'm saying,
+but I should say it explicitly.
+
+yeaaaahhhhh hmmmmmmm
+
+oh! I can say it in the same part as I say it's direct!
+
+The resulting program is *direct*.
+That is to say, it's not a DSL, and it's not "declarative";
+it doesn't get interpreted by some tool and turned into a list of actions to perform.
+It's interpreted by regular Python, and when the program calls =start_foo=,
+it starts up the =foo= process, then and there.
+When everything is started,
+the program continue running, [[http://catern.com/supervisors.html][monitoring each process]]
+and providing interfaces (the Python REPL, web UIs, etc)
+to [[http://rsyscall.org/wish/][interact]] with the running system.
+
+maybe this also answers how we interact with it?
+
+and what about upgrades?
+
+In the simplest design,
+when the program starts, so does the distributed system,
+and when the program stops, so does the distributed system;
+in a deep sense, the program and the distributed system are the same thing.
+(Additions to the design allow for upgrading the program without incurring downtime in the distributed system.)
+
+nah...
+we shouldn't mention that at all
+
+
+
+when the program comes up, 
+
+the lifespan of the distributed system and the lifespan of this program
+are the same
+
+Depending on the concrete design,
+the running processe
+killing the program might kill the running processes,
+
+
+or it might keep them alive 
+
+
+and notifying the user
+and support 
+
+When we 
+** long discussion with sakasama and Corbin
+okay so...
+they're concerned about the operational aspects.
+
+we got onto the "how do I upgrade it" issue,
+which I guess was my own fault...
+
+but anyway, I really need to say, early on, that the program conta
+
+* TODO HMmMmMm
+these people are not following my explanation of it as,
+a framework for writing distributed systems.
+
+maybe...
+I shouldn't even talk about integration libraries?
+perhaps I should just...
+talk about it as an approach to writing a distributed system?
+and just say, there are libraries for each service?
+
+yeah that might be a good rework...
+
+I can emphasize that this is regular Python code,
+which forms a program,
+which runs a distributed system...
+
+or, maybe, emphasize that this is running with regular CPython.
+
