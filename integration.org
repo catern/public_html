@@ -1,4 +1,4 @@
-#+title: Write a distributed system as a single richly-typed directly-runnable program
+#+title: No more DSLs: Write a distributed system as a single richly-typed directly-runnable program
 #+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; }</style>
 * Introduction
   :PROPERTIES:
@@ -727,6 +727,8 @@ but maybe not...
 just might make it a little more explicit that we're mutating the Nix store?
 
 well, we'll just see how beta readers take it.
+** for virality
+I need to keep "No more DSLs" in the title
 * thoughts :noexport:
 Should I justify writing a test?
 
