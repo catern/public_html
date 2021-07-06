@@ -9,7 +9,8 @@ Given a collection of component libraries,
 one can write a distributed system as a single richly-typed program in a general-purpose language,
 and run that program to [[http://catern.com/run.html][run the full system]]
 for production or for testing the system [[http://catern.com/usertests.html][against its users]].
-In this article, I describe the approach used to do this at $DAYJOB.
+In this article, I describe the approach used to do this at $DAYJOB,
+and show some working example programs.
 Although $DAYJOB's component libraries and single-program systems are proprietary,
 they're built with open source libraries
 which can be used today by anyone.
@@ -70,7 +71,7 @@ such that the program and the distributed system really can be said to be the sa
   :PROPERTIES:
   :CUSTOM_ID: running
   :END:
-We'll see this in action with an example.
+We'll see this in action by looking at a working example program.
 ** orderd: an order entry daemon
    :PROPERTIES:
    :CUSTOM_ID: orderd
@@ -367,7 +368,7 @@ Then we can proceed to [[http://catern.com/usertests.html][test by running user 
   :PROPERTIES:
   :CUSTOM_ID: implementation
   :END:
-Now we'll step through an example of how a component library is implemented.
+Now we'll step through a working example of how a component library is implemented.
 This one shells out to a separate process, =exampled=.
 
 This daemon is packaged and deployed with Nix;
