@@ -57,7 +57,7 @@ and providing interfaces (the Python REPL, UIs, etc)
 to [[http://rsyscall.org/wish/][interact]] with the running system.
 
 This approach allows a distributed system to be treated holistically as a single program.
-There are purpose-specific distributed languages which have the same goal,
+There are distributed languages and [[file:list_singledist.html][other models]] which aim at the same goal,
 but such languages assume the presence of a great deal of distributed systems infrastructure
 that is maintained outside the language.
 A program written in such a language is then only one component in a larger distributed system.
