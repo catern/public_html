@@ -1,5 +1,5 @@
 #+title: Write code, not compilers
-#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
+#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; } body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
 
 * Explanation
   :PROPERTIES:

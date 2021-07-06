@@ -73,7 +73,7 @@ for one to write a program which manages *every* aspect of the distributed syste
 such that the program and the distributed system really can be said to be the same thing.
 # Maybe don't use TestCase boilerplate?
 # nah I think that's good...
-* Running a system with integration libraries
+* Writing a system with integration libraries
   :PROPERTIES:
   :CUSTOM_ID: running
   :END:
@@ -89,7 +89,9 @@ We'll see this in action with an example.
 =orderd= is a real daemon ("d" is [[https://unix.stackexchange.com/questions/72587/why-do-some-linux-files-have-a-d-suffix][short for "daemon"]]), with a few details removed.
 We're looking at =orderd= specifically
 because it has only the three dependencies we've already mentioned.
-Note that =orderd= itself is not necessarily written in Python.
+Note that =orderd= itself may or may not be written in Python
+this is abstracted away from us.
+(although in practice, it is in fact a separate subprocess)
 
 For our example, we'll write a test of our distributed system.
 We'll start up =orderd= and its dependencies (just =positiond=) for the test,
@@ -307,7 +309,7 @@ recovered from some known path in the filesystem with =order.Database.recover(pa
 #+end_src
 
 This is a listening socket,
-passed down to =orderd= through file descriptor inheritance,
+passed down to the =orderd= subprocess through file descriptor inheritance,
 and used to listen for TCP connections.
 
 This is standard Unix socket programming, so we won't go into this in depth;
@@ -373,6 +375,7 @@ Then we can proceed to [[http://catern.com/usertests.html][test by running user 
   :CUSTOM_ID: implementation
   :END:
 Now we'll step through an example of how an integration library is implemented.
+This one shells out to a separate process, =exampled=.
 
 This daemon is packaged and deployed with Nix;
 at $DAYJOB we use a proprietary package manager with similar APIs.
@@ -1177,7 +1180,7 @@ which I guess was my own fault...
 
 but anyway, I really need to say, early on, that the program conta
 
-* TODO HMmMmMm
+* TODO HMmMmMm :noexport:
 these people are not following my explanation of it as,
 a framework for writing distributed systems.
 
@@ -1195,3 +1198,167 @@ which runs a distributed system...
 
 or, maybe, emphasize that this is running with regular CPython.
 
+but I need an approach name
+** DONE approach name
+I like "direct-style" but it's long
+
+direct-style distributed systems
+
+that's kind of not right though,
+because... direct-style would be... directly accessing remote resources
+
+well that's exactly what I'm doing actually.
+just using subprocesses as optimizations...
+
+direct-style distributed systems
+
+hmmmmmmmmm
+
+it's kind of like distributed languages...
+
+central planning...
+
+theory of the firm...
+
+transaction costs to being distributed...
+
+here is how to centrally plan a distributed system
+
+central planning for distributed systems
+
+No more DSLs: How to centrally plan a distributed system
+
+software defined networking?
+
+which are centrally planned networks...
+
+software defined systems...?
+
+I could mention SDN.
+
+This is reminiscent of [[https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf][SDN]],
+which centrally controls the packet forwarding decisions made across many routers in a network,
+although SDN is restricted to controlling networks.
+
+blah...
+maybe.. mebbee... i won't...
+rework it...?
+
+no, I have to. I have to come up with a name!!!
+
+software-defined systems? SDS...
+
+infrastructure as code...
+that one sucks...
+
+screw it!! direct-style!!
+
+that's what I want to say!
+
+direct-style systems.
+
+direct-style... configuration.
+
+direct-style systems...
+
+I'll just say direct style
+
+or... "direct systems"?
+
+"direct deployment".
+
+"central deployment"
+
+it's not just central planning, too.
+planning implies declarative
+this is direct.
+it's central doing.
+
+central, direct, running.
+
+direct-style system implementation
+
+a distributed system in a single program...
+
+single-program systems.
+
+aha. single-program systems...
+
+hmm, that's confusing too though...
+
+toplevel systems...
+
+"single-main systems" would be wrong since there are subprocesses with their own main...
+
+"system toplevel" is what this program is.
+
+single-toplevel systems
+
+centrally programmed systems
+
+centrally-defined systems
+
+centrally-planned systems.
+
+defined and planned are both confusing though because it's not planned!!
+
+centralized systems...
+
+not right either.
+
+centrally is confusing, too, because it implies "centralized" as opposed to "distributed",
+which might confuse people into thinking this has stuff to do with centralization...
+
+single-program systems...
+
+it's kind of catchy I guess...
+
+and it does encapsulate what I'm going for, I guess...
+
+yeah okay...
+** new opening
+Given a collection of component libraries,
+one can write a distributed system as a single richly-typed program in a general-purpose language,
+and run that program to [[http://catern.com/run.html][run the full system]],
+for production or for testing the system [[http://catern.com/usertests.html][against its users]].
+In this article, I describe the approach used to do this at $DAYJOB.
+Although $DAYJOB's component libraries and single-program systems are proprietary,
+they're built with open source libraries
+which can be used today by anyone.
+We write these libraries in Python because of its wide use,
+but this approach is in no way tied to Python,
+and this article should be comprehensible and useful to anyone interested in distributed systems.
+
+First, each team at $DAYJOB maintains libraries for their components.
+Some components are in Python,
+but others are written in other languages (mostly C/C++/Java)
+and run in a separate process.
+In this way, performance-sensitive components of a distributed system can be written in faster languages than Python,
+in the same way that a Fortran library can be used to accelerate math in Python programs.
+All the component libraries are maintained in a single repository to reduce compatibility issues.
+
+
+
+
+
+First,
+
+
+and specific to the proprietary components in $DAYJOB's distributed system,
+
+
+
+
+
+Components can be shared between systems in libraries,
+allowing an entire faimily of programs to be written.
+*** making it clear that multiple programs are created out of these libraries?
+*** component libraries
+SUCH a vastly better term!
+** even mentioning $DAYJOB
+maybe I shouldn't?
+
+it's maybe not positive...
+except I guess it is useful to mention...
+
+(I should really just do the controller thing at $DAYJOB first)
