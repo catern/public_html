@@ -1,0 +1,52 @@
+<html>
+  <head>
+<meta charset="utf-8">
+<title>List of things that let you write a single program which performs a distributed task</title>
+</head>
+<body>
+<h1>List of things that let you write a single program which performs a distributed task</h1>
+
+<ul>
+  <!-- shell scripts with SSH are basically just yet another library/DSL for distribution -->
+  <li>Distributed languages and distributed DSLs
+    <blockquote cite="https://research.vu.nl/ws/files/74118966/11003">
+      Distributed programs execute pieces of their code in parallel on
+      different processors. [...] The first requirement for distributed
+      programming support is therefore the ability to assign different parts
+      of a program to be run on different processors.
+      <footer>
+        – <cite>Section 1.2, <a href="https://research.vu.nl/ws/files/74118966/11003">Programming Languages for Distributed Computing Systems</a></cite>
+      </footer>
+    </blockquote>
+  <li>
+    Software-defined networking (SDN). Note that the SDN term is somewhat abused, and today lots of people use it to mean "overlay networks implemented in software". I mean the original sense:
+    <blockquote cite="https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf">
+      An SDN consolidates the control plane, so that a single software
+      control program controls multiple data-plane elements. The SDN control
+      plane exercises direct control over the state in the network’s
+      data-plane elements (i.e., routers, switches, and other middleboxes).
+      <footer>
+        – <cite>Section 1, <a href="https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf">The Road to SDN: An Intellectual History of Programmable Networks</a></cite>
+      </footer>
+    </blockquote>
+  <li>
+    <a href="https://github.com/dbohdan/liveviews">Liveviews</a>,
+    sometimes called
+    "<a href="https://dev.to/rajasegar/html-over-the-wire-is-the-future-of-web-development-542c">HTML over the wire</a>".
+    I think this is best explained by the docs for
+    <a href="https://github.com/pkamenarsky/replica">replica</a>:
+    <blockquote cite="https://github.com/pkamenarsky/replica">
+      In contrast to traditional virtual DOM implementations, a remote
+      virtual DOM runs on the server and is replicated to the client,
+      which just acts as a dumb terminal. [...] With a remote VDOM,
+      all code runs on the backend – no need to come up with ways to
+      share functionality between server and client, to validate forms
+      twice or authenticate API requests.
+      <footer>
+        – <cite>Remote virtual DOM, <a href="https://github.com/pkamenarsky/replica">replica: A remote virtual DOM library for Haskell</a></cite>
+      </footer>
+    </blockquote>
+  <li><a href="http://catern.com/integration.html">Single-program systems</a>. :)
+</ul>
+</body>
+</html>
