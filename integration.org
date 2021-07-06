@@ -4,60 +4,53 @@
   :PROPERTIES:
   :CUSTOM_ID: introduction
   :END:
-At $DAYJOB we have
-a sophisticated collection of libraries which we call "integration libraries".
-Each integration library contains richly-typed code in a general-purpose language
-for running one component of a distributed system.
-By using multiple such libraries together, one can write a distributed system as a single program,
-and run that program to [[http://catern.com/run.html][run the full system]],
-for production or for testing the system [[http://catern.com/usertests.html][against its users]].
-
 # (link constructive proof post)
-I describe these libraries here as a demonstration of
-this approach to writing distributed systems.
-Although $DAYJOB's integration libraries are proprietary,
-and specific to the proprietary components in $DAYJOB's distributed system,
+Given a collection of component libraries,
+one can write a distributed system as a single richly-typed program in a general-purpose language,
+and run that program to [[http://catern.com/run.html][run the full system]]
+for production or for testing the system [[http://catern.com/usertests.html][against its users]].
+In this article, I describe the approach used to do this at $DAYJOB.
+Although $DAYJOB's component libraries and single-program systems are proprietary,
 they're built with open source libraries
 which can be used today by anyone.
-Our integration libraries are all in Python because of its wide use,
-but this approach is in no way tied to Python,
+And although these examples are in Python,
+this approach is in no way tied to Python
 and this article should be comprehensible and useful to anyone interested in distributed systems.
-# Although these libraries are proprietary, as are the components they run,
-# so this article isn't as constructive as I would like.
 
-Each team at $DAYJOB maintains integration libraries for their components.
+Each team at $DAYJOB maintains libraries for their components.
 Some components are in Python,
 but others are written in other languages (mostly C/C++/Java)
 and run in a separate process.
-In this way, performance-sensitive components of a distributed system can be written in faster languages than Python,
-in the same way that a Fortran library can be used to accelerate math in Python programs.
-All integration libraries are maintained in a single repository to reduce compatibility issues.
+In this way, performance-sensitive components of a distributed system are written in faster languages than Python,
+in the same way that Fortran libraries are used to speed up math in Python programs.
+All the component libraries are maintained in a single repository to reduce compatibility issues.
 
-The integration libraries
+The component libraries
 use normal programming language features, including Python 3's static type system, to [[http://catern.com/progsys.html][handle distributed systems issues]].
 For example, regular function arguments are used to express service discovery and dependencies between services;
-for each service, there's a function which takes that service's dependencies as arguments,
+for each service, there's a service-starting function which takes that service's dependencies as arguments,
 starts that service up using those arguments,
 and returns a value that can be passed as an argument (a dependency) to other service starting functions.
 In general, services are "configured" by passing arguments, [[http://catern.com/config.html][in normal code]],
 and multiple instances can be created just by calling functions multiple times with different arguments.
 
 When a service-starting function starts a C/C++/Java process,
-it starts the process directly as a subprocess,
+it starts the process directly as a subprocess
 which the program will continue to monitor directly,
 rather than delegating to a [[http://catern.com/supervisors.html][process supervisor]] service.
 Functionality for distributed execution and monitoring
 is shared through [[http://catern.com/services.html][libraries]] rather than by delegating to external orchestration systems,
-making the integration libraries completely self-contained.
-This allows the integration libraries to be used for deployment in any environment,
-whether that's bare-metal, virtual machines, containers, or a single developer's machine.
+making a single-program system completely self-contained.
+This allows a single-program system to be used for deployment in any environment,
+whether that's bare-metal, virtual machines, containers, or a developer machine;
+though different environments and use cases usually implies different programs with different [[http://catern.com/config.html][configurations]].
 
 The resulting program is *direct*.
-That is to say, it's not a DSL;
+That is, it's not a DSL;
 it doesn't get processed by some tool and turned into a list of actions to perform.
-It's interpreted by a normal Python interpreter,
+Rather, it's run by a normal Python interpreter,
 and when the program calls =start_foo=,
-the program starts up the =foo= process, then and there.
+the program starts up the =foo= process, then and there, directly.
 When everything is started,
 the program continue running, [[http://catern.com/supervisors.html][monitoring each process]]
 and providing interfaces (the Python REPL, UIs, etc)
@@ -68,12 +61,12 @@ There are purpose-specific distributed languages which have the same goal,
 but such languages assume the presence of a great deal of distributed systems infrastructure
 that is maintained outside the language.
 A program written in such a language is then only one component in a larger distributed system.
-The "integration library" approach allows, instead,
+The single-program system approach allows, instead,
 for one to write a program which manages *every* aspect of the distributed system above the hardware level,
 such that the program and the distributed system really can be said to be the same thing.
 # Maybe don't use TestCase boilerplate?
 # nah I think that's good...
-* Writing a system with integration libraries
+* Writing a single-program system
   :PROPERTIES:
   :CUSTOM_ID: running
   :END:
@@ -95,7 +88,7 @@ this is abstracted away from us.
 
 For our example, we'll write a test of our distributed system.
 We'll start up =orderd= and its dependencies (just =positiond=) for the test,
-using functions from the integration libraries to run each service.
+using functions from the component libraries to run each service.
 First, some testing boilerplate:
 #+begin_src python
 import unittest
@@ -112,7 +105,7 @@ class TestOrderd(unittest.TestCase):
 
 To write =setUp=,
 we'll proceed by looking at the signature of the =start_orderd= function,
-provided by the =orderd= integration library.
+provided by the =orderd= component library.
 
 #+begin_src python
 # in the "orderd" module
@@ -168,7 +161,7 @@ Python async functions work like any others;
 you can safely ignore the "async" and "await" annotations.
 We won't use any async features in this =TestCase= example;
 the only use of async features will be later, with =start_exampled=,
-when we look at how an integration library is implemented.
+when we look at how a component library is implemented.
 ** =nursery: trio.Nursery,=
    :PROPERTIES:
    :CUSTOM_ID: nursery
@@ -221,7 +214,7 @@ or inside a container or VM, or on other kinds of nodes,
 depending on how the =rsyscall.Thread= was produced,
 but it provides a completely common interface regardless of where it runs.
 
-Integration library code itself never runs distributed across multiple nodes;
+Component library code itself never runs distributed across multiple nodes;
 there's a single Python interpreter on a single host.
 All distributed operations are performed by method calls on =rsyscall.Thread= objects.
 
@@ -337,12 +330,12 @@ so that it it's on the same host as =orderd=.
 ) -> Orderd:
 #+end_src
 
-Like all good integration libraries,
+Like all good component libraries,
 =start_orderd= returns an =Orderd= class
 which contains all the information required to connect to =Orderd=,
 such as an address and port, a shared memory segment, or a path in the filesystem.
 
-=start_orderd=, again like all good integration libraries,
+=start_orderd=, again like all good component libraries,
 will only return when the =orderd= communication mechanisms have been fully created,
 and therefore the =Orderd= class can be [[http://0pointer.de/blog/projects/socket-activation.html][immediately used to connect]] to =orderd=.
 
@@ -370,17 +363,17 @@ class TestOrderd(TrioTestCase):
 
 Then we can proceed to [[http://catern.com/usertests.html][test by running user code]].
 
-* Implementation of integration libraries
+* Implementation of component libraries
   :PROPERTIES:
   :CUSTOM_ID: implementation
   :END:
-Now we'll step through an example of how an integration library is implemented.
+Now we'll step through an example of how a component library is implemented.
 This one shells out to a separate process, =exampled=.
 
 This daemon is packaged and deployed with Nix;
 at $DAYJOB we use a proprietary package manager with similar APIs.
 
-Below is the full code for the =exampled= integration library,
+Below is the full code for the =exampled= component library,
 with comments inline to explain it.
 # Going line by line here in comments, rather than by arguments,
 # because this is an implementation of an abstraction,
@@ -424,24 +417,24 @@ async def start_exampled(
     return Exampled(workdir)
 #+end_src
 ** versions? :noexport:
-versioning is controlled by which version of the integration library we use.
+versioning is controlled by which version of the component library we use.
 
 (I mean, that's the ideal, anyway...)
 (actually that's true-ish since lnc_library works that way)
 (but, we'll just omit any mention of versioning I think)
 (we'll see what test readers think)
 * Conclusion
-This approach allows one to write a single type-safe program which runs the entire distributed system,
+The single-program approach allows one to write a single type-safe program which runs the entire distributed system,
 delegating to libraries to share functionality and subprocesses to improve performance.
 The alternative is writing ten programs and a thousand config files
 for configuration management, service discovery, orchestration, etc.
-I believe the advantages are self-explanatory.
+I believe the advantages of the single-program approach are self-explanatory.
 
-The techniques used in the integration libraries
+The single-program system techniques
 are explained in greater detail in the posts linked in the introduction.
 With those techniques,
 and with the open source libraries [[https://github.com/catern/rsyscall][rsyscall]] and [[https://trio.readthedocs.io/][trio]],
-anyone can write their own integration libraries for their own components,
+anyone can write their own component libraries,
 and combine them with other libraries to write a distributed system in one program.
 ** list of things this replaces? :noexport:
 systemd
