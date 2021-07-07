@@ -1,4 +1,4 @@
-#+title: No more DSLs: Write a distributed system as a single richly-typed directly-runnable program
+#+title: No more DSLs: Implement and deploy a distributed system with a single program
 #+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; }</style>
 * Introduction
   :PROPERTIES:
@@ -6,8 +6,8 @@
   :END:
 # (link constructive proof post)
 Given a collection of component libraries,
-one can write a distributed system as a single richly-typed program in a general-purpose language,
-and run that program to [[http://catern.com/run.html][run the full system]]
+one can write a distributed system as a single conventional program in a general-purpose language,
+and run that program to directly [[http://catern.com/run.html][run the full system]]
 for production or for testing the system [[http://catern.com/usertests.html][against its users]].
 In this article, I describe the approach used to do this at $DAYJOB,
 and show some working example programs.
@@ -18,7 +18,17 @@ And although these examples are in Python,
 this approach is in no way tied to Python
 and this article should be comprehensible and useful to anyone interested in distributed systems.
 
-Each team at $DAYJOB maintains libraries for their components.
+There are distributed languages and [[file:list_singledist.html][other models]] which also aim at the goal of
+implementing a distributed system as a single holistic program;
+Such languages assume the presence of a great deal of distributed systems infrastructure
+that is maintained outside the language.
+A program written in such a language is then only one component in a larger distributed system.
+The single-program system approach allows, instead,
+for one to write a program which manages *every* aspect of the distributed system above the hardware level,
+such that running the program deploys the distributed system,
+and the program and the distributed system really can be said to be the same thing.
+
+At $DAYJOB, each team maintains libraries for their components.
 Some components are in Python,
 but others are written in other languages (mostly C/C++/Java)
 and run in a separate process.
@@ -56,15 +66,6 @@ When everything is started,
 the program continue running, [[http://catern.com/supervisors.html][monitoring each process]]
 and providing interfaces (the Python REPL, UIs, etc)
 to [[http://rsyscall.org/wish/][interact]] with the running system.
-
-This approach allows a distributed system to be treated holistically as a single program.
-There are distributed languages and [[file:list_singledist.html][other models]] which aim at the same goal,
-but such languages assume the presence of a great deal of distributed systems infrastructure
-that is maintained outside the language.
-A program written in such a language is then only one component in a larger distributed system.
-The single-program system approach allows, instead,
-for one to write a program which manages *every* aspect of the distributed system above the hardware level,
-such that the program and the distributed system really can be said to be the same thing.
 # Maybe don't use TestCase boilerplate?
 # nah I think that's good...
 * Writing a single-program system
@@ -107,6 +108,7 @@ class TestOrderd(unittest.TestCase):
 To write =setUp=,
 we'll proceed by looking at the signature of the =start_orderd= function,
 provided by the =orderd= component library.
+Note the [[https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html][type annotations]] for static type checking, introduced by Python 3.
 
 #+begin_src python
 # in the "orderd" module
@@ -1098,6 +1100,27 @@ I think that may be helpful.
 *** DONE running
 mzan: yes, that's one approach for sure, though there are others... although I'm not sure if you understand that the program here keeps running, it doesn't stop after "finishing deployment"
 <mzan> catern: no, I thought to a single run program
+
+*** TODO title
+<mzan> catern: sorry if I can offend you, but I don't like your title.
+"No more DSLs: Write a distributed system as a single richly-typed directly-runnable program"
+<mzan> "No more DSLs" is a lie
+<mzan> "richly-type", eh richly is rendundant, because no one will says "loosely-typed"
+<mzan> and "directly-runnable"... are there "indirectly-runnable" programs?
+<mzan> Too much adjective
+> "No more DSLs" is not a lie, to call this a DSL is wrong and deeply confused
+> I say in the article what "directly-runnable" means :)
+> fair point about richly-typed though, I might be able to get away with just "typed"
+<mzan> catern: maybe are the remote process you start, that are "directly-runnable"
+<mzan> but "directly-runnable program" is as saying "a provable proof"
+<mzan> "No more DSLs: Write a distributed system as a single richly-typed directly-runnable program"
+<mzan> 5 adjectives, too much
+<mzan> single, richly, typed, directly, runnable
+<mzan> And "types" are not very important in your approach
+<mzan> "No more DSLs: write a distributed system as a single, UTF8, commentable, richly-typed, directly-runnable program"
+<mzan> Ansible: "No more DSLs: write a distributed system using a simple YAML configuration file"
+<mzan> NixOS: "No more DSLs: write a distributed system using a real functional programming language designed exactly for this task"
+
 *** my reaction 2
 
 *** my reaction
