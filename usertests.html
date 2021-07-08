@@ -3,6 +3,14 @@
 <title>Your users are a test suite</title>
 </head>
 <body>
+<!-- This is amusingly opposite of https://docs.pact.io/
+     which basically says, the users should commit a separate contract to the service repo,
+     and if that contract doesn't fail, breakage is the user's fault!
+     But, why not just have the user's own code be that contract?
+     (Although the idea of the responsibility be on the user is good...
+     the user can implement the contract with their own code.)
+-->
+
 <h1>Your users are a test suite</h1>
 Any code that uses a service
 assumes things about the behavior of that service.
