@@ -19,7 +19,7 @@ this approach is in no way tied to Python
 and this article should be comprehensible and useful to anyone interested in distributed systems.
 
 There are distributed languages and [[file:list_singledist.html][other models]] which also aim at the goal of
-implementing a distributed system as a single holistic program;
+implementing a distributed system as a single holistic program.
 Such languages assume the presence of a great deal of distributed systems infrastructure
 that is maintained outside the language.
 A program written in such a language is then only one component in a larger distributed system.
@@ -1379,3 +1379,10 @@ it's maybe not positive...
 except I guess it is useful to mention...
 
 (I should really just do the controller thing at $DAYJOB first)
+** microservice cloud people
+   "running on your laptop is to be multi-substrate"
+   https://copyconstruct.medium.com/testing-microservices-the-sane-way-9bb31d158c16
+
+   right exactly so you should have one substrate:
+   self-host.
+   don't use cloud services!
