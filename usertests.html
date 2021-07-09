@@ -3,14 +3,6 @@
 <title>Your users are a test suite</title>
 </head>
 <body>
-<!-- This is amusingly opposite of https://docs.pact.io/
-     which basically says, the users should commit a separate contract to the service repo,
-     and if that contract doesn't fail, breakage is the user's fault!
-     But, why not just have the user's own code be that contract?
-     (Although the idea of the responsibility be on the user is good...
-     the user can implement the contract with their own code.)
--->
-
 <h1>Your users are a test suite</h1>
 Any code that uses a service
 assumes things about the behavior of that service.
@@ -36,6 +28,10 @@ triggers a build and test of everything that depends on that component.
 A build or test failure indicates a bug in the change to the component.
 Complete success is often sufficient to show that the change is safe,
 even if the component itself has no tests.
+<li>In <a href="https://martinfowler.com/articles/microservice-testing/#testing-contract-introduction">contract testing</a>,
+the user of an API provides a set of tests against the API to the implementer of the API,
+which the implementer runs to validate any changes.
+The easiest way to implement this set of tests is to just run the user's code.
 </ul>
 If you can <a href="./run.html">run your system</a>, including user code,
 you can incorporate running user code into your normal development and testing practices.
