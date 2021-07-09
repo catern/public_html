@@ -52,8 +52,21 @@ If you want to see what arguments are being passed to your function in your prog
 use logging and debuggers, according to your preference.
 <p>
 Code written in this way in your actual programming language
-is far more expressive than code written in a configuration DSL,
+can be easily constrained to only allow valid configurations;
+that's much more difficult for code written in a configuration DSL,
 like JSON, YAML, or Dhall.
+<!--
+need to find a framing for the "sandboxing" issue. hmm.
+so in JSON you can only write pure data, sure.
+how can you improve this in Python?
+
+well... you might...
+only allow...
+
+well okay first off, you can prevent making IPCs or whatever with sandboxing.
+
+well the excessive power of a DSL is the same thing making us need sandboxing I guess....
+-->
 <p>
 In a configuration DSL,
 one would select from multiple implementations by manipulating some identifier for the implementations;
