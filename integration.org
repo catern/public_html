@@ -1379,10 +1379,3 @@ it's maybe not positive...
 except I guess it is useful to mention...
 
 (I should really just do the controller thing at $DAYJOB first)
-** microservice cloud people
-   "running on your laptop is to be multi-substrate"
-   https://copyconstruct.medium.com/testing-microservices-the-sane-way-9bb31d158c16
-
-   right exactly so you should have one substrate:
-   self-host.
-   don't use cloud services!

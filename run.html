@@ -35,7 +35,7 @@ it's much harder to, for example, run tests with the system on every commit if t
 "Run all the services that make up the system in an isolated development environment" counts;
 it's the bare minimum requirement.
 Bonus points if this can be done completely on localhost,
-without using an off-host cluster deployment system.
+without using any off-host services.
 <p>
 Without the ability to actually run the entire system in this way while developing,
 many evil practices will tend to become common.
@@ -75,6 +75,14 @@ These systems can be run locally during development with a relatively small inve
 Typically, these systems are just not as complicated as they're thought to be;
 once the system's dependencies are actually known and understood rather than being cargo-culted or assumed,
 running the system, and all its dependencies, is straightforward.
+<p>
+<a href="https://copyconstruct.medium.com/testing-microservices-the-sane-way-9bb31d158c16">Others</a>
+don't like the idea of being able to run a "cloud-native" system locally.
+Well, fine: If deploying and running your system has a hard dependency on proprietary cloud services,
+your only option is to run the system in the cloud, not locally
+ - but, nevertheless, you need to be able to run the system!
+The constraints on where you can run the system is one of the major downsides of using proprietary cloud services,
+but you still need to be able to run it for development somehow.
 <p>
 Being able to run your entire system during development is just about the most basic requirement for a software project.
 It's not, on its own, sufficient for your development practices to be high quality;
