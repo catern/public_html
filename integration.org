@@ -5,8 +5,8 @@
   :CUSTOM_ID: introduction
   :END:
 # (link constructive proof post)
-You can write a distributed system as a single program in a general-purpose language,
-and run that program to directly [[http://catern.com/run.html][run the full system]]
+You can write a distributed system as a single program in a general-purpose language.
+Then you can run that program to [[http://catern.com/run.html][run the full system]],
 for production or for testing the system [[http://catern.com/usertests.html][against its users]].
 I call this a "single-program system".
 In this article, I describe the approach used to do this at $DAYJOB,
@@ -67,6 +67,22 @@ When everything is started,
 the program continue running, [[http://catern.com/supervisors.html][monitoring each process]]
 and providing interfaces (the Python REPL, UIs, etc)
 to [[http://rsyscall.org/wish/][interact]] with the running system.
+
+It's valuable to distinguish which distributed systems this approach does and does not work for.
+Most distributed systems,
+such as those operated by a single company,
+have centralized authority;
+that is to say, ultimately the company (its owners and employees)
+has the authority to do anything they want to the distributed system
+(though doing anything actually useful with the system might be [[https://www.lesswrong.com/posts/Wa2hASzbxyvutHJff/total-horse-takeover][hard]]).
+A single-program system extends this to [[https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf][logically centralized control]];
+that centralized authority is delegated to a single program which controls the system.
+Systems with centralized authority are easier to operate [[https://en.wikipedia.org/wiki/The_Nature_of_the_Firm][in many ways]],
+but such centralization isn't always possible;
+decentralized systems such as the Internet or the Bittorrent DHT
+contain many interacting subsystems, each with their own ultimate authority,
+so they couldn't be run as a single-program system.
+
 # Maybe don't use TestCase boilerplate?
 # nah I think that's good...
 * Writing a single-program system
@@ -1221,7 +1237,96 @@ control my system - and it’s practical to do so.
     or of... central vs distributed control
 
     theory of the firm....
-* TODO HMmMmMm :noexport:
+
+    It's important to note the key requirement for this approach:
+    A single logical entity who controls/owns the entire syste
+
+
+    wait no... you could imagine a single global repo declaring the internet,
+    and you change the internet by sending PRs there.
+
+    right so you *could* centrally control the internet,
+    you just wouldn't want to.
+
+    you *could* use internal markets inside your firm,
+    you just wouldn't want to.
+
+    hm
+
+    This logically centralizes the control of the system,
+    but that's already the case!
+
+    right right,
+    so... we already have logically centralized control (with infrastructure as code),
+    we're just getting rid of the DSLs.
+
+    in other systems where we don't already have logically centralized control, like the internet,
+    we can't actually use this.
+    we'd have to first logically centralize control!
+
+    well okay we don't really have logically centralized control...
+    we just have... the *ability* to logically centralize control...
+    maybe I should look up how SDN talks about this?
+    didn't find anything in the history article...
+
+    It's valuable to distinguish which distributed systems this approach does and does not work for.
+    Most distributed systems,
+    such as those operated by a single company,
+    have centralized authority;
+    that is to say, ultimately the company (its owners and employees)
+    has the authority to do anything they want to the distributed system;
+    even though doing anything actually useful with the system might be [[https://www.lesswrong.com/posts/Wa2hASzbxyvutHJff/total-horse-takeover][hard]].
+    A single-program system extends this to [[https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf][logically centralized control]];
+    that centralized authority is delegated to a single program which controls the system.
+    Systems with centralized authority are easier to operate [[https://en.wikipedia.org/wiki/The_Nature_of_the_Firm][in many ways]],
+    but such centralization isn't always possible;
+    decentralized systems such as the Internet or the Bittorrent DHT
+    contain many interacting subsystems, each with their own ultimate authority,
+    so they couldn't be run as a single-program system.
+
+
+    Other distributed systems are *decentralized*,
+    such as the Internet or the [[https://en.wikipedia.org/wiki/Mainline_DHT][Bittorrent DHT]];
+    there's no centralized authority over the system that can do anything it wants.
+    So, obviously, that authority can't be delegated to a single program;
+    the Internet couldn't be run as a single-program system.
+
+
+    there's no centralized authority over the system that can do anything it wants.
+    systems such as the 
+    such centralization isn't possible
+    
+    and harder in others
+
+    Centralized distributed systems interact with each other
+    in the larger decentralized distributed system of the internet;
+    
+    
+    benefitting from easier coordin
+    the centralized distributed systems benefit from easier coordination with internal components,
+    similar to how firms interacting in the larger decentralized economy,
+    while avoiding internal transaction costs by being [[https://en.wikipedia.org/wiki/The_Nature_of_the_Firm][internally centrally planned]].
+
+
+
+    So obviously
+    There's no 
+    There, a single-program system won't 
+
+    To move to a single-program system is to create logically centralized control;
+    that's a small 
+change from a morally centralized control,
+    to logically centralized point of control.
+
+    have a logically centralized point of control - even if that isn't 
+    A *decentralized* distributed system,
+    such as the internet,
+    has no central point of control.
+** TODO the upgrade problem
+   okay, people seem really preoccupied with this.
+
+   I guess I gotta talk about this.
+* TODO HMmMmMm                                                     :noexport:
 these people are not following my explanation of it as,
 a framework for writing distributed systems.
 
