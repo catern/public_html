@@ -5,13 +5,13 @@
   :CUSTOM_ID: introduction
   :END:
 # (link constructive proof post)
-Given a collection of component libraries,
-one can write a distributed system as a single conventional program in a general-purpose language,
+You can write a distributed system as a single program in a general-purpose language,
 and run that program to directly [[http://catern.com/run.html][run the full system]]
 for production or for testing the system [[http://catern.com/usertests.html][against its users]].
+I call this a "single-program system".
 In this article, I describe the approach used to do this at $DAYJOB,
 and show some working example programs.
-Although $DAYJOB's component libraries and single-program systems are proprietary,
+Although $DAYJOB's single-program systems are proprietary,
 they're built with open source libraries
 which can be used today by anyone.
 And although these examples are in Python,
@@ -23,12 +23,13 @@ implementing a distributed system as a single holistic program.
 Such languages assume the presence of a great deal of distributed systems infrastructure
 that is maintained outside the language.
 A program written in such a language is then only one component in a larger distributed system.
-The single-program system approach allows, instead,
-for one to write a program which manages *every* aspect of the distributed system above the hardware level,
+The single-program system approach, instead,
+allows you to write a program which manages *every* aspect of the distributed system above the hardware level,
 such that running the program deploys the distributed system,
 and the program and the distributed system really can be said to be the same thing.
 
-At $DAYJOB, each team maintains libraries for their components.
+At $DAYJOB, each team maintains libraries for their components;
+these libraries are used to write the single-program system.
 Some components are in Python,
 but others are written in other languages (mostly C/C++/Java)
 and run in a separate process.
@@ -1196,7 +1197,30 @@ we got onto the "how do I upgrade it" issue,
 which I guess was my own fault...
 
 but anyway, I really need to say, early on, that the program conta
+** andyc
+see https://old.reddit.com/r/ProgrammingLanguages/comments/nqm6rf/on_the_merits_of_low_hanging_fruit/h0dpyb1/
+*** my comment
+Edit: To paraphrase your broader point though, you’re saying that this
+only works for systems where one entity ultimately controls the entire
+system, so for example this wouldn’t work for the internet at large
+(but it would work for Google). Yes, that’s true. Two points on
+that: 1. I think that applies to most systems, and 2. This is a
+general pattern in many places, where there’s a larger “decentralized”
+environment containing interacting centrally-controlled individual
+entities: Economies contain firms, for example. I (probably) wouldn’t
+want to centrally plan the entire economy, but centrally planning a
+firm inside the economy is natural - it’s Coase’s theory of the
+firm. For the same reasons, my system might interact with other
+systems I don’t control, but I’d still want to be able to centrally
+control my system - and it’s practical to do so.
+*** my reaction
+    okay!
 
+    so we're back on the issue of ownership...
+
+    or of... central vs distributed control
+
+    theory of the firm....
 * TODO HMmMmMm :noexport:
 these people are not following my explanation of it as,
 a framework for writing distributed systems.
