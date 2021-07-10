@@ -455,18 +455,19 @@ versioning is controlled by which version of the component library we use.
   :PROPERTIES:
   :CUSTOM_ID: conclusion
   :END:
-The single-program approach allows one to write a single type-safe program which runs the entire distributed system,
+A single-program system implements an entire distributed system as a single program,
 delegating to libraries to share functionality and subprocesses to improve performance.
-The alternative is writing ten programs and a thousand config files
-for configuration management, service discovery, orchestration, etc.
-I believe the advantages of the single-program approach are self-explanatory.
 
-The single-program system techniques
-are explained in greater detail in the posts linked in the introduction.
+The alternative is writing many programs and many configuration files in many different DSLs:
+Kubernetes, Helm, Terraform, Ansible, systemd, cron jobs,
+shell scripts, configuration files in JSON, TOML, YAML, CSV, INI, etc, etc, etc.
+I think the advantages of the single-program approach are self-explanatory.
+
+The techniques I use for single-program systems
+are explained in greater detail in other articles linked in the introduction.
 With those techniques,
 and with the open source libraries [[https://github.com/catern/rsyscall][rsyscall]] and [[https://trio.readthedocs.io/][trio]],
-anyone can write their own component libraries,
-and combine them with other libraries to write a distributed system in one program.
+anyone can write a single-program system.
 ** list of things this replaces? :noexport:
 systemd
 ansible
