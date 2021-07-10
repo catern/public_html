@@ -27,12 +27,14 @@ and the program and the distributed system can really be said to be the same thi
 
 At $DAYJOB, each team maintains Python libraries for their components;
 these libraries are used to write the single-program system.
+All the component libraries are maintained in a single repository to reduce compatibility issues.
 Some components are in Python,
 but others are written in other languages (mostly C/C++/Java)
 and run in a separate process.
 In this way, performance-sensitive components of a distributed system are written in faster languages than Python,
 in the same way that Fortran libraries are used to speed up math in Python programs.
-All the component libraries are maintained in a single repository to reduce compatibility issues.
+A component might communicate with other components, form a quorom, replicate and persist state,
+or anything else a component might do in a distributed system.
 
 The component libraries
 use normal programming language features, including Python 3's static type system, to [[http://catern.com/progsys.html][handle distributed systems issues]].
@@ -450,6 +452,9 @@ versioning is controlled by which version of the component library we use.
 (but, we'll just omit any mention of versioning I think)
 (we'll see what test readers think)
 * Conclusion
+  :PROPERTIES:
+  :CUSTOM_ID: conclusion
+  :END:
 The single-program approach allows one to write a single type-safe program which runs the entire distributed system,
 delegating to libraries to share functionality and subprocesses to improve performance.
 The alternative is writing ten programs and a thousand config files
@@ -1235,7 +1240,7 @@ firm inside the economy is natural - it’s Coase’s theory of the
 firm. For the same reasons, my system might interact with other
 systems I don’t control, but I’d still want to be able to centrally
 control my system - and it’s practical to do so.
-*** my reaction
+*** DONE my reaction
     okay!
 
     so we're back on the issue of ownership...
@@ -1328,7 +1333,7 @@ change from a morally centralized control,
     A *decentralized* distributed system,
     such as the internet,
     has no central point of control.
-** TODO the upgrade problem
+** DONE the upgrade problem
    okay, people seem really preoccupied with this.
 
    I guess I gotta talk about this.
@@ -1340,6 +1345,15 @@ change from a morally centralized control,
     More advanced techniques are applicable, too,
     such as [[https://en.wikipedia.org/wiki/Dynamic_software_updating][dynamic software updating]],
     to upgrade the single program without restarting it.
+** HN comments
+*** "this isn't distributed"
+    huh???
+*** this ignores all the other complexities of building a distributed system
+    hm...
+
+    maybe I should mention some of this???
+
+I could say...
 * TODO HMmMmMm                                                     :noexport:
 these people are not following my explanation of it as,
 a framework for writing distributed systems.
