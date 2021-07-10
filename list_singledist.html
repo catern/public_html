@@ -6,8 +6,10 @@
 <body>
 <h1>List of things that let you write a single program which performs a distributed task</h1>
 
+These are problem areas where you'd normally use multiple separate programs/configurations/whatevers.
+But with these things, you can use a single program instead.
+
 <ul>
-  <!-- shell scripts with SSH are basically just yet another library/DSL for distribution -->
   <li>Distributed languages and distributed DSLs
     <blockquote cite="https://research.vu.nl/ws/files/74118966/11003">
       Distributed programs execute pieces of their code in parallel on
@@ -48,5 +50,11 @@
     </blockquote>
   <li><a href="http://catern.com/caternetes.html">Single-program systems</a>. :)
 </ul>
+
+Problem areas where you'd normally write a single program,
+but with so-and-so tools, you can instead write multiple programs (for locality and performance, usually)
+are also interesting (transforming a shell script using ssh into multiple communicating programs; BPF; XDP; the storage equivalent of XDP; etc.),
+but not eligible for this list.
+
 </body>
 </html>
