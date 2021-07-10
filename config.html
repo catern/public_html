@@ -55,20 +55,8 @@ Code written in this way in your actual programming language
 can be easily constrained to only allow valid configurations;
 that's much more difficult for code written in a configuration DSL,
 like JSON, YAML, or Dhall.
-<!--
-need to find a framing for the "sandboxing" issue. hmm.
-so in JSON you can only write pure data, sure.
-how can you improve this in Python?
-
-well... you might...
-only allow...
-
-well okay first off, you can prevent making IPCs or whatever with sandboxing.
-
-well the excessive power of a DSL is the same thing making us need sandboxing I guess....
--->
-<p>
-In a configuration DSL,
+<ul>
+  <li>In a configuration DSL,
 one would select from multiple implementations by manipulating some identifier for the implementations;
 a string or a sum type, perhaps.
 This might be formatted in an invalid way,
@@ -82,8 +70,7 @@ whether as an object, a module, a struct of function pointers, or something else
 One can write a function (or a template, a functor, a macro, or something else)
 which takes the implementation directly as an argument,
 with no possibility of issues due to mismatches between a string identifier and the actually available implementations.
-<p>
-In a typical configuration DSL,
+  <li>In a typical configuration DSL,
 we would specify a set of key-value pairs to configure some component.
 We might run some validator over the DSL to ensure it matches some schema
 which we know our code will eventually load.
@@ -93,6 +80,31 @@ perform "validation" of the "schema" of our configuration for free,
 wherever we pass arguments to functions.
 Required arguments must be present, and even must be of the correct type,
 and there's no need to keep our code in sync with a schema.
+<li>Different configuration DSLs have different levels of restrictiveness.
+Some (such as JSON) only allow you to write down pure data.
+Some (such as YAML) also allow you to create and use variables.
+Some (such as Jsonnet) also allow you to include other files.
+Some (such as Dhall) also allow you to arbitrarily import files from the internet.
+To switch your level of restrictiveness, you have to change which DSL you use.
+<p>
+But a general purpose programming language lets you pick which level of restrictiveness you want,
+on a case-by-case basis, without changing language.
+Just use your favorite language-level sandboxing tool to evaluate the code so that it can't
+<a href="http://www.object-oriented-security.org/lets-argue/singletons">perform IO</a>.
+Then if you want the config to be able to include other files,
+pass in the <a href="http://www.object-oriented-security.org/">capability</a> to do that;
+if you want the config to be able to import files from the internet,
+pass in the capability to do that;
+and so on.
+<!--
+ TODO programmatically modifying configs is harder now...
+ well, actually! no! now you can just use the same refactoring tools that you already use for Python or whatever.
+ if the "configuration" code runs in a sandboxed, these won't encounter any unexpected stuff,
+ and will just work!
+
+ also, programmatically modifying configs is less needed when you have good abstraction...
+-->
+</ul>
 <p>
 Writing code in your general purpose language
 is easier, faster, and better
@@ -115,3 +127,7 @@ And you might also be in a corporate environment,
 where code changes require an extensive and painful process,
 but configuration changes can be made relatively easily.
 If so, perhaps this article will help you improve the situation.
+<p>
+Many have written about this before;
+<a href="https://beepb00p.xyz/configs-suck.html">here</a>
+is another article about this.
