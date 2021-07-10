@@ -5,30 +5,27 @@
   :CUSTOM_ID: introduction
   :END:
 # (link constructive proof post)
-You can write a distributed system as a single program in a general-purpose language.
-Then you can run that program to [[http://catern.com/run.html][run the full system]],
-for production or for testing the system [[http://catern.com/usertests.html][against its users]].
-I call this a "single-program system".
-In this article, I describe the approach used to do this at $DAYJOB,
-and show some working example programs.
-Although $DAYJOB's single-program systems are proprietary,
-they're built with open source libraries
-which can be used today by anyone.
-And although these examples are in Python,
-this approach is in no way tied to Python
-and this article should be comprehensible and useful to anyone interested in distributed systems.
+If you want to write a distributed system,
+then instead of writing a thousand different programs and configuration files and DSLs,
+you can use an approach I call "single-program systems",
+and write just one program.
+In this article, I describe how we do this at $DAYJOB,
+and I show some example programs.
+These examples are in Python,
+but this approach works in any language.
 
-There are distributed languages and [[file:list_singledist.html][other models]] which also aim at the goal of
-implementing a distributed system as a single holistic program.
-Such languages assume the presence of a great deal of distributed systems infrastructure
-that is maintained outside the language.
-A program written in such a language is then only one component in a larger distributed system.
+Besides single-program systems,
+[[file:list_singledist.html][distributed languages]] also try to allow the user to
+implement a distributed system as a single program.
+But these languages assume the presence of lots of distributed systems infrastructure
+which is maintained outside the language.
+A program written in such a language is only one component in a larger distributed system.
 The single-program system approach, instead,
 allows you to write a program which manages *every* aspect of the distributed system above the hardware level,
 such that running the program deploys the distributed system,
-and the program and the distributed system really can be said to be the same thing.
+and the program and the distributed system can really be said to be the same thing.
 
-At $DAYJOB, each team maintains libraries for their components;
+At $DAYJOB, each team maintains Python libraries for their components;
 these libraries are used to write the single-program system.
 Some components are in Python,
 but others are written in other languages (mostly C/C++/Java)
@@ -41,7 +38,7 @@ The component libraries
 use normal programming language features, including Python 3's static type system, to [[http://catern.com/progsys.html][handle distributed systems issues]].
 For example, regular function arguments are used to express service discovery and dependencies between services;
 for each service, there's a service-starting function which takes that service's dependencies as arguments,
-starts that service up using those arguments,
+uses those arguments to run the service,
 and returns a value that can be passed as an argument (a dependency) to other service starting functions.
 In general, services are "configured" by passing arguments, [[http://catern.com/config.html][in normal code]],
 and multiple instances can be created just by calling functions multiple times with different arguments.
@@ -57,31 +54,40 @@ This allows a single-program system to be used for deployment in any environment
 whether that's bare-metal, virtual machines, containers, or a developer machine;
 though different environments and use cases usually implies different programs with different [[http://catern.com/config.html][configurations]].
 
-The resulting program is *direct*.
-That is, it's not a DSL;
+You can run the resulting program to [[http://catern.com/run.html][run the full system]] for production,
+or for testing the system [[http://catern.com/usertests.html][against its users]].
+This program is not a DSL;
 it doesn't get processed by some tool and turned into a list of actions to perform.
 Rather, it's run by a normal Python interpreter,
 and when the program calls =start_foo=,
-the program starts up the =foo= process, then and there, directly.
+the program starts up the =foo= process, right then, directly.
 When everything is started,
-the program continue running, [[http://catern.com/supervisors.html][monitoring each process]]
+the program continues running, [[http://catern.com/supervisors.html][monitoring each process]]
 and providing interfaces (the Python REPL, UIs, etc)
 to [[http://rsyscall.org/wish/][interact]] with the running system.
 
-It's valuable to distinguish which distributed systems this approach does and does not work for.
+Upgrading the distributed system is a matter of upgrading the single program.
+Doing this doesn't require downtime.
+One simple approach is to restart the single program without killing its child processes,
+and then the new version takes on the responsibility of gradually upgrading the services.
+Alternatively, more advanced techniques such as [[https://en.wikipedia.org/wiki/Dynamic_software_updating][dynamic software updating]] 
+could be used to upgrade the single program without restarting it.
+
+This approach works for almost all distributed systems.
 Most distributed systems,
 such as those operated by a single company,
 have centralized authority;
-that is to say, ultimately the company (its owners and employees)
-has the authority to do anything they want to the distributed system
-(though doing anything actually useful with the system might be [[https://www.lesswrong.com/posts/Wa2hASzbxyvutHJff/total-horse-takeover][hard]]).
+by this I mean that, ultimately, the owners and employees of the company
+have the authority to do anything they want with the distributed system
+(though doing anything actually useful might be [[https://www.lesswrong.com/posts/Wa2hASzbxyvutHJff/total-horse-takeover][hard]]).
 A single-program system extends this to [[https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf][logically centralized control]];
 that centralized authority is delegated to a single program which controls the system.
 Systems with centralized authority are easier to operate [[https://en.wikipedia.org/wiki/The_Nature_of_the_Firm][in many ways]],
-but such centralization isn't always possible;
-decentralized systems such as the Internet or the Bittorrent DHT
-contain many interacting subsystems, each with their own ultimate authority,
-so they couldn't be run as a single-program system.
+but centralization isn't always possible or desirable.
+Decentralized systems such as the Internet
+couldn't be run as a single-program system
+because they contain many interacting "ultimate authorities" running their own [[https://en.wikipedia.org/wiki/Autonomous_system_(Internet)][subsystems]];
+each of those subsystems, however, could be run as a single-program system.
 
 # Maybe don't use TestCase boilerplate?
 # nah I think that's good...
@@ -1326,6 +1332,14 @@ change from a morally centralized control,
    okay, people seem really preoccupied with this.
 
    I guess I gotta talk about this.
+*** section
+    Upgrading the distributed system is a matter of upgrading the single program.
+    Doing this doesn't require downtime;
+    one simple approach is to restart the single program without killing its child processes,
+    and then the new version takes on the responsibility of gradually upgrading the child processes.
+    More advanced techniques are applicable, too,
+    such as [[https://en.wikipedia.org/wiki/Dynamic_software_updating][dynamic software updating]],
+    to upgrade the single program without restarting it.
 * TODO HMmMmMm                                                     :noexport:
 these people are not following my explanation of it as,
 a framework for writing distributed systems.
