@@ -6,7 +6,7 @@
   :END:
 # (link constructive proof post)
 If you want to write a distributed system,
-then instead of writing a thousand different programs and configuration files and DSLs,
+then instead of writing a thousand different programs and configuration files in many different DSLs,
 you can use an approach I call "single-program systems",
 and write just one program.
 In this article, I describe how we do this at $DAYJOB,
@@ -34,7 +34,7 @@ and run in a separate process.
 In this way, performance-sensitive components of a distributed system are written in faster languages than Python,
 in the same way that Fortran libraries are used to speed up math in Python programs.
 A component might communicate with other components, form a quorom, replicate and persist state,
-or anything else a component might do in a distributed system.
+or any of the usual distributed system stuff.
 
 The component libraries
 use normal programming language features, including Python 3's static type system, to [[http://catern.com/progsys.html][handle distributed systems issues]].
@@ -471,6 +471,7 @@ and combine them with other libraries to write a distributed system in one progr
 systemd
 ansible
 kubernetes
+terraform
 hashicorp vault
 * notes :noexport:
 ok so we want the big example section still,
@@ -1354,6 +1355,34 @@ change from a morally centralized control,
     maybe I should mention some of this???
 
 I could say...
+** lcapaldo
+I found this interesting (along with a lot of the related posts and
+others on the site) but it felt like it was being presented as an
+alternative to something, but I had a hard time figuring out what that
+something was. DSLs seems vague. I think I finally got the idea from
+noticing the punny file name “caternetes.html”. The DSLs being
+referred to are at least in part things like k8s configurations or
+terraform etc.? Is that the idea? Analogously to the the post about
+writing code not configuration?
+*** mmmm
+okay yeah fine,
+let's stick something in the conclusion about what we're replacing.
+
+terraform, kubernetes, etc...
+
+hmm...
+"DSLs seems vague"
+maybe we can firm it up a bit even in the introduction?
+
+I don't want to create ego threat at the beginning...
+
+I think mentioning it in the conclusion is definitely better...
+
+What are the DSLs that this replaces?
+Kubernetes, Helm, Terraform, Ansible, systemd, cron jobs, shell scripts, configuration files in JSON, TOML, YAML, etc, etc.
+
+
+
 * TODO HMmMmMm                                                     :noexport:
 these people are not following my explanation of it as,
 a framework for writing distributed systems.
