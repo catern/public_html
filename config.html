@@ -89,21 +89,30 @@ To switch your level of restrictiveness, you have to change which DSL you use.
 <p>
 But a general purpose programming language lets you pick which level of restrictiveness you want,
 on a case-by-case basis, without changing language.
-Just use your favorite language-level sandboxing tool to evaluate the code so that it can't
-<a href="http://www.object-oriented-security.org/lets-argue/singletons">perform IO</a>.
+Just use your favorite
+<a href="http://www.object-oriented-security.org/lets-argue/singletons">language-level sandboxing tool</a>
+to evaluate the code so that it can't perform IO.
 Then if you want the config to be able to include other files,
 pass in the <a href="http://www.object-oriented-security.org/">capability</a> to do that;
 if you want the config to be able to import files from the internet,
 pass in the capability to do that;
 and so on.
-<!--
- TODO programmatically modifying configs is harder now...
- well, actually! no! now you can just use the same refactoring tools that you already use for Python or whatever.
- if the "configuration" code runs in a sandboxed, these won't encounter any unexpected stuff,
- and will just work!
-
- also, programmatically modifying configs is less needed when you have good abstraction...
--->
+Preventing the use of variables is, admittedly, a bit trickier in general-purpose languages;
+a language where variable binding is a capability could <a href="http://catern.com/tfs.html">do it</a>.
+<li>
+Configuration DSLs are sometimes modified both by humans and by programs.
+This programmatic modification of a hand-editable file
+can be quite tricky to do without overwriting user customizations.
+<p>
+But general purpose programming languages, unlike the typical configuration DSL,
+come with lots of
+<a href="https://coccinelle.gitlabpages.inria.fr/website/">semantic</a>
+<a href="https://spoon.gforge.inria.fr/index.html">refactoring</a>
+<a href="https://github.com/python-rope/rope">tools</a>
+to manage these issues.
+And they can be inspected in much more <a href="http://catern.com/tfs.html">powerful</a> ways.
+Finally, programmatic modification is less necessary
+when you're able to express better abstractions for your "configuration" in the first place.
 </ul>
 <p>
 Writing code in your general purpose language
