@@ -4,13 +4,12 @@
   :PROPERTIES:
   :CUSTOM_ID: introduction
   :END:
-# (link constructive proof post)
 If you want to write a distributed system,
 then instead of writing a thousand different programs and configuration files in many different DSLs,
 you can use an approach I call "single-program systems",
 and write just one program.
 In this article, I describe how we do this at $DAYJOB,
-and I show some example programs.
+and I [[http://catern.com/constructive.html][show]] some example programs.
 These examples are in Python,
 but this approach works in any language.
 
@@ -18,8 +17,8 @@ Besides single-program systems,
 [[file:list_singledist.html][distributed languages]] also try to allow the user to
 implement a distributed system as a single program.
 But these languages assume the presence of lots of distributed systems infrastructure
-which is maintained outside the language.
-A program written in such a language is only one component in a larger distributed system.
+which is maintained outside the language;
+so a program written in such a language is only one component in a larger distributed system.
 The single-program system approach, instead,
 allows you to write a program which manages *every* aspect of the distributed system above the hardware level,
 such that running the program deploys the distributed system,
@@ -1559,6 +1558,12 @@ allowing an entire faimily of programs to be written.
 *** making it clear that multiple programs are created out of these libraries?
 *** component libraries
 SUCH a vastly better term!
+*** alternative final introduction paragraph
+This approach works for distributed systems with a single ultimate authority,
+such as the organization operating the system,
+not for systems with no central authority such as the Internet.
+In a single-program system,
+the single authority is delegated to a single progrm.
 ** even mentioning $DAYJOB
 maybe I shouldn't?
 
