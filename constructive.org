@@ -321,3 +321,111 @@ for god's sake, there's so many ideas in software
 
   and, you don't post on the list saying "hey here's an idea" in open source.
   you implement it!!
+* ok
+it'a waste of time to try to tell peoplt hings. just do it.
+it's easier.
+persuading people that an idea is good, is too hard,
+and not worth it.
+
+this extends also to when you're evaluating someone else (I guess??)
+
+and when you're designing a society...
+you should make it easy for things to be demonstrated, just done,
+not require someone to persuade someone else.
+
+
+
+the ease of doing this is what makes computer science so nice
+
+that's key, really.
+* post
+In computer science, whenever you have an idea, it's relatively easy to implement it and show that it works.
+You should do this; it's one of the great advantages of programming,
+that we can give constructive proofs for our ideas.
+
+Physics and philosophy require heavy machinery or control over society;
+but to implement an idea about programming just requires that you have a computer and time.
+
+The alternative is to just tell people about your ideas,
+and try to convince them that they'll work.
+But this is a frustrating waste of time:
+[[http://habitatchronicles.com/2004/04/you-cant-tell-people-anything/][You can't tell people anything]].
+They'll misunderstand you,
+and even if they understand you,
+they have their own preconceptions that make them think your idea is impossible.
+The more radical and interesting your idea is,
+the less useful it will be to just tell someone about it.
+
+People don't change their minds easily.
+It's appealing to imagine that if you just express your idea well enough,
+you'll be able to persuade people that your idea is good,
+and then they'll invest their time and treasure in bringing your idea to fruition.
+
+But if you already believe in your idea, you can prove that it works by implementing it.
+Your idea is unrefutable, then:
+Just look at the code, and look what it does.
+
+And, of course, if your idea is useful, then it's useful to have an implementation of your idea.
+This is a much better reward for your investment of time.
+If you spend all your time explaining your idea instead of implementing it,
+at the end all you'll have is a bunch of explanations and [[http://catern.com/][blog posts]].
+It's the great virtue of computer science that implementation requires no more resources than persuasion.
+
+I'm a hypocrite, perhaps, in writing this post instead of implementing it.
+But this is a post about culture, about society,
+about the process of carrying out computer science.
+To implement this post I'd need to create and run my own society which follows this principle;
+that's not something I can practically do,
+at the very least I'd need to convince other people to join that society.
+To implement an idea in computer science doesn't require persuading anyone.
+
+In a culture which implemented this post,
+as few obstacles as possible would be put in the way of implementation.
+One obstacle is when computer resources or configurations are only accessible to privileged users.
+Computers let us multiplex resources so that anyone can create their own system without asking for permission,
+but this principle can be broken if an organization or culture adds restrictions on this ability.
+Then, to implement an idea, you need to first persuade someone else to let you implement the idea;
+a Catch-22.
+
+Another obstacle is bans on *using* implementations of ideas that haven't reached mass acceptance.
+If a culture or organization requires that only accepted ideas can be used,
+then to implement a new idea carries the heavy risk that your implementation work will be useless.
+In a less restrictive culture,
+if one implements an idea, one can use it;
+that's a good property to have.
+
+A good idea is sometimes non-obvious and counter to existing principles.
+To explain an idea to someone, then,
+you'll have to spend time toning it down and crafting analogies.
+This can be frustrating, especially if it fails;
+other people just may not have the mindset required to understand your idea,
+without the powerful explanatory force of a real implementation. 
+
+Explaining your idea means compromising it.
+Compromise can be good, of course
+(to say that is a compromise in itself!).
+But it can ruin the purity of your idea,
+and reduce it to something half-new-and-revolutionary, half-old-and-pragmatic,
+something which is no longer a good idea.
+And if you persuade people that X is good,
+you might implement X instead of your original idea Y.
+
+Implementation is also powerfully clarifying.
+An idea which seems completely counter to existing notions,
+may be seen to fit in nicely as an incremental improvement when it's actually implemented.
+Persuading people of the wild germ of a novel idea,
+when it will later become a stable incremental improvement,
+is pointless.
+
+And what if your idea is a bad one?
+Most ideas are good ideas, in some way for some scenario.
+A good computer scientist can find the interesting core in any idea;
+you will become a good computer scientist, at least for your idea,
+in the process of implementing it.
+
+Persuading others can be useful.
+But there's a stock phrase,
+sometimes deployed as part of arguments over contentious topics: "This is not constructive".
+Persuading others of an idea is not part of a constructive proof for the idea.
+Take advantage of the nature of the computer science field,
+and prove your ideas constructively.
