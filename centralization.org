@@ -1,0 +1,89 @@
+* APIs and transaction costs
+the cost of maintaining stable APIs in a distributed system leading one to prefer larger units with unstable internal APIs, is analogous to, the transaction costs in a marketplace that lead one to create firms
+
+<quanticle> catern: Or the forces that lead organisms to develop specialized organs.
+> quanticle: oh? I haven't heard of that/don't know about that process 
+
+<gwern> catern: but it's not a one-way ratchet, ofcourse. systems don't just get larger monotonically. so you need to take that into account. it's an instance of /Backstop - 'inside' the module, you can use force and learned algorithms and heuristics for design, but that is unreliable; outside, you need evolution which is reliable but high variance
+<gwern> catern: so the question is what's the 'fitness' or 'market' which is operating outside the large-API which constrains andselects among them and keeps them honest?
+> gwern: ah, nice elaboration of the analogy! yeah, that's interesting...
+> the market for APIs...
+
+
+it's not just distributed systems, it's APIs in general.
+
+maintaining a stable API is a transaction cost.
+in coasean terms, you want to form modules with internally unstable APIs for this
+
+title: Stable APIs are transaction costs
+
+Linux is a good example...
+
+<gwern> the problem here is more intra-API than inter-API. given a very specific specification, evolving the API is incremental local stuff. you may even be able to a/b test your way up the hill! but the real problem is deciding modules should exist at all
+<gwern> given a spec or domain, parts of an API can be optimized in isolation. but the set of APIs itself cannot be optimized in isolation. there is no view from nowhere
+<gwern> the overall set of APIs is interacting with each other, with the community, with the economics and businesses...
+
+> interesting observation; to translate that back into markets, I guess: you can drive down the transaction costs of interactions between two firms buying and selling a certain good, but the real impossible "planning problem" is deciding how the economy should be divided into firms
+> I feel like I've never heard a critique of central planning from that perspective, but I haven't really read any
+
+<quanticle> Which is why I find the comparison with the evolution of organs to be so interesting
+<quanticle> Initially, all life was single-celled organisms. What kicked off that impetus for specialization?
+
+
+> (gwern, of course, is immediately throwing out these deep insights on an analogy that only just barely occurred to me)
+<quanticle> Well, that's the problem with gwern. He throws out deep insights on an analogy that might turn out to be totally wrong.
+<gwern> perhaps, but it certainly hasn't 'just occurred to me'. I've been talking about bilevel optimization as a pattern for many years now
+<gwern> and I am in good company, from darwin and coase on
+> (to be clear, I was expressing awe, not criticizing)
+
+https://www.gwern.net/Backstop
+
+<gwern> (ie the most important decision anyone ever made about amazon's APIs was bezos deciding that there would *be* APIs)
+
+wow another amazing point
+
+that brought the costs of using them down so that they could be usable externally...
+
+but I guess there would still be APIs anyway...
+
+there's kind of a sliding scale of stability...
+
+I guess Bezos kind of deciding to make the internal environment of Amazon,
+like the external environment?
+where there's stability and competition...
+
+> (does that mean that the Bezos declaration could really be rephrased as saying: "We shall have internal competition and separate firms like the outside world"?)
+<gwern> yes, you can see it as that way. amazon is a shell around a lot of competing teams
+<gwern> in order to scale
+
+i mean... it's not clear... that that's the case...
+
+i guess... you could have... a hierarchical structure...
+but... you need...
+incentives to make things stable...
+that's what makes firms in the outside world use stable APIs/drop their transaction costs.
+
+so Bezos was really just artificially inducing people to do that.
+and once they did that, wasn't it useful?
+
+> (I guess "We shall have internal competition and separate firms like the outside world" is an inaccurate way to put it actually. it's "We shall have *the effects of having* internal competition and separate firms like the outside world". normally competition gives an incentive to drop inter-firm transaction costs/stabilize your APIs. but that incentive doesn't exist inside Amazon so Bezos made an artificial one...)
+
+
+> (hm so the followup question here is whether, inside Amazon, if some group makes an insufficiently stable API with too-high transaction costs, another group can make their own API and encourage customers to use that instead and reap the benefits)
+<gwern> ('bit creep' towards making the stabler or cheaper API doing more and more, even if unsuited...)
+
+
+
+I guess the real article here would be something about how,
+it's valuable to have centralization in your distributed system.
+
+centralization is not the opposite of a distributed system
+
+centralization is not the enemy
+centralization is not the enemy of a distributed system?
+
+a bash pipeline is centralized! for example...
+
+Centralization is not (always) the enemy
+
+
