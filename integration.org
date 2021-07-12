@@ -32,7 +32,7 @@ but others are written in other languages (mostly C/C++/Java)
 and run in a separate process.
 In this way, performance-sensitive components of a distributed system are written in faster languages than Python,
 in the same way that Fortran libraries are used to speed up math in Python programs.
-A component might communicate with other components, form a quorom, replicate and persist state,
+A component might communicate with other components, replicate and persist state,
 or any of the usual distributed system stuff.
 
 The component libraries
@@ -443,13 +443,6 @@ async def start_exampled(
     # it communicates with the world only by creating files under `workdir'
     return Exampled(workdir)
 #+end_src
-** versions? :noexport:
-versioning is controlled by which version of the component library we use.
-
-(I mean, that's the ideal, anyway...)
-(actually that's true-ish since lnc_library works that way)
-(but, we'll just omit any mention of versioning I think)
-(we'll see what test readers think)
 * Conclusion
   :PROPERTIES:
   :CUSTOM_ID: conclusion
@@ -467,12 +460,8 @@ are explained in greater detail in other articles linked in the introduction.
 With those techniques,
 and with the open source libraries [[https://github.com/catern/rsyscall][rsyscall]] and [[https://trio.readthedocs.io/][trio]],
 anyone can write a single-program system.
-** list of things this replaces? :noexport:
-systemd
-ansible
-kubernetes
-terraform
-hashicorp vault
+
+If you're interested in writing such systems at $DAYJOB, we're hiring; [[http://catern.com/][email and/or PM me]].
 * notes :noexport:
 ok so we want the big example section still,
 with the concrete code... hmmm....
