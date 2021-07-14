@@ -45,8 +45,8 @@ In general, services are "configured" by passing arguments, [[http://catern.com/
 and multiple instances can be created just by calling functions multiple times with different arguments.
 
 When a service-starting function starts a C/C++/Java process,
-it starts the process directly as a subprocess on some host
-which the program will continue to monitor directly,
+it starts the process directly as a subprocess, on some host,
+which the program will continue to monitor directly
 rather than delegating to a [[http://catern.com/supervisors.html][process supervisor]] service.
 Functionality for distributed process spawning and monitoring
 is shared through [[http://catern.com/services.html][libraries]] rather than by delegating to external orchestration systems,
@@ -1560,3 +1560,8 @@ it's maybe not positive...
 except I guess it is useful to mention...
 
 (I should really just do the controller thing at $DAYJOB first)
+** subprocesses
+One important thing is that regular commands are valid accelerated subprocesses... Components...
+We rely on them to function in a distributed manner quickly.
+
+using the nix-store binary for deployment is an example here
