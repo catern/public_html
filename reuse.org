@@ -1,0 +1,325 @@
+* write in-language thing first
+oho, I can do it subtractively:
+I'll write the in-language typed interfaces article first.
+
+Use the type system in your language, not RPC stuff
+(and extend it over the network)
+
+
+um, I can talk about. the...
+value of using in-language abstractions and things, which you can't do otherwise.
+
+(hey this is related to the config article)
+
+and also make the sandboxing point, that you don't have to sacrifice sandboxing and stuff.
+even if you want complete control...
+
+maybe I should even title it, "you can extend your language's type system across the network",
+and across time (persistence in the filesystem), etc.
+
+type safety doesn't.. hm.
+type safety doesn't require global checking, that's the entire point, ya dummies.
+
+anyway uhhh maybe that slogan is too obscure to need debunking
+
+title: Use the language's type system, not a separate weaker type system, wherever possible
+
+title: Write down types with your language, not separate code generators, wherever possible
+
+title: Don't sacrifice the richness of the built-in type system of your language too easily
+
+
+title: Use the abstractions of your language, not separate tools, wherever possible
+
+oh yeah it's really important to not say type systems here actually,
+because, it's confusing if I say type systems!
+it's much better to focus on the abstraction power that the language provides...
+
+title: Use language-level abstractions, not hardware-level abstractions, wherever possible
+
+that's pretty vague...
+
+title: Use language-level abstractions, not OS-level abstractions, wherever possible
+
+umm they aren't just OS-level...
+
+title: Use language-level abstractions, not weaker language-independent abstractions, wherever possible
+
+um sure, that's one thing to say...
+
+yeah, I think that's actually really what I mean!
+** related to
+http://catern.com/config.html
+http://catern.com/progsys.html
+** points
+*** passing function pointers around is useful
+and, objects behind interfaces, etc
+*** types, obviously, are useful
+*** you can still sandbox, you can still separate privilege levels
+** different framing
+The general-purpose programming language is the best tool for abstraction we know.
+
+Try to keep your abstractions in your general-purpose programming language.
+
+Don't use external... things
+** abstraction inversion
+abstraction inversion is maybe a misnomer
+
+basically don't build new abstractions when the ones you have are perfectly good!
+
+is it really inversion...?
+
+oh, it's abstraction inversion because you're building those abstractions,
+using a language that already has module support.
+** just saying
+The programming language is good. Use it.
+
+title: Your general-purpose programming language already has all the abstractive power you need
+
+or something like that...
+
+stop building new abstractions outside the language.
+
+
+"title": The modern programming language is the most powerful abstraction engine known to humanity
+
+Use your programming language to build abstractions, not 
+
+title: Build abstractions inside your programming system, not outside, wherever possible
+
+aha okay that's key, that's key. inside, not outside, wherever possible.
+
+Abstract inside the system, not outside, wherever possible.
+
+(but... I like code generation, don't I...?)
+(well, that's still within the system, essentially)
+
+oh so really I'm suggesting, don't build new abstractions on top.
+
+Your programming language probably already has enough abstractive power.
+
+um, okay, so, another further direction would be just,
+"stop building new abstractions on top of things!"
+
+like, my general principle is,
+the existing system probably has enough power.
+
+but I guess I don't want to make that general point here...
+
+okay but still, that's yet another third article I guess?
+
+like...
+
+okay so, I guess maybe I'm not generally 100% against abstraction. hm.
+
+maybe I only like reducing abstractions to the more powerful thing?
+
+nah...
+
+well, I mean, I like reducing them to Unix or reducing them to the programming language.
+
+but I do like reducing abstractions, in any scenario.
+
+title: Try to implement new features in terms of features you already have
+
+I think that's a really clear and cogent expression of what I'm about, yeah...
+
+(and the application of that principle to programming languages, gives us the preference for libraries over RPC)
+
+aha okay okay Boopy says this is a good title and all, but, uh...
+isn't that just code reuse lol?
+
+code reuse is good...
+
+code... REUSE!!!
+
+"but abstractions let you reuse code better..."
+
+um well, um!! well!!! you already have enough abstractions, you don't need any more.
+
+(((YAGNI is basically a way of saying code reuse???)))
+
+well let's forget that, but, yeah!
+
+reuse code!
+don't build new features, use the features you already have.
+
+oh, actually... it's more like...
+reuse complexity.
+
+don't just reuse code, reuse complexity.
+
+if you've already spent your complexity budget on some interface,
+keep using it! as much as you can!
+
+same as, like, programming!
+
+If you've already built or got an abstraction, use it!
+
+Make your copmlexity/abstractions do double duty for multiple things
+
+If you've already got an abstraction that can do one thing, don't build another one!
+
+The great virtue of code reuse is not that it can let you reuse code;
+it's that it can let you reuse complexity, reuse abstractions,
+gain more benefits from the complexity costs you've already paid.
+
+So don't build your stuff for code reuse;
+but still, recognize when a new use case is fundamentally the same as something you've already done!
+
+And reuse that old abstraction!
+
+(maybe even, "don't reuse code, reuse complexity"?)
+
+The great virtue of code reuse is not that it can save you time on implementation
+but that you have a fixed complexity budget,
+and it lets you avoiding spending more,
+by using something you've already paid for.
+
+
+If you already have an interface,
+don't just poke a new hole in it for every new thing you want to do.
+See if you can express the new thing in terms of what you can already do!
+
+Don't add a new thing in your implementation;
+write a script in front of your interface!
+Even if it's more code total,
+it's less functionality in the interface,
+and that it makes it easier to preserve your invariants,
+and that's less complexity,
+
+Many have tried to make software reuse easier;
+it was a hot topic and motivated huge amounts of research in the 1990s and 2000s.
+
+but y'know...
+I think the thing to do is to reuse complexity you've already expended in your program.
+
+The real difficult thing was building the theory behind that code, try to reuse that!
+
+if code is simple (like hello world), reuse is pointless
+the thing you want to reuse is complexity
+
+if code can be mechanically reproduced without thought,
+(like setup functions)
+then making some framework for reuse will only increase complexity, not decrease it.
+
+if you can just look at the code and see what it does...
+if the code is using an underlying API that's good and simple...
+than abstracting the code for reuse will just add complexity.
+
+don't abstract and reuse simple things.
+only abstract and reuse complex things.
+(well, what's simple? don't some people probably think the setup code is not simple?)
+
+Don't reuse code, reuse complexity
+
+Or...
+
+Reuse complexity, not code
+
+Complexity reuse, not code reuse
+
+eh still best:
+
+Don't reuse code, reuse complexity
+
+well, a just is good...
+
+Don't just reuse code, reuse complexity
+
+anyway!
+** most complexity is in the interfaces
+uhhh I'm not sure I believe that,
+I could have some code with a "do it!" interface that just does everything.
+** points
+*** opening
+The great virtue of code reuse is not that it can save you time on implementation
+but that you have a fixed complexity budget,
+and it lets you avoiding spending more,
+by using something you've already paid for.
+*** abstraction inversion
+*** relationship of "YAGNI" and "do the simplest thing that works" with this
+ well...
+
+ yeah, basically I regard that as saying that,
+ the code you're writing isn't complex.
+ it's using complex abstractions which already exist to make things easier.
+
+ to make a new abstraction to write your code on top of,
+ would be spending complexity,
+ and it's not likely that the way you're spending that complexity will be better than the existing APIs.
+ By using those existing APIs, you're saving your complexity budget.
+
+ Sometimes it can be useful,
+ but most of the time it's misguided.
+*** simple code doesn't need to be reused
+*** programming languages and operating systems
+** shower musings
+it may be more code but it's less complexity
+
+you might have to change abstractions in a way that seems unrelated to your goal
+
+two of the biggest and most complex abstractions are the programming language and the operation system
+
+If we only cared about reusing code, we'd be indifferent to whether new code was written inside or outside the interface
+** um
+If you can make a small tweak to an existing interface...
+
+that's not always necessarily good.
+sometimes it's preferable to build a whole new interface!
+
+maybe I should be concrete...
+** post
+title: Don't just reuse code, reuse complexity
+
+The real advantage of "code reuse" is not faster development.
+It's saving your complexity budget.
+If you can reuse an abstraction for a new purpose,
+you don't have to pay the complexity budget of creating a new abstraction.
+
+If you've already spent some of your complexity budget on some interface or abstraction,
+keep using it, as much as you can.
+
+Again: use the abstractions you have already spent your complexity budget on.
+It's costly to 
+
+
+# these two paragraphs are very basic stuff.
+# maybe I shouldn't write these...
+# I want to focus more on, how you should reuse the hard task of building an abstraction that works!
+Prefer to write more code outside the interface,
+than to write less code inside the implementation of the interface.
+If we only cared about reusing code,
+we'd be indifferent to whether we are inside or outside.
+But code which is inside an interface,
+and needs to maintain the invariants of that interface,
+is more complex than code which is outside the interface.
+
+If you must change the interface,
+prefer to make a smaller change than a larger one.
+If you embrace writing code outside the interface,
+the change you might make to the interface may seem entirely unrelated to your goal;
+it may be the last required feature to perform some task entirely outside the interface.
+And adding that one small feature to the interface may be less complex
+than achieving your entire goal inside the interface.
+
+Two of the biggest and most complex abstractions you have available
+are the programming language you're using,
+and the operating system you're running on.
+If you can reduce your problem to an interaction purely in terms of these existing abstractions,
+you'll save a great deal of complexity.
+Even if you add a small additional abstraction
+on top of what's already available in the platform,
+you'll save complexity.
+
+In particular, many abstractions have been created for modularity outside a programming language,
+But these are sacrificing an opportunity to reuse complexity:
+Most general-purpose programming languages already have lots of support for modular programming built in.
+
+
+
+You may still need to change the interface to achieve your goal.
+
+you might be able to make a small change to the interface,
+and write most of the code outside the interface,
+rather than make a big change to the interface and 
