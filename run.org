@@ -1,0 +1,817 @@
+* run
+mention that "running the system" is a new capability for a service to provide for its users?
+
+Ben Levy aptly mentioned that...
+
+
+heh I guess I just contend that,
+systems should be driven from the user-up;
+the user should run everything.
+
+like, library style, not service style.
+
+so obviously I think you should be able to run library-style...
+
+
+
+aha okay so this library-style ansswerssssdfad,
+answers why I need to make this note about proprietary services.
+
+the real issue is services that you can't run yourself.
+
+
+and all this ties into the,
+centralization article.
+it's yet another factor.
+hm, I'm on the verge of a good theory...
+** centralization
+okay...
+
+centralization as in...
+the ability to have one actor which runs the whole system...
+is good...
+
+yeah, I mean... I guess that's not too controversial, right?
+
+and, how does that relate to, like...
+
+treating daemons as reusable components, instead of services you use?
+
+
+right okay, so.
+
+basically I think distributed systems should be built out of component daemons/services,
+which are combined together.
+(from a top-level perspective)
+
+not as opaque services that you use without understanding how they're implemented.
+
+and this relates to open source, too.
+
+build your system for others to run it,
+not as a service that others are dependent on.
+
+
+so:
+| open source                                | proprietary                               |
+| distributed systems as composed components | distributed systems as black box services |
+| libraries                                  | services                                  |
+| individual autonomy                        | dependency on the big corporation         |
+| centralization?                            | decentralization?                         |
+| peer to peer/disintermediated              | intermediation                            |
+
+ummm kind of.
+
+but, anyway, services as a black box, is one of the things I don't like.
+you should know how to reproduce it!
+
+questionable:
+| web of nodes ("many centers") | hub and spoke |
+
+okay so...
+I guess they're both webs, but...
+
+basically in the form I prefer,
+each individual node is much larger and has less dependencies on others.
+
+and, it's much more peer to peer.
+I guess that's what I'd propose?
+your only interactions with others are when you're peer to peer;
+you don't have intermediation.
+
+but, like.
+I call it "centralized" but perhaps that's the wrong viewpoint.
+
+it's that there's many centers,
+and much more functionality is under individual control.
+
+right, where there would previously be an intermediary,
+any such interactions are now internalized.
+
+so, for each individual,
+all functionality is centralized rather than handled by a service;
+interactions between individuals happen directly rather than going through intermediating services.
+(wherever possible)
+
+hmm maybe you could do markets with DNS somehow?
+
+
+move more functionality to the individual/user
+user is a better word
+move more functionality to the user...
+
+okay... so sure, this is a whole philosophy of system design which is counter to SOA.
+and it's basically a user-empowering philosophy, an open source/free software philosophy,
+which is opposed to the notion of these services you can't run...
+
+I mean it comes down to libraries vs services I guess.
+
+| pure/re-entrant functions | stateful objects |
+
+ya...
+
+| open source                                      | proprietary                                 |
+| libraries                                        | services                                    |
+| functions (pure from call to call)               | objects (stateful between calls)            |
+| reentrant functions (activation record per call) | non-reentrant functions (one shared record) |
+| distributed systems as composed components       | distributed systems as black box services   |
+| user runs code to implement features             | the service runs code to implement features |
+| users interact directly                          | users are intermediated by the service      |
+
+I mean...
+it comes down to the two design approaches for a distributed system component!
+
+And I think it's better to design components as libraries, not services!
+
+Design your distributed system components as libraries not services.
+
+um that is,
+design the daemons to be run by the users,
+not to be run by you.
+
+I guess in my libraries vs services article I suggest it's possible to write libraries that are internally stateful,
+and kept private from users.
+
+which is much more in what I'm calling "services" here...
+things which can't be constructed and run and inspected by the user.
+
+libraries and services is confusing terminology though. I need a better division...
+
+"Write code for someone else to run it"?
+
+well many developers already have sysadmin teams which run things for them
+
+"Write code to be run more than once"?
+
+as in, to run it not just by your sysadmin team? hmm..
+
+and, does it actually matter if it's open source? not really, right?
+
+it just matters that it can be run by people other than you...
+
+I guess, heh, I guess that I could use the term reentrant...
+but that seems like it wouldn't be super helpful...
+
+"Write your services to be reentrant" - who knows what that means?
+
+okay so it doesn't matter if it's open source - it's just that open source usually has this quality.
+but, actually! open source that doesn't come with scripts to run it!
+is not usable this way!
+
+Oho, how about:
+"Give your users freedom 0", heh.
+well, that's kind of opaque to anyone who doesn't know the FSD, so instead:
+"Give your users the ability to run the software you write"...?
+sure, I guess that's kind of right...
+well, and also, I'm saying:
+"Demand from your software-providers the ability to run the software they write"
+right, right, that's more of run.html style...
+
+I mean, it just boils down to, whether you anticipate people being able to run your software... or not.
+well, even if you don't anticipate it, they might still be able to.
+so maybe it should be, "Don't stop your users from running your software".
+(which more nicely aligns with the view of free software freedoms as something you naturally have until removed)
+that is, your users woud often like to be able to run the software you write, themselves.
+for reliability, control over changes, testing, etc etc.
+
+let them do it!
+
+(and, after a bit of talking about that...)
+and maybe, if you let them do it - you don't even need to run the software yourself as a service at all.
+if you make it easy/cheap enough to run your software, then past a certain point,
+you don't have to pay the cost of running it at all.
+
+
+
+okay, okay...
+I'm liking it, I'm liking it...
+"Don't stop your users from running your software"
+
+does this really fit into what I want to say with centralization.org though?
+what I'm saying there is...
+in a "decentralized" system,
+no-one else can run your system.
+so you have to pay the cost of running everything yourself!
+
+so...
+that's why a central authority is impossible.
+if you want to retain control over how your software is run,
+then you can't have a single-program system.
+
+right, right.
+so basically I'm saying,
+stop trying to control how your software is run.
+(again kind of like libraries vs services)
+
+and I'd need to reword integration.html a bit to link to that,
+but it should be fine!
+
+and I can link to run.html when I say something like,
+"and you should demand, for your own dependencies, that you're able to run them"
+
+and I can link to libraries vs services maybe... or repeat the stuff from there...
+
+(but what about the cost of providing these APIs? ummm)
+
+maybe,
+title: Let your users run your software
+title: Let your users run the software you write
+
+nah I like the negative action more
+
+title: Don't stop your users from running your software
+title: Don't stop users from running your software
+
+no "your" in users... might be better.
+
+ya okay...
+** points
+*** freedom 0 of the FSD
+*** users want reliability
+*** users want control over change
+*** users want to test
+*** avoid cost of running
+you can be incorporated into a single-program system, too
+*** new features happen when the user wants them
+    they'll be out of support, but tell them to f off if they aren't up to date.
+*** users interact directly with other users instead of you intermediating
+    saving on... various things?
+
+    a different way to phrase this is,
+    avoid building features on the assumption that,
+    you know everything about how your users interact with the service.
+
+    they might use it without your knowledge!
+    they might interact with each other off-platform, and that should be fine!
+    they might interact with each other on a copy of your software that they hosted themselves,
+    and that should be fine!
+*** analogies
+are the analogies good? will it be helpful?
+
+well, we can say things directly.
+*** concern: can I fund development if I do this?
+sacrificing centralized features?
+
+allowing users to run it themselves?
+
+I'm not saying what's the best way to run a consumer startup.
+
+I'm just saying what the best technical approach is.
+
+If you're selling to consumers, maybe your startup can't be funded in this way.
+But if you're operating inside a company,
+you don't have that concern.
+If you're working out of altruism, or funded as open source,
+you don't have that concern.
+
+This doesn't require open source - but open source requires this.
+** hmm larger point
+I actually guess I don't really care about whether you're doing things in-process or out-of-process,
+as long as you can run it.
+
+I think in-process, in-language, is cooler.
+but it's not a free software issue, I guess.
+
+so, like, maybe this obsoletes libraries vs services.
+
+I guess I could have an article,
+"write daemons as libraries, not services".
+which emphasizes that, you put it under the user's control.
+
+
+yeah, I should refactor the two points.
+
+one article about (what I think of as) "libraries" vs "services" ("reentrant functions" vs "stateful objects"),
+and another article about,
+"in-language typed interfaces vs out-of-language interprocess interfaces".
+** better term for libraries vs services
+services... are...
+things which are black boxes,
+where you don't have freedom 0,
+you can't run them yourself.
+
+
+what's some good, unambiguous terminology for "software which gives you freedom 0" 
+vs "software which does not give you freedom 0"?
+(freedom 0 being the freedom to run the software as you wish, for any purpose;
+as defined in the FSD https://www.gnu.org/philosophy/free-sw.en.html#four-freedoms )
+
+I guess I could just say...
+
+"write software, not services"
+"provide software, not services"
+"implement software, not services"
+
+I like "software" vs "services", actually.
+that's pretty clear.
+
+The difference between "software" and "services" is whether the user can run it themselves.
+You should prefer to write "software" rather than "services".
+
+um, that's a bit strong... hmm...
+they'll say like, "uh I can't make any money that way!!"
+
+I'm just saying, uh.
+it's technically superior...
+and also...
+you can also run it as a service,
+you should just allow users to run the software too...
+
+
+okay, this is fine though.
+** plan
+one article about "software" vs "services",
+and another article about,
+"in-language typed interfaces vs out-of-language interprocess interfaces".
+
+
+libraries is a nicer word though because it's clear it's for developer usage. hmm...
+
+okay maybe I just need to expand and change the library vs services thing.
+
+nah...
+I need a terminology that's more... developer-focused... than "software vs services".
+because that sounds like it's focused on end users,
+and while I do believe this should be extended to end users,
+that's not where I want to start.
+** 
+Write software to be run, not [used as a service?]
+** disintermediation
+disintermediation is really a core thing for me
+** point: dynamic linking prevented!
+   if you give users control over deployment,
+   you can't update it without their knowledge.
+** point: lower maintenance costs (everything in services.html)
+** actually this is related to freedist
+I guess this kind of comes down to, like, free software issues of,
+why is freedom 0 important?
+
+I assumed in freedist that giving the ability to run the system will result in better software;
+why?
+
+this is my change to answer that.
+
+("don't stop them" applies too, because, it's not just "open the service itself",
+it's, don't stop them from running the same scripts as you to deploy the system, etc.)
+
+okay so...
+from a software freedom perspective, why do I think it's better to be able to run it?
+well, uh, if I can't run it I don't have any incentive to improve it!
+(okay, that's one point..)
+well, don't I have an incentive to improve it even if I'm using it as a service?
+
+well, much less incentive, for the reasons in exitvoice.html...
+
+okay, so, this is actually basically the same thing as,
+"You need to be able to run your system"
+
+right? they're both reasons why you should be able to run the system.
+
+one is kind of from the user perspective,
+the other from the developer perspective... or I could say that, anyway...
+
+heh, "you need to be able to run your system" is from the dev perspective of "your system",
+but the user perpsective for the system's dependencies.
+
+so I guess, by transitivity (or something? by Rawlsian veil of ignorance...),
+since your system is one that others depend on...
+you need to provide that ability to others.
+
+ok, so they both make sense for that article.
+okay, so really I should just include something about this in there...
+and I can say that,
+"if you use a service which doesn't provide this ability - perhaps a proprietary one 
+- well, then how are you running your system in production?
+there is no service that can't be run.
+just do the same thing you do in production, possibly on a smaller scale.
+if that's a headache, well, that's one of the problems caused by using proprietary services."
+
+I say that ^ right after saying "and you need to provide this ability to your users too".
+
+Libraries vs services will now... No longer exist?
+It's split into "signatures vs schemas" and "you need to be able to run".
+hm, well, maybe. let's just keep working on run.html.
+
+wait okay I had a short one-paragraph idea here last night...
+
+first sentence, something like,
+** nice draft
+"If you need to run your system you might be concerned about your deps"
+"your deps also need to be able run their system!"
+they shouldn't reserve that ability for themselves.
+and likewise, you shouldn't reserve this ability for yourself:
+you should pass it down to your own uses.
+
+of course, they might not give you that ability;
+they might be proprietary services.
+In which case, your task is harder,
+but you still need to be able to run your system.
+Ultimately you can do the same thing as in prod.
+If that's a headache, well, that's one of the problems caused by using proprietary services.
+** cost of creating this ability?
+should I mention it?
+
+hey and many of my other points are actually already incorporated here!
+like the advantages in stable development.
+
+just from a more useful and persuasive perspective!
+
+I can maybe say, no need to provide stability guarantees...
+since they'll be running a specific version at any one time anyway...
+and they'll be in control of the upgrades...
+they'll be able to pick and choose when to update.
+
+** other things to mention, maybe
+*** libraries are easier to run
+Of course, this all becomes much easier if your system is mostly composed of libraries,
+rather than separately-deployed processes and servers.
+*** DONE mention the application of "run your system" to control dependency upgrades?
+right now I'm not mentioning it... hmm...
+
+maybe I should bring it up explicitly,
+that when you're running everything,
+you can upgrade just one dependency and see how that changes things. yeah...
+
+i mean, no, it's obvious and known already, really...
+I think that's relatively clear...
+**** users want reliability
+**** users want control over change
+**** users want to test
+*** save costs on running/maintaining the system/service?
+*** DONE concern: can I fund development if I do this?
+hey, let's not even mention proprietary services.
+
+let's just say, pass the ability down to your users,
+as you get it from the code you use.
+
+the golden rule implications are clear.
+*** libraries instead of service for admin costs?
+so... how can we include this?
+
+we can say, like...
+
+by running our system,
+we can decouple ourselves from the requirements to upgrade created by upstream.
+interactions with other systems that might break, are gone!
+
+yeah, because this whole article is completely from the user's point of view.
+
+so we'll include that from the user's point of view,
+and briefly allude to the benefits from the dev's point of view.
+
+like (dev's point of view):
+providing them the ability to run stuff avoids sharing state and resources between users,
+which removes many upgrade and performance concerns.
+
+In this way you can also avoid worrying about providing QA instances,
+or about keeping old interfaces up for slow-to-upgrade users.
+
+yes, perfect.
+** (conceptual) draft 2
+When running your system, it can seem tricky to run your dependencies,
+especially if they're mostly services rather than libraries.
+But your dependencies have the same goal:
+They also need to be able to run their system!
+They shouldn't reserve that ability for themselves;
+they should pass it down onto you, the user of their system.
+This is easier if they're providing a library.
+And likewise, you shouldn't reserve the ability to run your system for yourself;
+you should pass it down to your own users,
+so that they can run their own system,
+without relying on you to provide QA instances,
+or keep old interfaces running when they're slow to upgrade.
+** hmm
+yeah this line in libraries vs services...
+
+  #+begin_quote
+  But if you didn't have the service in the first place - if there was only the library,
+  containing all the functions,
+  doing whatever the service was supposed to do in the first place -
+  you wouldn't have this problem.
+  Users who don't upgrade would suffer whatever problem exists in the initial version of the library,
+  and everyone else would be fine.
+  #+end_quote
+
+that ain't it chief! I think it ain't anyway.
+
+because, okay, sure, but better still:
+just let the user run the service themselves!
+then they don't have to upgrade.
+** does this replace the centralization article too?
+okay so, how does stable APIs in a distributed system weigh in here?
+
+well, if the user can run it themselves...
+you don't need stable APIs.
+
+that's the crux, I think.
+well, you do *benefit* from stable APIs.
+but they aren't a hard requirement.
+
+well, especially because,
+with open source/a single repo you can do large-scale refactorings of APIs..
+by changing your dependents...
+
+(like in Linux, is what I mean)
+
+this is kind of a matter of freedoms 1-3, not 0.
+
+but 0 is required I guess because if you can just change the thing,
+but not pick which version you're running...
+it doesn't work... I guess...
+
+
+well it's kind of like a fork or... like basing yourself on an upstream...
+if you're not in a single repo then you can't change the code elsewhere.
+
+
+so it's like:
+oh no my upstream changed,
+now to upgrade I need to rebase and resolve conflicts:
+same thing as when I have to change based on APIs.
+
+so... I guess...
+
+I mean, I guess you can only remove stable APIs when the "can I run you" relationship goes both ways.
+
+if I can run my dependencies, okay sure, that's fine, but I still get upset when their APIs change,
+and there's nothing I can do about that except beg them to be more stable.
+(well, I can make changes upstream, and not upgrade, and fork, and all that...)
+
+whereas if they also can run *me*...
+
+okay. so REALLY what I'm against here,
+is stable APIs.
+
+that's the whole point of this centralization article.
+OKAY!
+so *that's* what I need to figure out my solution to.
+
+oh. oh!
+is it just the two directions?
+
+1. can I run my dependencies?
+2. can I run my dependents?
+
+and by centralization, I'm really saying:
+get rid of your dependents, or rather,
+internalize your dependents, as much as possible.
+
+I mean, the two directions are false, though.
+
+there's no fundamental difference between which direction the API is oriented.
+
+either way, it's running people who interact with you.
+
+so if you don't maintain a stable "API calling pattern" interface,
+why should you maintain a stable API interface?
+
+ummm it's kind of a separate issue from running your system, though?
+is it?
+
+okay.
+so the question is, stable APIs.
+
+things aren't stable. bugs can happen unexpectedly.
+
+even if you have an interface, it's not enough.
+
+that's why you need to run the whole system.
+
+and if you can run the whole system, you can also relax even further,
+and abandon the conceit of stability entirely.
+
+(mutually distrustful...
+you don't have to be mutually distrustful to break API contracts with each other)
+
+(in other words,
+even if you are mutually trustful,
+that doesn't automatically mean you can abandon stable APIs)
+
+abandoning stable APIs requires you to be able to run, and modify,
+the whole system.
+
+(like Linux)
+
+okay...
+so yeah, I should say something about how this lets you worry less about maintaining API stability,
+which is impossible anyway
+(link to https://www.hyrumslaw.com/ )
+
+(is that the real spirit of the monorepo? lol)
+** draft
+Being able to run the system lets you worry less about maintaining stable interfaces;
+which is [[https://www.hyrumslaw.com/][impossible]] anyway.
+When you change an interface,
+you can run all its users to make sure they still work.
+If a user breaks, you can notify them to fix their code,
+and roll it out.
+(or fix it yourself, if you're in a monorepo? except that's not fixing what's in prod)
+
+(um)
+OK so it's more like,
+that the users are running your system...
+
+instead of you running it and providing it as a service...
+
+well this gets back to single-program systems.
+
+they're all, "you can't atomically upgrade! you can't have types! blah blah!"
+
+okay... but i want to tho...
+
+so what's required to do so?
+
+so with our incremental upgrade thing, hm.
+how will it work?
+
+I guess it comes down to,
+whether we can upgrade the whole system atomically or not.
+which is *related* to whether users are running the whole system,
+but not necessarily exactly the same...
+
+but, right, so,
+we don't need to upgrade the whole system atomically to abandon stable APIs;
+we can have incremental stuff, it's no problem.
+
+actually yeah I do think it comes down to whether the user is running it or not.
+
+if they are, it makes breaking changes less painful
+
+like, libraries don't really have to worry about breaking changes,
+because they're always controlled in their rollout by the user.
+
+yeah. so it's just whether it's run by the user.
+** draft 2
+Plus, if your users are running the system,
+you c
+
+If your users run the whole system in production rather than depend on you,
+then, ultimately, you don't need to maintain stable interfaces for your users.
+
+why? stable interfaces are still important and useful though!
+what's the thing we're losing here?
+I guess it's just that we no longer can break them unexpectedly.
+
+so...
+if...
+
+we ultimately only have us,
+the users of our rsystem,
+controlling when changes are deployed to production...
+
+then it benefits the developers of our dependencies,
+because now... they aren't responsible for updating or running their components in the system.
+
+aha if we're not running the system,
+then, here's the bad thing:
+excessive stability will become the rule;
+implementations and interfaces will tend to be frozen,
+because there's no way to check if they'll break things outside of production.
+
+and, also... at the same time...
+(how am I badly affected as a user? if I'm slow to upgrade?)
+
+(oh, I guess it's both sides that will be problems!
+users will be slow to upgrade, and developers will be slow to change!)
+
+right so I'll frame this as *a bad thing* that happens if you can't run your system.
+** draft 3
+Users of components will be reluctant to update to new versions;
+developers of components will be reluctant to make changes.
+The system as a whole will become ossified,
+with excessive emphasis on the maintenance of "stable interfaces"
+instead of large-scale improvements to the system as a whole.
+
+ and excessively "stable".
+
+perfect.
+** draft 3 of "running your dependencies"
+When running your system, it can seem tricky to run your dependencies,
+especially if they're mostly services rather than libraries.
+Fortunatly your dependencies have the same goal:
+They also need to be able to run their system!
+They shouldn't reserve that ability for themselves;
+they should pass it down onto you, the user of their system.
+Likewise, you shouldn't reserve the ability to run your system for yourself;
+you should pass it down to your own users,
+so that they can run their system, which is a superset of yours.
+
+
+okay so...
+
+I just want to express that...
+
+
+The services you depend on also need to be able to run their system;
+so do the services that depend on you.
+You should expect your dependencies to provide the ability to run their subset of the system,
+and provide the ability to run your subset of the system to those who depend on you.
+You don't need to provide high-quality support,
+just don't keep this ability to yourself.
+
+
+
+The services you depend on also need to be able to run their system;
+so do the services that depend on you.
+
+Tie the knot
+
+
+they also need to be able to run their system.
+
+
+They shouldn't reserve that ability for themselves;
+they should pass it down to you
+
+
+And you shouldn't reserve the ability to run your system for yourself;
+you should pass it to your users,
+so they can run their own entire system 
+
+um what's the point of the refactoring?
+I think this current wording is fine.
+
+yeah okay, perfect.
+** final thing
+okay I feel like I need a thing saying,
+"hey, now that you've done this during development...
+do it in prod, too!"
+
+or... something.
+
+I just need more of a dig! that says, hey,
+let people run your system
+
+aha yes perfect
+** another point
+  But this assumes that slow-to-upgrade users can have negative effects on everyone else.
+  If one user can't have a negative impact on other users,
+  then you don't care if some users are slow to upgrade;
+  they're only hurting themselves.
+
+  You can prevent users from negatively impacting other users by not sharing state or resources between users;
+  in other words, by avoiding services.
+
+
+okay, so how can I incorporate this? hmm.
+
+well, maybe I can say...
+
+if you can't run your system, then...
+
+slow-to-upgrade users will force you to be slow! lol...
+
+okay maybe I can just say like... if you can't run your system,
+you can't run old versions for people who don't wanna upgrade. I guess...
+*** slow to upgrade users
+okay. so.
+if I have a slow to upgrade user,
+they can hold up everything. (kinda?)
+
+my answer to that is,
+let the slow-to-upgrade user just run their own copy of the system.
+
+okay I can just insert that.
+*** 
+  Software which is provided as a service
+  has constant administration costs which are paid by the service provider.
+  
+  By avoiding those costs,
+  software can afford to contain more functionality,
+  which makes both the developer and the user better off.
+
+*** DONE also, direct access to resources
+  the... direct access to resources thing.
+
+  how does that fit in?
+
+actually...
+
+that might be more suited to signatures vs schemas
+
+
+well I guess the core is,
+process supervision and orchestration and stuff.
+
+actually... yeah, maybe I'm making too general of a point.
+
+I should just say, like, process supervisors and configuration management and orchestration,
+rather than saying you can always access primitives directly.
+
+yeah, okay, perfect.
+
+
+wait but what about bump and network protocols?
+
+well... I do think they should be direct...
+
+but I guess sharing might be difficult...
+
+
+hm!
+maybe my point should be extracted elsewhere:
+it's just,
+hey! think about just giving users direct access to the thing!
+
+eh well I put it in schemas.html
+
