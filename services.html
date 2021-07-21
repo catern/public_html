@@ -1,22 +1,26 @@
 <html>
   <head>
-<title>Write libraries instead of services, where possible</title>
+<title>Write tools instead of services, where possible</title>
 </head>
 <body>
-<h1>Write libraries instead of services, where possible</h1>
+<h1>Write tools instead of services, where possible</h1>
   A service has constant administration costs which are paid by the service provider.
-  A properly designed library instead moves these costs to the users of the library.
+  A tool, run by the user or incorporated into the user's code,
+  instead moves these costs to the users of the tool.
 <p>
   For any developer with limited resources,
   <!-- obviously everyone has limited resources, but I feel like this makes the sentence scan better, shrug -->
-  this means a library (where viable) can provide the same functionality to the user,
+  this means a tool (where viable) can provide the same functionality to the user,
   at a lower cost to the developer than a service.
 <p>
-  Let's be clear about the meaning of "library" and "service" here;
-  a "library"
+  By tool, I mean any software that can be <a href="./run.html">run by the user</a>:
+  libraries, servers, command line utilities, and others.
+  By service, I mean any software which the user can't run on their own;
+  anything which depends (usually through an API)
+  on a service provider for its functionality.
 <p>
   Usually, the centralization of these administration costs is cited as a benefit of services.
-  People say, "services are easy because you can upgrade them centrally,
+  People say, "services are easy to write because you can upgrade them centrally,
   so you can avoid slow-to-upgrade users making everyone's lives worse."
 <p>
   But this assumes that slow-to-upgrade users can have negative effects on everyone else.
@@ -25,18 +29,17 @@
   they're only hurting themselves.
 <p>
   You can prevent users from negatively impacting other users by not sharing state or resources between users;
-  in other words, let the users <a href="<a href="./run.html">">run their own copy of the service</a>.
+  in other words, let users run the software themselves, by writing tools instead of services.
 <p>
-  One easy way to let the user run the service themselves is to write a library instead of a service.
-  can be made even easier by avoiding services entirely:
-  just write a library instead.
-  This is more possible than you might think,
-  because <a href="./schemas.html">libraries are much more capable</a>
-  than many people think.
+  One easy way to write a tool rather than a service,
+  is to write a library rather than a server.
+  While a server can be <a href="./run.html">run by users</a> just as well,
+  libraries are typically easier to use and run.
+  <a href="./schemas.html">Libraries are much more capable</a> than many people think,
+  so this is possible in a wide variety of scenarios.
 <p>
-By avoiding the maintenance and upgrade costs of a service,
-a library can afford to contain more functionality.
-That's good for both the developer and the user.
-
+  By avoiding the maintenance and upgrade costs of a service,
+  a tool can afford to contain more functionality.
+  That's good for both the developer and the user.
 </body>
 </html>
