@@ -461,7 +461,7 @@ With those techniques,
 and with the open source libraries [[https://github.com/catern/rsyscall][rsyscall]] and [[https://trio.readthedocs.io/][trio]],
 anyone can write a single-program system.
 
-If you're interested in writing such systems at $DAYJOB, we're hiring; [[http://catern.com/][email and/or PM me]].
+If you're interested in working on such systems at $DAYJOB, we're hiring; [[http://catern.com/][email and/or PM me]].
 * notes :noexport:
 ok so we want the big example section still,
 with the concrete code... hmmm....
@@ -1565,3 +1565,26 @@ One important thing is that regular commands are valid accelerated subprocesses.
 We rely on them to function in a distributed manner quickly.
 
 using the nix-store binary for deployment is an example here
+** things single-program systems already gives you/has for free (fuzzy)
+- being able to run your system gives you the ability to avoid all the bad things listed in run.html
+- usertests.html
+- being self-contained means you can run anywhere without other teams breaking you, and without the need for further integration
+  (!! that's a key point! the integration team will handle integrating, and remove the need for teams to do further integration work,
+  with new daemons...)
+  (that is - you don't need to port a daemon to run in a new place, and you can't be broken by service changse)
+** enhancements/advantages/things one can build with single-program systems (fuzzy)
+- linter
+- a single coding style for diverse services
+- typed interfaces for executables to make service-starting functions easier to write/generated,
+  possibly incorporated with standard libraries;
+  possibly you write the typed service-starting function interface and it generates your executable's main...
+  but no, going from the executable first is more Flexible...
+  but also harder to modify...
+- remote execution of functions;
+  maybe you just call into libraries from threads,
+  perfect embrace of no-configuration, only code.
+  (but what does that give you? well, see config.html)
+- automatic post selection and load balancing
+- service starting interface search
+- maybe sandboxing instead of linting
+- one box acting as init for other boxes (bringing them up and controlling them, fully)
