@@ -211,3 +211,10 @@ or whether they contact the service.
 
 (kind of like pure/re-entrant functions vs stateful objects?)
 (modern functions get their own stack frame, old ones and objects don't...)
+
+* re-evaluating
+okay... so...
+
+basically I can say "if you can run your system you don't need a stable API"
+
+which is really what I want to say.
