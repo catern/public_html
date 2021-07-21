@@ -1,0 +1,71 @@
+<html>
+  <head>
+<meta charset="utf-8">
+<title>Write modules, not microkernels</title>
+</head>
+<body>
+<h1>Write modules, not microkernels</h1>
+A microkernel separates different components into different address spaces,
+communicating via RPC,
+to modularize and isolate components written in memory-unsafe C.
+However, when writing an operating system in a modern memory-safe language,
+there is no point in putting components in different address spaces:
+a memory-safe programming language can modularize and isolate components just as well in a single address space.
+<p>
+Memory-safety means it doesn't matter whether you're running in a separate address space or not;
+you're equally isolated either way.
+To isolate two components,
+all you need to do is... not give them a reference to each other.
+Memory-safety means no matter what they do, they can't interfere with each other's memory.
+<p>
+Of course, operating system components might be able to interfere with each other through, perhaps,
+access to privileged instructions or access to hardware;
+but in a memory-safe language,
+constraining access to privileged instructions or hardware
+is just a matter of putting it behind a suitably safe interface.
+It doesn't matter if that interface is implemented
+with direct function calls
+or with cross-address-space RPCs,
+they're both equally safe.
+<p>
+A microkernel (and its RPC framework) is ultimately a poor implementation of a module system;
+that is, a system for breaking up a program into components and then allowing them to communicate.
+But any modern programming language already has a high-quality module system,
+and those modules can communicate through the most powerful and efficient mechanism:
+Direct function calls.
+In the old days, with memory-unsafe C, language-based modularity wasn't safe,
+and microkernel-style address space isolation was our only option.
+But we have much better options today, with memory-safe languages.
+<p>
+One old argument in favor of microkernels was that they would allow for more customizability and modularity;
+that it was impossible for a monolithic kernel to be modular.
+These days, we have Linux, which is an extremely modular kernel,
+with thousands of modules which can be combined in many different arrangements.
+Far more modular, in practice, than any microkernel has ever been.
+<p>
+The only remaining "benefit" of a microkernel's approach to modularity
+is that you can distribute a microkernel module as a binary, without source code;
+a memory-safe language, on the other hand, requires access to the source code
+so that it can compile it to safe binary code.
+But, fortunately,
+we have a robust open source operating system already - Linux -
+so we don't need to make any compromises:
+We can reasonably requires that all (significant) modules be distributed as open source,
+because that's in fact what Linux already requires.
+<p>
+There's no advantage to the microkernel architecture,
+if you're writing your operating system in a memory-safe language.
+I found this quite surprising when I first heard it,
+but when I finally understood it,
+I also understood that it points the way towards far more advanced and powerful operating system designs.
+The microkernel architecture is a relic of the memory-unsafe past;
+the future is memory safety,
+and we should take full advantage of that.
+<p>
+(This article is deeply indebted to Faré's article on
+<a href="http://tunes.org/wiki/microkernel.html">microkernels</a>,
+which is where I first heard this idea.
+That article, unfortunately, is dense, difficult to understand and filled with unrelated ideas,
+so I'm writing this article to repeat just this idea, hopefully more clearly.)
+</body>
+</html>
