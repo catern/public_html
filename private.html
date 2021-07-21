@@ -30,13 +30,13 @@ or Car needs another way to define an interface that <em>will</em> take effect o
 That other way to define an interface which works for subclasses is the access modifiers:
 public, protected, and private.
 By marking members as private,
-Car can force subclasses to only use a specific interface to interact with Car,
-an interface composed of exactly and only those members which are public and protected.
+Car can do something like define an interface which affects subclasses;
+this pseudo-interface contains exactly and only those members of Car which are public and protected.
 <p>
 But this is absurd:
 Why do we have two ways to define an interface?
 <p>
-Wouldn't it be better for Car to be able to force subclasses to only use Car through a specific interface?
+Wouldn't it be better for Car to be able to force subclasses to only use Car through a specific (normal) interface?
 There'd be no loss in functionality;
 Car could still have separate interfaces for instantiators and subclasses.
 We'd just define those interfaces with the same mechanism,
