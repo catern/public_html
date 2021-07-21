@@ -1,0 +1,99 @@
+<html>
+  <head>
+<title>Write (module) signatures, not (protocol) schemas</title>
+</head>
+<body>
+<h1>Write (module) signatures, not (protocol) schemas</h1>
+It's nice to write in-language libraries characterized by type signatures,
+rather than out-of-language servers characterized by protocol schemas (which generate a network protocol).
+You can express far more sophisticated abstractions with a type signature
+than you can with a protocol schema,
+without losing any functionality.
+<p>
+For example, you can pass a function pointer as an argument to a function, even in C.
+But almost no protocol schemas support first-class functions.
+In more advanced languages,
+you can pass objects, abstract data types, references to other libraries, and other things.
+You can return any of those things, too.
+You can't express any of that in protocol schemas;
+this makes many things far more complicated,
+by denying the use of simplifying abstractions.
+<p>
+Part of the issue is that (as far as I know) there's no good language-independent type system;
+the best we have is C.
+That in turn means that the highest level of abstraction reachable by language-independent libraries
+is that of C,
+which is only a little better than protocol schemas.
+A language-independent type system would be really useful...
+<p>
+Of course, many people believe that there are some features that they can only get by using out-of-language servers
+running as a separate process, possibly on a different host,
+necessitating the use of protocol schemas.
+In fact, anything an out-of-language server can do, a regular in-language library can do, too;
+so you don't need to give up on the more powerful option of type signatures.
+<ul>
+  <li>Libraries <b>can</b> maintain stable, backwards-compatible interfaces, both API and ABI.
+    <p>
+    Most people know how to do this at the API level.
+    For example, they know to not add new mandatory arguments to an existing function,
+    and instead to only add optional arguments with defaults.
+    Backwards compatibility can be a bit trickier at the ABI level,
+    but still possible,
+    especially in more advanced languages than C,
+    and in the many situations where ABI stability doesn't actually matter.
+    <p>
+    In fact, a library is strictly more powerful than a protocol schema in this regard:
+    If you really wanted to,
+    you could use a protocol schema directly to define the format of the data passed in and out of the library.
+  <li>Libraries <b>can</b> be updated without restarting the process using them.
+    <p>
+    This field of techniques is called
+    <a href="https://en.wikipedia.org/wiki/Dynamic_software_updating">dynamic software updating</a>.
+    These techniques are actually quite easy
+    if the library only does things that one could do over a protocol schema.
+    If the library uses more than that bare minimum of features,
+    dynamic software updating becomes harder, but still possible.
+    <p>
+    One interesting use of this ability is to implement
+    extremely high-performance, but backwards-incompatible,
+    <a href="http://catern.com/mobilelibs.html">wire protocols</a>.
+  <li>Libraries <b>can</b> run at a different privilege level from the rest of the program.
+    <p>
+    For example:
+    <ul>
+      <li>Javascript running in a browser can access functionality provided by the browser as a library;
+        the browser and the Javascript are running at different privilege levels.
+      <li>An object in a type-safe language can contain
+        <a href="https://en.wikipedia.org/wiki/Object-capability_model">capabilities</a>
+        for resources which it uses to implement its methods,
+        without those capabilities being available to the code calling those methods.
+      <li>Java-style
+        <a href="https://cs.stackexchange.com/questions/796/how-does-stack-inspection-work">stack inspection</a>
+        can restrict user or library code to deny access at runtime to unauthorized methods.
+        <!-- good paper about stack inspection: 
+             https://www.usenix.org/legacy/publications/library/proceedings/usits97/full_papers/gong/gong.pdf -->
+      <li><a href="https://en.wikipedia.org/wiki/Capability-based_addressing">Capability-safe architectures</a>
+        such as
+        <a href="https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/">CHERI</a>
+        prevent code from accessing memory that it doesn't have an explicit capability for.
+      <li><a href="https://research.google/pubs/pub35649/">Software fault isolation</a>
+        can allow
+        <a href="http://www.cs.unc.edu/~dewan/242/f96/notes/prot/node11.html">Multics-style "call gates"</a>,
+        where a library has a different privilege level from other code.
+    </ul>
+    <p>
+  <li>Libraries <b>can</b> run in parallel, using multiple cores.
+    <p>
+    Obviously: You can run library functions on multiple threads.
+  <li>Libraries <b>can</b> access resources on other hosts.
+    <p>
+    For example, there's no reason a library can't spin up a stub on an other host,
+    and use that to access resources on other hosts.
+    I even have a <a href="http://catern.com/constructive.html">constructive proof</a>
+    of this: <a href="https://github.com/catern/rsyscall">rsyscall</a>.
+    <p>
+    There are some other related examples <a href="http://catern.com/list_singledist.html">here</a>.
+  <!-- How would I put a library in a separate fault domain? Orthogonal... persistence? Um... same things as privilege level stuff? -->
+</ul>
+</body>
+</html>
