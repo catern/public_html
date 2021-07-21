@@ -86,4 +86,128 @@ a bash pipeline is centralized! for example...
 
 Centralization is not (always) the enemy
 
+hmmmm
 
+fight centralization with centralization...
+
+like...
+
+the reaction to a totalitarian regime is not complete market regime,
+it's allowing a market...
+
+i mean, we already have that... the internet.
+my view is that the issue is that this centralization-power is reserved to the big companies
+
+smaller things try to be decentralizd or something...
+without supporting a notion where it's centralization.
+
+
+okay, so, really REALLY the point here is,
+Centralization and decentralization come in layers.
+
+like the internet contains centralized nodes.
+
+well it's really just two-level, mostly...
+
+a decentralized system contains centralized nodes and that's fine...
+I guess, what we want to do is just,
+increase the amount of stuff which can happen in the decentralized world,
+by decreasing transaction costs.
+
+and one approach to that could be making an overlay, I guess... um...
+(like urbit?)
+
+(what does this map to in economics? corporations/agents making contracts,
+to substitute a new lower-transaction-cost set of laws?)
+
+basically:
+You don't need to make everything decentralized everywhere.
+Centralization *with APIs* is fine...
+um, right? I guess?
+
+I mean the issue is having *technical* APIs for moving stuff around,
+so you aren't restricted by their, restrictions on access and interaction with Facebook or whatever...
+
+I mean, we already have all the APIs we need...
+we just had centralization cuz... it's too hard for normal people to run things using those APIs, I think...
+(I mean, maybe there's some Facebook-centralized features which are nice or something,
+but, dubious that those can't be done on user's local nodes)
+
+so it's like... user-centralization vs service-centralization.
+
+distributed vs decentralized, maybe? my own idiosyncratic definition?
+
+it's like "concurrent" vs "parallel"!!!!
+parallel == distributed
+concurrent == decentralized
+
+wait okay yeah so
+
+parallel and distributed are obviously related.
+they both mean, "running on multiple nodes".
+
+concurrent and decentralized...
+
+well distributed doesn't mean decentralized:
+you can have each node/subsystem talk to each other and come to an agreement (decentralized),
+or you can centrally control them (centralized)
+
+and parallel doesn't mean concurrent:
+you can have a parallel program which is concurrent (so each thread interacts with each other),
+or you can specify a parallel program centrally, non-concurrent 
+(saying... run this here and run that there)... (ala rsyscall)
+
+
+but, one issue:
+you can have concurrency without parallelism, too!
+can you have a decentralized system without a distributed system?
+think about it...
+
+i mean concurrency comes into play only because the world is concurrent;
+there's multiple nodes talking to me, UIs, etc...
+
+AHA!
+
+decentralized means: mutually distrustful.
+
+and you could say it's, "multiple authorities"
+but ultimately it boils down to:
+the other side might hack us and we have no way to prevent that.
+they have incentives to hack and no reason not to.
+
+with a single authority you can prevent that with policy and organizations.
+(and also prevent them from accidentally breaking you, etc. hack includes "accidentally hack" through laziness)
+
+
+and so there's a cube, kind of.
+
+concurrenct <-> synchronous
+centralized <-> decentralized
+parallel    <-> single-threaded
+
+except that last one doesn't matter except in terms of cost
+
+> aha! I figured it out!!
+> okay I'm wrong, decentralized and concurrent don't mean the same thing
+> decentralized just means: "mutually distrustful". or, "no single authority". 
+or, it boils down to, "there's no incentive for them to not hack us or break us,
+and plenty of incentive for them *to* hack or break us"
+> and, obviously, this is an independent dimension from concurrent
+> so you could have concurrent/centralized or synchronous/centralized - those are obvious and well known
+> or you could have synchronous/decentralized -
+that's when you're calling into sandboxed libraries or being called by sandboxed libraries,
+interacting with distrusted objects, etc
+> or concurrent/decentralized - the usual interpretation
+
+
+
+byzantine... failure...
+irrelevant... except when decentralized...
+
+
+* library-style vs service-style!
+i.e. whether your users run a copy of you,
+or whether they contact the service.
+
+(kind of like pure/re-entrant functions vs stateful objects?)
+(modern functions get their own stack frame, old ones and objects don't...)
