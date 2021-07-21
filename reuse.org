@@ -269,21 +269,7 @@ that's not always necessarily good.
 sometimes it's preferable to build a whole new interface!
 
 maybe I should be concrete...
-** post
-title: Don't just reuse code, reuse complexity
-
-The real advantage of "code reuse" is not faster development.
-It's saving your complexity budget.
-If you can reuse an abstraction for a new purpose,
-you don't have to pay the complexity budget of creating a new abstraction.
-
-If you've already spent some of your complexity budget on some interface or abstraction,
-keep using it, as much as you can.
-
-Again: use the abstractions you have already spent your complexity budget on.
-It's costly to 
-
-
+** basic-sounding paragraphs
 # these two paragraphs are very basic stuff.
 # maybe I shouldn't write these...
 # I want to focus more on, how you should reuse the hard task of building an abstraction that works!
@@ -302,15 +288,84 @@ the change you might make to the interface may seem entirely unrelated to your g
 it may be the last required feature to perform some task entirely outside the interface.
 And adding that one small feature to the interface may be less complex
 than achieving your entire goal inside the interface.
+** better framing
+If you can express a problem in terms of an existing abstraction,
+you'll save a lot of effort.
+you might write more code,
+but the code will be less complex,
+because you'll be reusing the complexity that went into the existing abstraction.
 
-Two of the biggest and most complex abstractions you have available
-are the programming language you're using,
-and the operating system you're running on.
+two of the most powerful existing abstractions
+are the programming language and the operating system.
+** use programming languages/OS as example
+nice, nice idea, that can be my example, yes.
+** stray paragraphs
+*** 
 If you can reduce your problem to an interaction purely in terms of these existing abstractions,
 you'll save a great deal of complexity.
 Even if you add a small additional abstraction
 on top of what's already available in the platform,
 you'll save complexity.
+** post
+title: Don't just reuse code, reuse complexity
+
+# clumsy phrasing?
+The real advantage of "code reuse" is not writing less code.
+It's saving your complexity budget.
+If you can reuse an abstraction for a new purpose,
+you don't have to pay the complexity budget of creating a new abstraction.
+
+If you can express a problem in terms of an existing abstraction,
+you'll save a lot of effort.
+You might write more code,
+but the code will be less complex,
+because you'll be reusing the complexity that went into the existing abstraction.
+# note about adding additional abstractions/complexity on top?
+# incrementally instead of building something totally new?
+# I can put that afterwards, I guess?
+
+You might be tempted to build a new abstraction on top;
+or to discard the abstraction and modify the internals directly.
+Those are easy in the short term,
+but hard in the long term,
+because they increase the complexity of your system.
+If you can express something in terms of what's already supported,
+you'll win out.
+
+There's an issue sometimes called "abstraction inversion".
+Abstraction inversion is what happens when you build a new abstraction
+on top of an existing abstraction,
+but your new abstraction is less powerful than the existing one.
+Then you've added more complexity to the system.
+That complexity might be worth it - if you're going to use your new abstraction a lot.
+You can't know that up front.
+By using the existing APIs,
+you're saving your complexity budget until you really need it.
+
+for the benefit of 
+instead of reusing
+
+but the best way is to perform the twisty thinking require
+is to 
+or to extend the 
+The thinking required 
+For example,
+if an interface supports a certain operation,
+
+Two of the biggest and most complex abstractions you have available
+are the general-purpose programming language you're writing,
+and the operating system you're running on.
+You can't get rid of them;
+so, instead, use them!
+
+Many higher-level abstractions have been created on top or alongside these existing abstractions.
+But these don't remove the underlying complexity;
+they just add more,
+to make certain things easier and make other things harder.
+
+There are many ways to reuse the abstractions
+
+
 
 In particular, many abstractions have been created for modularity outside a programming language,
 But these are sacrificing an opportunity to reuse complexity:
@@ -323,3 +378,476 @@ You may still need to change the interface to achieve your goal.
 you might be able to make a small change to the interface,
 and write most of the code outside the interface,
 rather than make a big change to the interface and 
+** argh
+it's really so simple what I want to express!
+
+I just want to say,
+use the abstractions you already have!
+
+um.
+is that what I want to say?
+
+okay, let's try again.
+
+I really just want to say:
+you have...
+
+
+okay and one of these things is like,
+keeping the abstraction close to what you already have.
+
+(libposdelta? was it successful? mmmm well...)
+
+
+use what you already have! come on! that's the core!
+
+Use the abstractions you already have.
+Don't write new abstractions.
+Don't write new abstractions.
+Don't write new abstractions.
+
+The reason you can get away with not writing new abstractions,
+the reason "you ain't gonna need it" is such good advice,
+the reason you should do the simplest thing that works,
+is because you're building on a tower of abstractions that already are high quality and have stood the test of time.
+
+When you make new components,
+make them within the abstractions that already exist.
+
+There's two very powerful and widespread abstractions:
+The general-purpose programming language you're writing in,
+and the operating system you're running on.
+
+You can pick between them based on your taste,
+and based on the problem area,
+but between them you've got a great deal of abstractive power.
+
+You might not know all the abstractions that your operating system and your programming language provide.
+Well, if you don't,
+you're even less likely to build something new when you decide to build a new abstraction.
+
+And there's a wealth of other abstractions available;
+many projects have come and gone,
+and they provide a rich collection of models for almost any problem.
+*** hm
+is this really the key though?
+
+people already know to use the abstractions they already have, and to not write new ones...
+
+I guess what I'm saying is, build things within those abstractions?
+the PL and OS have building blocks for making new abstractions;
+use them rather than starting from scratch.
+
+maybe I should have a stack of, like:
+your software has existing features - use them!
+you have a framework you're building in - use it!
+that uses libraries - use them!
+that runs on a programming language - use it!
+that runs on an OS - use it!
+
+there's lot of abstractions already,
+you can use them and solve your new problem within that framework,
+rather than by building something new.
+
+the parts of that stack which have stood the test of time are the lowest ones.
+those provide abstractions that are widespread and powerful.
+
+you should actually use their power of abstraction,
+rather than just treating them as a dumb platform that you build your own new thing on top of.
+
+but yeah...
+ummmm so, is it really the key?
+as people already know to reuse abstractions, etc.
+
+work *with* the abstractions, not against them!
+*** walking notes
+Maybe I'm just saying, code/abstraction reuse is easier than you think?
+
+The thing you want to do can be done with the abstractions you already have
+
+People systematically underuse the abstractions they already have
+
+There are more code reuse opportunities than you think
+
+Forget code reuse - spend more time on complexity reuse
+
+Or at least... The abstractions you have are more powerful than you think (but how can I know that?)
+
+Keep your abstractions small and orthogonal? Well a bazillion people have already said that...
+
+Like the CPU isolation thing...
+
+Just think harder about ways to do things without introducing new APIs and new complexity! Blah!
+
+But obviously that's a bit useless as advice.
+
+Maybe this is too general?
+I'm saying, use existing abstractions, but that's hard to sustain in general, so maybe I should focus on PL and OS?
+
+Like... What's the issue people had?
+
+I guess... It could be that they are always feeling like it's easier to make a new thing,
+than to modify something that exists? Or to use something that exists in a new way?
+
+Stop writing new software, use what you already have, for once!
+
+I mean, that's repeating myself.
+But basically, too much fear of changing existing abstractions and too much prioritization of making new things...
+
+You should think harder about reusing existing code...
+
+Well no, again! That is not the issue!
+
+That's part of it, but part of it is also just fear of existing stuff! Fear of changing it!
+
+So, maybe I can say don't fear existing code
+
+Don't fear existing code and existing abstractions - learn them!
+
+Use them! Change them, if necessary!
+
+Determine whether code and its abstractions are high quality or low quality
+
+(Old, widely used, open source) vs (new, rarely used, proprietary or local to one company)
+
+And the ones that are high quality, use them!
+
+Two such ones are the PL and OS
+
+Don't fear existing abstractions; use them!
+*** use exisitng code
+okay, I like this framing, sure.
+
+don't fear working with existing abstractions.
+
+boopy fears it because he doesn't understand it.
+many such cases!
+
+but okay,
+this doesn't explain PL.
+also kind of doesn't explain OS.
+
+OS, I could say is ignorance.
+but people do know PL...
+
+but, if OS is ignorance, it's ignorance of """design patterns""", not APIs (probably)
+well, it's partially ignorance of APIs.
+
+is it the same for PL?
+
+okay, so. why don't people learn that they can use PLs for config and surmount these issues?
+
+I guess, they give up too soon? and don't see how a few small additions make it work?
+
+so that's another frame:
+people give up too soon when working with existing abstractions
+
+and that means they are reusing less complexity.
+
+boopy says:
+it's easier and more fun to write new code than to understand old code.
+
+(or know how to change old code)
+
+but,
+it may be more complex in the long term!
+
+but, IMO, it's actually fun to understand (high quality) old code.
+
+and to reduce new features to it.
+
+that's why I do it! it's enjoyable!
+
+to reduce a problem to existing abstractions,
+dissolve it entirely to nothing,
+it's fun!
+
+it's a mental workout!
+
+now, the code archeaology stuff... that's boring, I guess.
+
+I mean, sometimes there isn't a good introduction to the theory of an abstraction.
+and you have to figure it out for yourself.
+
+but the core part? learning a new theory?
+and then reducing new work to those theories?
+
+that's fun!
+
+so I mean... programming as theory-building, sure,
+but also, programming as theory-reusing:
+using existing theories to make a new theory.
+
+yeah...
+an important part is to comprehend the theories of the existing code!
+
+there's so much reusable code out there,
+we don't need more,
+we just need to understand what's already available!
+
+programming as theory building is highly meaningful here, as always.
+https://pages.cs.wisc.edu/~remzi/Naur.pdf
+
+anyway. so.
+
+it's fun to understand the theory of existing code.
+it allows you to save lots of time.
+and also it's your job.
+
+"the difference between good programmers and bad programmers" to be dramatic.
+good programmers enjoy learning the theories behind some existing abstraction.
+bad programmers do not.
+
+the reason for this classification is that a programmer who does not enjoy learning theories,
+will not often do it.
+
+if they don't do it, they won't program using those theories.
+if they don't program with those theories, they'll make up new problem-specific theories,
+instead of something coherent.
+and that will exhaust the complexity budget.
+(and exhausting the complexity budget is bad)
+
+so maybe I should just say, "complexity-inducing programmers",
+and "not-complexity-inducing programmers".
+
+well, okay, there are other things too... like algorithmists??
+and... other people who are tolerant of wading through garbage...
+
+so maybe I shouldn't assert this is the dividing line between good and bad.
+
+anyway, so.
+
+don't fear existing abstractions...
+
+because it's actually fun to learn them
+
+thesis: "It is fun and useful to learn existing abstractions"
+
+ummmm well.
+I guess I can't say what's fun for you.
+but I think it's fun and useful,
+in part because it lets you push out a steady stream of surprisingly good ideas and "counterintuitive" takes.
+
+I mean, this is my "secret technique", really.
+if you learn this you will be like me.
+
+Stop being afraid of existing code, and learn it
+
+well, that's a bit weirdly stated.
+okay so let's see. can we push this any further?
+
+Learning an existing abstraction's theory... hmm...
+well ideally it has docs that explain it, and you can get it with some tinkering,
+or by looking at examples or many different explanations from different perspectives,
+or by analogizing it to other code, or by having some explain it to you on a whiteboard,
+or, or, or...
+(worst case you have to synthesize that by exploring the code)
+
+but then...
+ok... so...
+you need to be able to, I guess... question received wisdom about how the theory can be used.
+
+that's basically all of my stuff...
+looking at how the theory can be transposed or reused in unexpected places and ways.
+
+um right so learn new abstractions rather than,
+just keep programming on with your basic skill.
+
+You're better off doing this than just trucking along with your existing programming knowledge
+and writing new code every time.
+*** title attempts
+Use old code in strange ways
+
+Use your theories in strange ways
+
+Practice thinking in strange ways
+(ugh now this just sounds like "think outside the box")
+
+Reuse code in strange ways
+
+Understand existing abstractions and apply them in new ways
+
+Don't fear existing code (or else)
+
+If you fear existing code, you're going to suffer
+
+If you always fear existing code, you're going to pay the price eventually
+
+If you always fear existing code, you're going to suffer eventually
+
+Fearing existing code is expensive
+
+Being afraid of existing code is expensive
+
+If you always fear existing code, you're going to make more complex systems
+
+Fear of existing code leads to overcomplicated new code
+
+Fear of any existing code leads to overcomplicated new code
+
+Always being afraid of existing code leads to overcomplicated new code
+
+The cost of always being afraid of existing code is a more complicated system
+
+Learn existing abstractions or pay the price in complexity
+
+The price of not learning existing abstractions is measured in complexity
+
+If you always build new components instead of reusing old ones, you'll be more complex
+(duh...)
+
+Understand existing abstractions, and use them in new ways (or suffer the consequences)
+
+Don't fear existing code
+
+Understanding existing abstractions is important and useful
+
+Everyone fears existing code, but it's important and useful to understand it
+
+Understand the code you have available, and use it
+
+If you always fear existing code, you'll write overcomplicated software
+
+ugh
+
+Write simpler software by reusing existing code
+(duh)
+
+Stop writing new code instead of understanding existing code
+
+Understand existing code, don't just avoid it by writing new code
+
+Don't write new code, understand existing code
+
+Save on your complexity budget by... reusing code
+
+Code reuse is good actually, and if you don't do it, you'll suffer
+
+(that one is a fun catchy title, I guess)
+(let's write the first sentence and then try for the title...)
+*** drafting attempt
+If you learn the abstractions provided by existing code,
+then you can apply them in new contexts
+to reduce difficult problems to trivialities.
+This is useful, important, and fun;
+that should be
+that should be 
+**** try 1
+Solving every problem by writing all-new code is fun and easy in the short term,
+but if you don't make use of the abstractions implemented by existing code,
+you're going to make your system more and more complex in the long term.
+
+No-one actually writes "all-new" code, anyway.
+You already use a general-purpose programming language and operating system.
+
+The real issue is that you barely know how to use your language and OS.
+The same goes for the libraries you use,
+and the existing features in your application.
+**** okay, try 2
+Don't just coast by on basic knowledge of abstractions, learn them deeply!
+
+Learn the abstractions you use deeply, don't just coast by on a surface understanding
+
+Really learn the abstractions you use, don't just coast by on a surface understanding
+
+A surface understanding of the abstractions you use will work in the short term;
+you'll write a lot of new and unnecessary code,
+because you don't know how to model problems deeply with the abstractions you're using,
+but that code will work.
+The real problem is in the long term:
+All that new code is overcomplicated,
+breaking your complexity budget,
+because it's not meaningfully using the features of the abstractions,
+but instead implements its own new abstraction.
+
+If you're not going to learn the abstractions deeply,
+please just shut up and be a code monkey,
+and listen to what actually knowledgeable people say,
+instead of polluating the air with your ill-informed suggestions.
+**** analysis
+wait but,
+not everyone can learn all the abstractions deeply...
+
+I guess I'm just saying... respect those who do?
+
+and... drive your design with deep knowledge of abstractions?
+right... right!
+
+*Someone* needs to understand the old code, and they should be the one setting the design
+
+The person who understands the existing code should set the design for the new code
+
+um, sure?
+
+but I'm talking more broadly, like, about OS and PL abstractions too...
+
+are these really the same things?
+
+I mean... do I expect everyone to learn all these abstractions?
+
+should I not be a little more specific?
+or... maybe I do think it's useful to learn as many abstractions deeply as possible
+
+Learn abstractions deeply, as many as you can
+(emphasis on deep)
+
+um well I specifically think that OS and PL are important abstractions to learn.
+
+it comes down to, code reuse is good. sometimes.
+
+umm does it?
+
+look, this is just my philosophy
+
+My philosophy: Actually, code reuse is good, not bad
+
+and a separate article "Programming languages are underused"
+
+or... "You should use your programming language more"
+or... "General purpose programming languages are the best tool for almost any problem"
+they're only not the best tool if you want a more powerful language,
+and even then it's not clear. (link to tfs.html)
+
+or, maybe... General-purpose programming languages are The Right Way to solve almost any problem
+maybe I should just say, solve it with the general purpose language first, before doing something else.
+
+Maybe even two articles: against microkernels, and, against RPC IDLs.
+
+And then maybe i can organize them on a new section of index, which is just,
+Hey the general purpose programming language can do all this stuff!!!! 
+Against fancy features and against specialized languages.
+In defense of the general purpose programming language.
+Actually it's more against, because I'm saying all these other tools are better in-language.
+
+Write modules, not microkernels
+Write 
+
+(Rpc, serialization, IDLs, protos, etc...)
+(The issue is that there's no cross language type system,
+but it's a chicken and egg problem,
+because as a result no one is doing things that would require a cross language type system)
+Types not protos?
+Programs not protos?
+Plans... Passing... Parts... Projects...
+
+But really I am saying to write libraries instead of services, too. But saying it as protos is better...
+
+Write interfaces, not protos
+
+Signatures? Not schemas
+
+Write (module) signatures, not (protocol) schemas
+
+Yes, perfect.
+so:
+
+Write modules, not microkernels
+and
+Write signatures, not schemas
+
+ah perfect. now I can, later, whenever,
+write a post about my philosophy that code reuse is good actually,
+and that one should do it.
+*** examples for myself
+epoll (like stevenh was convinced to use it for event notification)
+bink cancels instead of internal mass canceller
