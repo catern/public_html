@@ -57,7 +57,7 @@ so you don't need to give up on the more powerful option of type signatures.
     One interesting use of this ability is to implement
     extremely high-performance, but backwards-incompatible,
     <a href="http://catern.com/mobilelibs.html">wire protocols</a>.
-  <li>Libraries <b>can</b> run at a different privilege level from the rest of the program.
+  <li>Libraries <b>can</b> have access to resources that the rest of the program cannot access.
     <p>
     For example:
     <ul>
@@ -82,17 +82,36 @@ so you don't need to give up on the more powerful option of type signatures.
         where a library has a different privilege level from other code.
     </ul>
     <p>
+      You might be concerned about using such fancy techniques. Sometimes, they aren't necessary,
+      because the whole program can safely be given access to the supposedly-privileged resource,
+      perhaps because the resource is one more of:
+    <ul>
+      <li>fast to create (so we can just create them on the fly in the library)
+      <li>cheap to create (so we can give every user their own)
+      <li>already multiplexed and safe to share
+        (it's amazing how easy it is to miss this if you don't explicitly think about it)
+      <li>easily tweaked to be shareable (for example, a resource could be leased out to a user then reset when they're done)
+      <li>or otherwise safe or can be made safe to give to users directly
+    </ul>
+    <p>
+    Consider this carefully; this point is often non-obvious.
+    <p>
   <li>Libraries <b>can</b> run in parallel, using multiple cores.
     <p>
     Obviously: You can run library functions on multiple threads.
-  <li>Libraries <b>can</b> access resources on other hosts.
+  <li>Libraries <b>can</b> access resources on other hosts and in other environments.
     <p>
-    For example, there's no reason a library can't spin up a stub on an other host,
-    and use that to access resources on other hosts.
-    I even have a <a href="http://catern.com/constructive.html">constructive proof</a>
-    of this: <a href="https://github.com/catern/rsyscall">rsyscall</a>.
+      <ul>
+        <li>In general, there's no reason a library can't spin up a stub in some environment,
+          and use that to access resources in that environment, including on remote hosts.
+          I have a <a href="./constructive.html">constructive proof</a> of this:
+          <a href="https://github.com/catern/rsyscall">rsyscall</a>.
+        <li><a href="./list_singledist.html">Distributed languages</a>
+          (including libraries that make existing languages into distributed lanaguages)
+          let you write libraries which access remote resources.
+        <li><a href="./supervisors.html">Process supervisors</a> can be replaced with a library.
+      </ul>
     <p>
-    There are some other related examples <a href="http://catern.com/list_singledist.html">here</a>.
   <!-- How would I put a library in a separate fault domain? Orthogonal... persistence? Um... same things as privilege level stuff? -->
 </ul>
 </body>
