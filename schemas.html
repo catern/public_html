@@ -59,7 +59,25 @@ so you don't need to give up on the more powerful option of type signatures.
     One interesting use of this ability is to implement
     extremely high-performance, but backwards-incompatible,
     <a href="http://catern.com/mobilelibs.html">wire protocols</a>.
-  <li>Libraries <b>can</b> have access to resources that the rest of the program cannot access.
+  <li>Libraries <b>can</b> run in parallel, using multiple cores.
+    <p>
+    Obviously: You can run library functions on multiple threads.
+    Different threads can even have different IO and CPU priority levels.
+  <li>Libraries <b>can</b> be built separately from the rest of the program, and have different dependencies.
+    <p>
+      For example,
+      by <a href="https://softwareengineering.stackexchange.com/questions/297276/what-is-a-shaded-java-dependency">"shading" dependencies</a> in Java,
+      or with linker scripts or <a href="https://github.com/NVIDIA/libglvnd">DT_FILTER</a> in C.
+    <p>
+  <li>Libraries <b>can</b> isolate failures.
+    <p>
+      "<a href="https://research.google/pubs/pub35649/">Software fault isolation</a>"
+      is all about this;
+      SFI allows a library to be run in the same address space
+      without the ability to interfere with other memory in that address space.
+      Other techniques in this vein are used all time for emulation and virtualization.
+    <p>
+  <li>Libraries <b>can</b> have access to resources that the rest of the program isn't allowed to access.
     <p>
     For example:
     <ul>
@@ -98,9 +116,6 @@ so you don't need to give up on the more powerful option of type signatures.
     <p>
     Consider this carefully; this point is often non-obvious.
     <p>
-  <li>Libraries <b>can</b> run in parallel, using multiple cores.
-    <p>
-    Obviously: You can run library functions on multiple threads.
   <li>Libraries <b>can</b> access resources on other hosts and in other environments.
     <p>
       <ul>
@@ -114,7 +129,6 @@ so you don't need to give up on the more powerful option of type signatures.
         <li><a href="./supervisors.html">Process supervisors</a> can be replaced with a library.
       </ul>
     <p>
-  <!-- How would I put a library in a separate fault domain? Orthogonal... persistence? Um... same things as privilege level stuff? -->
 </ul>
 </body>
 </html>
