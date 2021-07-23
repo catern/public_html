@@ -1,0 +1,21 @@
+<html>
+  <head>
+<title>Technical advantages of open source software</title>
+</head>
+<body>
+<h1>Technical advantages of open source software</h1>
+<ul>
+  <li>You can have a single source repository containing both the code providing an API, and the code using that API,
+    allowing easy <a href="https://coccinelle.gitlabpages.inria.fr/website/">system-wide refactorings</a>.
+  <li>Relatedly, you don't have to provide a
+    <a href="https://www.kernel.org/doc/Documentation/process/stable-api-nonsense.rst">stable plugin API</a>.
+    <!-- See also C:DDA, which has mods in the main rpeo -->
+  <li>You can safely ship your software as source code,
+    meaning you don't have to support verification or analysis on compiled binaries.
+    This makes it easy to avoid the <a href="http://catern.com/microkernels.html">"microkernel"</a> antipattern.
+  <li>You and your users can actually <a href="http://catern.com/run.html">run the software</a>.
+  <li>You don't have to ship binaries for many different platforms; package managers will handle that.
+    (Although it's not clear that this one is a purely technical advantage, it might be a social one.)
+</ul>
+</body>
+</html>
