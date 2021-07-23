@@ -851,3 +851,64 @@ and that one should do it.
 *** examples for myself
 epoll (like stevenh was convinced to use it for event notification)
 bink cancels instead of internal mass canceller
+* post idea: read manuals!
+  they are good!
+  just read them!
+
+  it's yo responsibility to have a toolkit that you understand
+  so don't just use a tool and throw it away... I guess...
+
+  should look up how I phrased this in that one comment on HN
+** coming back much later
+this is related to my point about abstraction.
+it's valuable to learn the abstraction you're using! deeply!
+reading manuals and learning abstractions;
+both of them will help you out!
+and they're related, they're both... reuse.
+* post idea: abstraction inversions
+  (in software engineering)
+
+  and why I don't like them.
+
+  and why I therefore don't like abstraction.
+
+  since it risks building a new feature on top that is like the old feature down below!
+
+  examples:
+  interfaces for IO things (io_provider)
+
+  maybe this will be about my interest in... reduction?
+
+  yeah, this would be a good post.
+  not about abstraction inversions, but about reduction.
+
+<h2>Permanent project: Reduction of the complex and novel to the simple and familiar</h2>
+My overarching interest is in clever ways to reuse existing abstractions,
+rather than build new ones.
+Put another way,
+I'm interested in reducing complex, novel ideas
+to simple implementations in terms of simpler, well-known ideas,
+without losing any expressivity.
+I find such reductions both practically beneficial and intellectually pleasing.
+<p>
+Of course, I'm certainly not opposed to new ideas.
+I just find it especially rewarding when an interesting new idea can be reduced to something we already have,
+teaching us a new and valuable technique without requiring us to invest lots of implementation effort.
+
+
+more generally this is just anti-abstraction I guess.
+related is, we already have too much abstraction...
+also related is the technical advantages of open source: avoiding abstraction...
+
+a good abstraction is one that will never, ever change...
+** a later look
+hah okay.
+it's not that I don't like abstraction.
+it's that I don't like not-reusing.
+
+abstraction inversion is a sign of a lack of reuse!
+of course, it's one kind of manifestation of it;
+a specific bad thing that can happen.
+but tbh I haven't ever seen abstraction inversion be forced on me.
+
+I think it's just lack of reuse.
