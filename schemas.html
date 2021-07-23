@@ -4,35 +4,32 @@
 </head>
 <body>
 <h1>Write (module) signatures, not (protocol) schemas</h1>
-It's nice to write in-language libraries (importable pieces of code, sometimes called modules)
-characterized by type signatures,
-rather than out-of-language servers (standalone executables communicating over the network)
-characterized by protocol schemas (which generate a network protocol).
-You can express far more sophisticated abstractions with a type signature
-than you can with a protocol schema,
-without losing any functionality.
+Type signatures, which describe libraries, modules and other importable pieces of code,
+are more expressive than protocol schemas,
+which describe network protocols for communicating with standalone executables.
+To write a library, and use a type signature to describe it,
+lets you write simpler code
+than if you use a protocol schema and a standalone executable.
 <p>
-For example, you can pass a function pointer as an argument to a function, even in C.
-But almost no protocol schemas support first-class functions.
+For example,
+a function pointer is a valid argument or return type for a function in most languages, even in C.
+But almost no protocol schemas support this.
 In more advanced languages,
-you can pass objects, abstract data types, references to other libraries, and other things.
-You can return any of those things, too.
+objects, abstract data types, references to other modules, and many other constructs
+are valid arguments and return types.
 You can't express any of that in protocol schemas;
-this makes many things far more complicated,
-by denying the use of simplifying abstractions.
+this makes many tasks more complicated.
 <p>
-Part of the issue is that (as far as I know) there's no good language-independent type system;
-the best we have is C.
-That in turn means that the highest level of abstraction reachable by language-independent libraries
-is that of C,
-which is only a little better than protocol schemas.
-A language-independent type system would be really useful...
+Part of the issue is that most people use C as the standard way to write language-independent type signatures.
+That means that if you want to write a language-independent library,
+your type signature can only use features present in the C type system.
+The C type system is still substantially more expressive than protocol schemas,
+but pales in comparison to more advanced modern languages with objects or abstract data types.
+A more powerful language-independent type system would be really useful...
 <p>
-Of course, many people believe that there are some features that they can only get by using out-of-language servers
-running as a separate process, possibly on a different host,
-necessitating the use of protocol schemas.
-In fact, anything an out-of-language server can do, a regular in-language library can do, too;
-so you don't need to give up on the more powerful option of type signatures.
+Besides that issue for language-independent libraries,
+a library can do anything that a standalone executable can do.
+<b>Anything:</b>
 <ul>
   <li>Libraries <b>can</b> maintain stable, backwards-compatible interfaces, both API and ABI.
     <p>
@@ -67,7 +64,8 @@ so you don't need to give up on the more powerful option of type signatures.
     <p>
       For example,
       by <a href="https://softwareengineering.stackexchange.com/questions/297276/what-is-a-shaded-java-dependency">"shading" dependencies</a> in Java,
-      or with linker scripts or <a href="https://github.com/NVIDIA/libglvnd">DT_FILTER</a> in C.
+      or with linker scripts, <a href="https://man7.org/linux/man-pages/man3/dlopen.3.html">dlmopen</a>
+      or <a href="https://github.com/NVIDIA/libglvnd">DT_FILTER</a> in C.
     <p>
   <li>Libraries <b>can</b> isolate failures.
     <p>
@@ -76,6 +74,19 @@ so you don't need to give up on the more powerful option of type signatures.
       SFI allows a library to be run in the same address space
       without the ability to interfere with other memory in that address space.
       Other techniques in this vein are used all time for emulation and virtualization.
+    <p>
+  <li>Libraries <b>can</b> access resources on other hosts and in other environments.
+    <p>
+      <ul>
+        <li>In general, there's no reason a library can't spin up a stub in some environment,
+          and use that to access resources in that environment, including on remote hosts.
+          I have a <a href="./constructive.html">constructive proof</a> of this:
+          <a href="https://github.com/catern/rsyscall">rsyscall</a>.
+        <li><a href="./list_singledist.html">Distributed languages</a>
+          (including libraries that make existing languages into distributed lanaguages)
+          let you write libraries which access remote resources.
+        <li><a href="./supervisors.html">Process supervisors</a> can be replaced with a library.
+      </ul>
     <p>
   <li>Libraries <b>can</b> have access to resources that the rest of the program isn't allowed to access.
     <p>
@@ -115,19 +126,6 @@ so you don't need to give up on the more powerful option of type signatures.
     </ul>
     <p>
     Consider this carefully; this point is often non-obvious.
-    <p>
-  <li>Libraries <b>can</b> access resources on other hosts and in other environments.
-    <p>
-      <ul>
-        <li>In general, there's no reason a library can't spin up a stub in some environment,
-          and use that to access resources in that environment, including on remote hosts.
-          I have a <a href="./constructive.html">constructive proof</a> of this:
-          <a href="https://github.com/catern/rsyscall">rsyscall</a>.
-        <li><a href="./list_singledist.html">Distributed languages</a>
-          (including libraries that make existing languages into distributed lanaguages)
-          let you write libraries which access remote resources.
-        <li><a href="./supervisors.html">Process supervisors</a> can be replaced with a library.
-      </ul>
     <p>
 </ul>
 </body>
