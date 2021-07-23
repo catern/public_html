@@ -22,12 +22,11 @@ this makes many tasks more complicated.
 So why do people ever write servers instead of libraries?
 <p>
 A library can do anything that a standalone server can do.
-But it can require more expertise to do many things with libraries,
-since our modern Unix-derived programming environments
-are heavily slanted towards standalone servers.
-Hence, servers are often the first choice.
+But our modern Unix-derived programming environments are slanted towards standalone servers,
+so some things are easier with standalone servers;
+hence, servers are almost always the first choice.
 <p>
-Nevertheless, contrary to popular belief, libraries can:
+Nevertheless, contrary to popular belief, libraries can do anything, including:
 <ul>
   <li>Maintain stable, backwards-compatible interfaces, both API and ABI.
     <p>
@@ -71,7 +70,7 @@ Nevertheless, contrary to popular belief, libraries can:
       is all about this;
       SFI allows a library to be run in the same address space
       without the ability to interfere with other memory in that address space.
-      Other techniques in this vein are used all time for emulation and virtualization.
+      Other techniques in this vein are used all the time for emulation and virtualization.
     <p>
   <li>Access resources on other hosts and in other environments.
     <p>
