@@ -4,8 +4,10 @@
 </head>
 <body>
 <h1>Write (module) signatures, not (protocol) schemas</h1>
-It's nice to write in-language libraries characterized by type signatures,
-rather than out-of-language servers characterized by protocol schemas (which generate a network protocol).
+It's nice to write in-language libraries (importable pieces of code, sometimes called modules)
+characterized by type signatures,
+rather than out-of-language servers (standalone executables communicating over the network)
+characterized by protocol schemas (which generate a network protocol).
 You can express far more sophisticated abstractions with a type signature
 than you can with a protocol schema,
 without losing any functionality.
