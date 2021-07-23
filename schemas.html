@@ -4,12 +4,11 @@
 </head>
 <body>
 <h1>Write (module) signatures, not (protocol) schemas</h1>
-Type signatures, which describe libraries, modules and other importable pieces of code,
-are more expressive than protocol schemas,
-which describe network protocols for communicating with standalone executables.
-To write a library, and use a type signature to describe it,
-lets you write simpler code
-than if you use a protocol schema and a standalone executable.
+If you write a library, you'll have simpler code than if you write a standalone server,
+because
+type signatures (which describe libraries, modules and other importable pieces of code)
+are substantially more expressive than protocol schemas
+(which describe protocols for communicating with servers).
 <p>
 For example,
 a function pointer is a valid argument or return type for a function in most languages, even in C.
@@ -20,18 +19,17 @@ are valid arguments and return types.
 You can't express any of that in protocol schemas;
 this makes many tasks more complicated.
 <p>
-Part of the issue is that most people use C as the standard way to write language-independent type signatures.
-That means that if you want to write a language-independent library,
-your type signature can only use features present in the C type system.
-The C type system is still substantially more expressive than protocol schemas,
-but pales in comparison to more advanced modern languages with objects or abstract data types.
-A more powerful language-independent type system would be really useful...
+So why do people ever write servers instead of libraries?
 <p>
-Besides that issue for language-independent libraries,
-a library can do anything that a standalone executable can do.
-<b>Anything:</b>
+A library can do anything that a standalone server can do.
+But it can require more expertise to do many things with libraries,
+since our modern Unix-derived programming environments
+are heavily slanted towards standalone servers.
+Hence, servers are often the first choice.
+<p>
+Nevertheless, contrary to popular belief, libraries can:
 <ul>
-  <li>Libraries <b>can</b> maintain stable, backwards-compatible interfaces, both API and ABI.
+  <li>Maintain stable, backwards-compatible interfaces, both API and ABI.
     <p>
     Most people know how to do this at the API level.
     For example, they know to not add new mandatory arguments to an existing function,
@@ -44,7 +42,7 @@ a library can do anything that a standalone executable can do.
     In fact, a library is strictly more powerful than a protocol schema in this regard:
     If you really wanted to,
     you could use a protocol schema directly to define the format of the data passed in and out of the library.
-  <li>Libraries <b>can</b> be updated without restarting the process using them.
+  <li>Be updated without restarting the process using them.
     <p>
     This field of techniques is called
     <a href="https://en.wikipedia.org/wiki/Dynamic_software_updating">dynamic software updating</a>.
@@ -56,18 +54,18 @@ a library can do anything that a standalone executable can do.
     One interesting use of this ability is to implement
     extremely high-performance, but backwards-incompatible,
     <a href="http://catern.com/mobilelibs.html">wire protocols</a>.
-  <li>Libraries <b>can</b> run in parallel, using multiple cores.
+  <li>Run in parallel, using multiple cores.
     <p>
     Obviously: You can run library functions on multiple threads.
     Different threads can even have different IO and CPU priority levels.
-  <li>Libraries <b>can</b> be built separately from the rest of the program, and have different dependencies.
+  <li>Be built separately from the rest of the program, and have different dependencies.
     <p>
       For example,
       by <a href="https://softwareengineering.stackexchange.com/questions/297276/what-is-a-shaded-java-dependency">"shading" dependencies</a> in Java,
       or with linker scripts, <a href="https://man7.org/linux/man-pages/man3/dlopen.3.html">dlmopen</a>
       or <a href="https://github.com/NVIDIA/libglvnd">DT_FILTER</a> in C.
     <p>
-  <li>Libraries <b>can</b> isolate failures.
+  <li>Isolate failures.
     <p>
       "<a href="https://research.google/pubs/pub35649/">Software fault isolation</a>"
       is all about this;
@@ -75,7 +73,7 @@ a library can do anything that a standalone executable can do.
       without the ability to interfere with other memory in that address space.
       Other techniques in this vein are used all time for emulation and virtualization.
     <p>
-  <li>Libraries <b>can</b> access resources on other hosts and in other environments.
+  <li>Access resources on other hosts and in other environments.
     <p>
       <ul>
         <li>In general, there's no reason a library can't spin up a stub in some environment,
@@ -88,7 +86,7 @@ a library can do anything that a standalone executable can do.
         <li><a href="./supervisors.html">Process supervisors</a> can be replaced with a library.
       </ul>
     <p>
-  <li>Libraries <b>can</b> have access to resources that the rest of the program isn't allowed to access.
+  <li>Have access to resources that the rest of the program isn't allowed to access.
     <p>
     For example:
     <ul>
@@ -128,5 +126,19 @@ a library can do anything that a standalone executable can do.
     Consider this carefully; this point is often non-obvious.
     <p>
 </ul>
+<!--
+ !-- One issue is that C is the standard way to write language-independent type signatures,
+ !-- even for libraries not written in C.
+ !-- That means that if you want to write a language-independent library,
+ !-- your type signature can only use features present in the C type system.
+ !-- The C type sysem is more expressive than protocol schemas,
+ !-- but pales in comparison to more advanced modern languages with objects or abstract data types,
+ !-- so it may seem irrelevant to pick between C and protocol schemas.
+ !-- A more powerful language-independent type system would be really useful...
+  -->
+<!-- hmm well, also protocol schemas are nicer in many ways...
+     variable sized data, etc...
+     which would imply they're superior for language-independent libraries...
+ -->
 </body>
 </html>
