@@ -1,20 +1,19 @@
 <html>
   <head>
-<title>Write tools instead of services, where possible</title>
+<title>Write libraries instead of services, where possible</title>
 </head>
 <body>
-<h1>Write tools instead of services, where possible</h1>
+<h1>Write libraries instead of services, where possible</h1>
   A service has constant administration costs which are paid by the service provider.
-  A tool (such as a library), run by the user or incorporated into the user's code,
-  instead moves these costs to the users of the tool.
+  A library instead moves these costs to the users of the library.
 <p>
   For any developer with limited resources,
   <!-- obviously everyone has limited resources, but I feel like this makes the sentence scan better, shrug -->
-  this means a tool (where viable) can provide the same functionality to the user,
+  this means a library (where viable) can provide the same functionality to the user,
   at a lower cost to the developer than a service.
 <p>
-  By tool, I mean any software that can be <a href="./run.html">run by the user</a>:
-  libraries, servers, command line utilities, and others.
+  By library, I mean any software that can be <a href="./run.html">run by the user</a>:
+  shared objects, modules, servers, command line utilities, and others.
   By service, I mean any software which the user can't run on their own;
   anything which depends (usually through an API)
   on a service provider for its functionality.
@@ -30,17 +29,18 @@
 <p>
   You can prevent users from negatively impacting other users by not sharing state or resources between users;
   in other words, <a href="./run.html">let users run the software</a>
-  themselves, by writing tools instead of services.
+  themselves, by writing libraries instead of services.
 <p>
-  One easy way to write a tool rather than a service,
-  is to write a library rather than a server.
+  One easy way to write a library rather than a service,
+  is to write a module rather than a server;
+  that is, an importable piece of code rather than a standalone executable.
   While a server can be run by users just as well,
-  libraries are typically easier to use and run.
-  <a href="./schemas.html">Libraries are much more capable</a> than many people think,
+  modules are typically easier to use and run.
+  <a href="./schemas.html">Modules are much more capable</a> than many people think,
   so this is possible in a wide variety of scenarios.
 <p>
   By avoiding the maintenance and upgrade costs of a service,
-  a tool can afford to contain more functionality.
+  a library can afford to contain more functionality.
   That's good for both the developer and the user.
 </body>
 </html>
