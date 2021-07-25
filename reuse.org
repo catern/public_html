@@ -912,3 +912,675 @@ a specific bad thing that can happen.
 but tbh I haven't ever seen abstraction inversion be forced on me.
 
 I think it's just lack of reuse.
+* drafting attempt
+my philosophy:
+learn the abstractions you're building on top of.
+
+two are the programming language and the operating system.
+
+I feel that one should learn them and use those abstractions when building new systems,
+rather than build entirely novel abstractions using only the bare-minimum Turing-complete portion of the base system.
+
+(hey, maybe I can even put this on index.html.
+catern.com could have a top-down design, just like I favor for software...
+where I describe my philosophy and two points in that philosophy,
+"learn the programming language" and... "learn the operating system"??? maybe not the latter.
+
+yeah I could have like,
+here are some applications of learning and applying the abstractions available in the programming language;
+you can do away with many other concepts and functions.
+
+and... okay...
+why do I care about running distributed software?
+well it's a software freedom concern.
+
+*kind of*???
+
+I mean, it's both.
+the lambda abstraction thing...
+I guess that's also kind of a software freedom concern too;
+I'm saying, hey, you don't need this fancy complicated software which is expensive to maintain,
+what you have is good enough!
+
+okay...
+
+so from that point of view... both of them are just,
+"reduce the cost" approaches.
+
+so, why do I care about reusing existing abstractions?
+
+because that reduces the cost of software which is good for software freedom, I guess.
+
+um, well, not just that, obviously!
+that's just one other benefit.
+
+indeed, software freedom is nice just because it gives me lots of quality software!
+that's what I said in freedist.html
+
+um...
+okay so...
+
+why do I care about making software easier?
+well, it's a marketable skill, lol.
+and it's intellectually pleasing.
+
+maybe I don't want to say that on index.html tho, heh.
+
+maybe, though. if I can get it short enough...
+
+it's nice to provide constructive proof of my techniques.
+
+um, so, is this really a technique that I've been using forever?
+or is it just a adaptation to the proprietary environment of TS?
+I mean, what was my motivation for daemon engines?
+
+well, I think obviously I liked daemon engines because,
+I reduced a complicated problem to a set of a few known composable components.
+which was pleasing.
+
+so, yeah, reduction of problems and reuse of existing things,
+that's what I like.
+
+Reduce, reuse, reap the rewards.
+
+(instead of "Reduce, reuse, recycle")
+
+
+Reduce, reuse, save cycles
+
+Reduce, reuse, repeat
+
+Reduce, reuse, re-something
+
+The last r-word should be something tech-related.
+
+Reduce, reuse, relax
+
+reload?
+revolution? revolt?
+
+rhyme
+
+okay well anyway. let's actually write the article
+
+reduce, reuse, write the program!??
+* real drafting attempt
+I think it's important and useful to learn abstractions deeply.
+
+Then when you encounter a new problem,
+you can reduce the problem into a problem that is solvable by those abstractions,
+and reuse the existing implementation of those abstractions.
+("Reduce, reuse, relax", one might say)
+
+Two of the most useful abstractions to learn deeply are programming languages and operating systems.
+Both of them are powerful and long-lived.
+
+Then, to solve a problem,
+just think a lot.
+And eventually you'll reduce it to an existing solution.
+
+one could argue there's lower abstractions - hardare, etc.
+but these are the lowest open source ones,
+and therefore the lowest ones that it's wise to build your career on.
+
+ahhh... blahh...
+
+title: Learn existing abstractions and contort your problems to fit
+
+i mean, I do think it's best to contort to try and fit existing abstractions, since you usually can.
+
+but maybe that's also sacrificing full understanding?
+
+It's more important to reuse an existing abstraction than it is to faithfully solve a problem.
+
+title: Reusing abstractions is the most important thing in programming
+
+or...
+
+title: Code reuse is the most important thing in programming
+
+title: Code reuse will (do good thing)
+
+NIH syndrome
+
+reinventing the wheel
+
+I mean, what's the distinction?
+** when do I think code reuse is bad and when is it good?
+well if the code is bad, don't reuse it
+if it's good, reuse it.
+
+things that make it bad: obscurity, not-being-old, being proprietary.
+
+basically...
+the first step,
+and the only step,
+should always be:
+how do I reduce this to existing abstractions?
+* draft again
+The only step in programming is: How do I reduce this problem to existing abstractions?
+
+just keep thinking about that repeatedly.
+
+reducing the problem more is better.
+
+The universal tool in programming: "Reduce the problem to existing abstractions"
+
+My only tool for programming is: reduction
+
+Reduction...
+
+Reduce the problem to existing abstractions
+
+At all times, focus on reducing the problem to existing abstractions.
+
+I have exactly one programming trick: Reduce the problem to existing abstractions
+
+The only programming trick you need: Reduce the problem to existing abstractions
+
+To solve any problem, reduce the problem to existing abstractions
+
+The universal problem solving trick: Reduce the problem to existing abstractions
+
+Code reuse is the most important thing in computer science
+
+Code reuse is not only good, it's the only good thing
+
+The universal programming strategy: Reduce, reuse, relax
+
+(
+relax can mean, don't worry about how you haven't exactly solved the problem as you originally understood it.
+the problem usually doesn't need to be solved in that form.
+it's better to save complexity than to solve the problem exactly.
+)
+
+The universal programming trick: Reduce, reuse, relax
+
+ah but it doesn't explain it in the title, I think I can concisely explain it.
+
+Don't just reuse code, reuse abstractions
+
+Reduce the problem to one you know, reuse an existing solution, and relax 
+
+UM that's really really not what I mean though.
+reusing an existing solution is counter to my point.
+
+that's code reuse.
+that's program reuse.
+
+better, is *abstraction* reuse.
+
+The most important thing in practical programming is abstraction reuse
+
+The most important trick in computer science is reusing abstractions
+
+The most important trick in computer science is to reuse abstractions
+
+Reusing abstractions is the most important trick in computer science
+
+To design a program, first look at how you can reuse existing abstractions
+
+To solve a problem, first look at how you can reuse existing abstractions
+
+To solve a problem, look at how you can reuse existing abstractions
+
+To solve a problem, reuse existing abstractions
+
+To solve a problem, reuse existing abstractions
+
+To solve a problem, reuse what already exists
+
+Reuse is the most important trick in computer science
+
+no, no, but not existing solutions
+
+like, it's key that you learn some good abstractions, and then use them heavily
+
+Learn high-quality abstractions, and then reuse them heavily
+
+hm but this sounds like forcing things through unsuited abstractions just because you know them
+
+Use the right abstraction for the job
+
+um yeah sure but this doesn't say anything about reuse
+
+Learn the right abstraction for the job
+
+hmm better...
+
+Learn the right abstraction for the job
+
+Find the right pre-existing abstraction for the job
+
+um but that sucks...
+
+Use low-level abstractions
+
+i mean I guess that's one point I have...
+
+Don't reuse high-level code, reuse low-level abstractions
+
+umm..
+
+title: The key to programming is reusing the right abstraction
+
+I guess - this ties into believing there are no novel ideas?
+like if you try to come up with something new,
+you'll make something bad?
+everything old is new again?
+so read the literature and use what's already there? hmm...
+* keep notes
+Nothing is new, use old solutions.
+
+Solve your problems starting from the dawn of history
+
+Solve your problems in the lowest-level possible way
+
+Solve problems by starting at the bottom of the abstraction stack
+
+(That's yet another description of my strategy I guess...)
+
+Solve problems with as few layers of abstraction as possible
+
+(Yet another alternative framing...)
+
+Add as little abstraction as possible when solving problems
+
+(The idea being... The big abstractions people use like VMs or whatever, are unnecessary, the base abstractions we have are sufficient)
+
+You already have enough abstraction
+
+You probably already have enough abstraction
+
+We keep piling up abstractions, use the existing ones instead of adding more
+
+Use existing abstractions instead of adding even more
+
+Use (and improve) existing abstractions instead of adding more
+
+Reuse is the most important programmer skill
+
+Knowing when and what to reuse is the most important programmer skill
+
+Appropriate reuse is the most important programmer skill
+
+Programming is 100% code reuse
+
+(Because I want them focused on how they can most effectively reuse existing code...)
+
+Programming is 100% code reuse and always has been
+
+(I say this because we're veering into, ugh we're just gluing stuff together, programming sucks now, territory)
+
+All of programming is reuse
+
+(No it's not)
+
+The most important part of programming is code reuse
+
+Code reuse is good and important and fun
+
+Please, just think about how you could implement this without writing too much code
+
+Please, just think about how you could implement this without adding new abstractions
+
+Learn existing abstractions
+
+Spend more time on reduction
+
+The key to programming is solving new problems with existing abstractions
+
+The key to programming is solving new problems with existing abstractions
+
+I approach problems by trying to reduce them to abstractions I already know
+
+The key to programming is reducing new problems to trivial programs on top of existing abstractions
+
+
+title: Reduce new problems to trivial programs on top of existing abstractions
+
+Stop writing non-trivial programs, but also stop making new abstractions to make things trivial.
+
+Don't instead:
+1. write a complicated program
+2. write a new abstraction and a trivial program
+3. 
+
+
+title: The goal of programming is to write trivial programs on top of existing abstractions
+
+title: Don't write complex programs, don't write new abstractions
+
+title: Write simple programs on top of existing abstractions
+
+title: Find simple solutions that use existing abstractions
+
+title: My primary ethos: Find simple solutions that use existing abstractions
+
+title: My trick: Find simple solutions that use existing abstractions
+
+Use existing abstractions to find simple solutions
+
+Use existing abstractions to find simple solutions
+
+Find simple solutions by using existing abstractions
+
+(it's simple in terms of the whole complexity of the system)
+
+Find simpler solutions by using existing abstractions
+
+
+- read the manual
+- reuse existing abstractions
+- don't write new abstractions
+- don't write new complicated ones
+
+
+Code reuse is good and people don't spend enough time on it
+
+yeah, let's just say that. fine!
+
+except that's not strong enough, and also implies something different...
+
+actually, I don't know that it does.
+
+"Code reuse" is something that I dislike, because I don't want to write new abstractions;
+instead I want to really heavily use the existing abstractions.
+
+Reusing existing code is good and people don't spend enough time on it
+
+Reusing existing code is the most important programmer skill
+
+okay, that feels good.
+
+(except now the concern would be that, this would trigger "programming sucks now" stuff.
+but we can caveat that in the article)
+
+mm.
+
+title: Finding new applications for existing code is the most important programmer skill
+
+maybe, maybe.
+
+but, okay, maybe we can open with...
+
+something informal.
+* draft
+title: Reusing existing code is the most important programmer skill
+
+Wait, wait, isn't code reuse an antipattern?
+Doesn't the author of this article know about all the ways code reuse can go wrong?
+And how people design with excessive amounts of abstraction,
+because they're trying to support code reuse?
+And lately, the whole field of programming has been increasingly reduced to mindless glue work,
+just plugging together existing things,
+in an untterly uninspired way;
+surely the author doesn't think mindless glue work is the most important programmer skill?
+
+That's all true, but...
+nevertheless, for me, my most successful and interesting programming accomplishments
+have been finding new and clever ways to reuse existing abstractions.
+And I think more programmers should think hard about how they can reuse existing abstractions!
+
+We might make a (somewhat arbitrary) distinction between reusing *code*,
+and reusing *abstractions*.
+Reusing code gives us little - it's just code, we can write it ourselves.
+But each abstraction in your environment is another added complexity;
+to reuse an existing abstraction, then, is to avoid adding more complexity.
+
+And we might also distinguish *writing for reuse*,
+from actually *performing reuse*.
+Writing for reuse is usually bad - mainly because writing a bunch of code is easy,
+but writing a really good abstraction is extremely hard.
+
+And, of course, we probably should reuse *good* code,
+not *bad* code.
+
+If you focus on finding good existing abstractions,
+and trying to turn each new problem into a trivial program on top of those good existing abstractions...
+you'll be successful at minimizing complexity while solving problems, at least in my experience.
+
+Some attributes that suggest an existing abstractions is good:
+- Widely used
+- Old (like 30 years)
+- Open source
+
+Some attributes that suggest an existing abstraction is bad:
+- Used by only a small group
+- New (like 10 years)
+- Proprietary, or otherwise internal to a company
+
+"Widely used", "old" and "open source" all, as it happens,
+apply to some of the most important low-level abstractions,
+like Linux and most programming languages.
+Those are some good abstractions which have been extremely successful.
+
+You should learn those abstractions,
+because if you don't,
+you'll recreate them.
+(Or, possibly, use some else's worse recreation of those abstractions)
+
+Often some people talk about how low-level abstractions are important to learn
+for debugging issues and understanding the system;
+others counter that low-level abstractions just serve as a form of gatekeeping,
+and that it's good to work purely in terms of the top of the abstractive tower.
+
+They're both wrong:
+Those low-level abstractions are useful because they provide high-quality abstractions
+with lots of features,
+and if you don't know about them, you'll spend your complexity budget on recreating them.
+They might have some utility for debugging, but that's a minor use;
+the real advantage is in actually using them to solve problems.
+And it's true that computing has advanced by adding layers and layers of abstraction,
+but at some point you need to actually use those abstractions,
+not just build new ones on top.
+
+But,
+this also applies to less low-level abstractions.
+
+If there's a core of stable operations provide by some service you use,
+learn them!
+Use them!
+
+If there's some tool you like and use heavily,
+read its manual.
+
+All of my interesting programming accomplishments have come because
+I knew some high-quality abstraction deeply and came up with some new use for it.
+* low level abstractions
+some people talking about whether it's valuable for engineers to know low level abstractions;
+mostly for the sake of debugging.
+
+but, I say, it's useful because otherwise they'll create new abstractions which duplicate those!
+they won't know to reuse them!
+
+like, learning these things, okay there was talk of gatekeeping, but...
+if people don't know the fundamental abstractions, they'll recreate them endlessly.
+
+If you don't learn existing abstractions, your software will be overly complex
+
+* "layered abstractions are good" says some
+#+begin_quote
+Less facetiously: the history of progress in most domains, and
+especially computing, is in part a process of building atop successive
+layers of abstraction to increase productivity and unlock new
+value. Anyone who doesn't see this really hasn't been paying
+attention.
+#+end_quote
+
+yes, but you need to actually use those abstractions!
+not just build a new abstraction layer every time you need a "new" feature;
+those features may exist in the abstraction layer below!
+* maybe frame it as my advantage?
+My advantage is that I have learn existing abstractions enough to reuse them,
+instead of recreate them ignorantly.
+
+wait, wait, okay.
+it's not code, it's abstractions.
+maybe I should say that.
+
+title: Reusing existing abstractions is the most important programmer skill
+
+cuz I don't really care about the code, just the abstraction.
+(kind of a weird division but whatever)
+
+and, it's really very personal.
+ummm my train of thought was just disturbed by boopy...
+
+abstractions, abstractions, don't care about the code, just the abstraction...
+
+ummmm
+
+and I was thinking about putting it in the life section...
+
+oh and it can be more general than code.
+oh! it was relating to those number theory tweets I read.
+https://twitter.com/benskuhn/status/1419281153983500290
+
+right like, that's fine.
+understanding the abstraction of the results is what I'm promoting;
+not understanding the code behind them.
+
+right so it's just a general,
+"Learn existing abstractions (but don't bother with their code)"
+
+(I guess?)
+
+right, right.
+so like the dives into the implementation of malloc or the shell or operating systems:
+not really too necessary.
+(well, it's necessary to make you autonomous, but it's not what I'm promoting here)
+
+the detailed study of the abstraction though:
+that's good.
+
+title: Learn your tools well, so you can use them
+
+that would tie into something else I frequently say,
+which is to read manuals and learn tools deeply.
+
+it's not just tools though... it's also the APIs and software you already have...
+but mostly those aren't tools?
+well, I guess my point would be to write tools, not big applications.
+
+and to see when an application you have, is actually a tool.
+
+although! it's not just "learn your tools",
+it's also, "learn abstractions down the stack from your tools".
+
+so... it's more like...
+
+learn your *available* tools well, so you can use them.
+
+right.
+
+Learn the available tools well, so you can use them
+
+not just the ones you immediately know and use,
+but also other ones available like the OS and PL.
+
+But...
+
+I guess I'm suggesting that one should focus on "good" tools, not just the available ones.
+
+Learn good tools well, so you can use them
+
+um, I guess "available" is contained within "good"?
+
+and... I guess if I send this to someone about software, heh,
+part of my point is like, hey this is why I prefer open source and stuff,
+because that raises the goodness, and so I can learn them well, so then I can use them.
+
+shorten it:
+
+title: Learn good tools
+
+but that's obvious AGAIN. 
+everyone says pick good tools,
+and everyone says learn them.
+there are articles out there (like gwern's) about how to pick good tools.
+
+(I should probably link
+https://www.gwern.net/Choosing-Software
+in this post)
+
+the real point is more in the direction of...
+actually applying those tools? no that's dumb. uh...
+
+if you choose good software,
+and then you learn it well,
+you'll be able to do things in a much less complex way
+
+title: Choose good tools, learn them well, and you'll have less complexity
+
+except, why will you have less complexity?
+
+if you choose good software,
+and then you learn it well,
+you'll be able to use it to solve many problems,
+without having to add complexity by adding new software (either adopting it or writing it yourself)
+
+um, okay, duh.
+
+but I guess the point is bidirectional:
+
+you should choose good software and learn it because it will give you this benefit.
+
+and,
+if you want this benefit (i.e., you're trying to solve a problem with minimal complexity),
+you should look for good software and learn it.
+
+that's not exactly bidirectional.
+jmaybe I should say it from the benefit first.
+
+title: If you want to solve a problem simply, look for good existing abstractions
+
+oooh I like that one.
+it encapsulates my philosophy well, actually.
+
+OK.
+I definitely like starting with:
+"If you want to solve a problem simply",
+or at least "If [x]".
+I just need to polish the "then Y" part,
+maybe.
+
+it's not just "look for".
+it's "look at".
+it's "use".
+
+title: If you want to solve a problem simply, reuse existing abstractions
+
+yeah, okay.
+
+that's good, better than "most important programmer skill".
+and it's generic, too.
+
+* draft
+title: If you want to solve a problem simply, reuse existing abstractions
+
+If you want to solve a problem simply, look at the existing abstractions you have available,
+and reduce the problem to a trivial program using one or more of those abstractions.
+
+In this way, you can minimize the additional complexity spent on the problem;
+instead, you reuse the complexity already invested in the existing abstractions.
+
+Some abstractions are better than others;
+if you prioritize abstractions which are:
+- Widely used
+- Old (like 30 years)
+- Open source
+then you're more likely to succeed.
+
+If you know more about an abstraction,
+you're more likely to be able to solve a problem in terms of that abstraction.
+So you should both
+- try to learn abstractions ahead of time in preparation for future problems, and
+- while working on a problem, try to learn abstractions that seem likely to help.
+
+Here are some examples of abstractions that you're more likely to succeed with:
+- General-purpose programming languages like Rust or Python
+- The Linux syscall API
+- TCP/IP
+- DOM
+(shrug?)
