@@ -1571,16 +1571,36 @@ if you prioritize abstractions which are:
 - Old (like 30 years)
 - Open source
 then you're more likely to succeed.
+(well, no, those things are just *correlated with* abstractions which will make you succeed...
+well no, open source and widely used are directly causal...
+let's just be vague about why.)
 
 If you know more about an abstraction,
 you're more likely to be able to solve a problem in terms of that abstraction.
-So you should both
-- try to learn abstractions ahead of time in preparation for future problems, and
-- while working on a problem, try to learn abstractions that seem likely to help.
+While working on a problem, or while preparing for future problems,
+try to learn abstractions that seem likely to help.
 
-Here are some examples of abstractions that you're more likely to succeed with:
-- General-purpose programming languages like Rust or Python
-- The Linux syscall API
-- TCP/IP
-- DOM
-(shrug?)
+The history of computing has been a history of layering new abstractions on top of old ones.
+This has, at least, not stopped forward progress;
+but still, at some point you need to actually need to use the abstractions you've created,
+rather than endlessly build more.
+
+Think a lot before you create a new abstraction.
+You don't need to, and probably shouldn't,
+build a new reusable abstraction if you're just solving one problem;
+just write a program to solve that one problem.
+If you do feel that you need to create a new abstraction,
+try to create as little novelty as possible.
+It is hard to create good abstractions,
+so you should do it as little as possible.
+
+For an example of these principles in action,
+see [[http://catern.com][almost anything I've written or done]].
+Some abstractions that I particularly like to use are
+general-purpose programming language (such as functions)
+and the Linux syscall API.
+
+This principle is the absolute core of all my thinking about programming,
+and inasmuch as I've done anything novel,
+I credit this principle for leading me to good ideas.
+
