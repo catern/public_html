@@ -50,6 +50,18 @@ Nevertheless, contrary to popular belief, libraries can do anything, including:
     One interesting use of this ability is to implement
     extremely high-performance, but backwards-incompatible,
     <a href="http://catern.com/mobilelibs.html">wire protocols</a>.
+  <li>Be implemented multiple times in different languages with the same interface.
+    <p>
+    One way to write a type signature such that it can be implemented in any language is to use C headers;
+    such a signature can be implemented in any language with a C FFI.
+    Generating an implementable wrapper in language Y from the type signature in language X
+    can also work.
+    <!--
+I don't actually know of anything doing such "reverse SWIG" generation, though...
+that would be really helpful actually.
+That could serve as the foundation of a good cross-language type system...
+in .NET maybe?
+ -->
   <li>Run in parallel, using multiple cores.
     <p>
     Obviously: You can run library functions on multiple threads.
