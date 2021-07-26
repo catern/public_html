@@ -28,15 +28,12 @@ hence, servers are almost always the first choice.
 <p>
 Nevertheless, contrary to popular belief, libraries can do anything, including:
 <ul>
-  <li>Maintain stable, backwards-compatible interfaces, both API and ABI.
+  <li>Maintain stable, backwards-compatible interfaces
     <p>
-    Most people know how to do this at the API level.
-    For example, they know to not add new mandatory arguments to an existing function,
-    and instead to only add optional arguments with defaults.
-    Backwards compatibility can be a bit trickier at the ABI level,
-    but still possible,
-    especially in more advanced languages than C,
-    and in the many situations where ABI stability doesn't actually matter.
+    The precise details of how to maintain a backwards-compatible signature is language-specific,
+    but it's possible in most languages.
+    For example, don't add a new mandatory argument to an existing function;
+    instead, add an optional argument with a default.
     <p>
     In fact, a library is strictly more powerful than a protocol schema in this regard:
     If you really wanted to,
