@@ -14,7 +14,8 @@ For example,
 a function pointer is a valid argument or return type for a function in most languages, even in C.
 But almost no protocol schemas support this.
 In more advanced languages,
-objects, abstract data types, references to other modules, and many other constructs
+objects, interfaces, abstract data types, types themselves, type constructors,
+references to other modules, and many other constructs
 are valid arguments and return types.
 You can't express any of that in protocol schemas;
 this makes many tasks more complicated.
@@ -50,17 +51,119 @@ Nevertheless, contrary to popular belief, libraries can do anything, including:
     One interesting use of this ability is to implement
     extremely high-performance, but backwards-incompatible,
     <a href="http://catern.com/mobilelibs.html">wire protocols</a>.
-  <li>Be implemented multiple times in different languages with the same interface.
+  <li>Be used from, or implemented by, programs written in multiple languages
     <p>
-    One way to write a type signature such that it can be implemented in any language is to use C headers;
-    such a signature can be implemented in any language with a C FFI.
-    Generating an implementable wrapper in language Y from the type signature in language X
-    can also work.
+    The most common way to support cross-language interaction in libraries is to go through the C type system;
+    C functions can be called from, or implemented in, any language with a C FFI.
+    Going through the C type system can be constraining,
+    so
+    <a href="https://github.com/tweag/inline-java">there</a>
+    <a href="https://github.com/tweag/HaskellR">are</a>
+    <a href="https://github.com/PyO3/pyo3">many</a>
+    <a href="https://jpype.readthedocs.io/en/latest/">projects</a>
+    which allow one language to call functions in another language without going through C.
+    This also allows a signature in one language
+    to have multiple implementations in other languages.
+    <!-- 
+it's important to note that the fundamental difficulty here isn't converting calling conventions,
+or figuring out how to read datastructures in one language from another,
+or things like that.
+
+those things are difficult, true, but they aren't fundamental;
+the fundamental difficulty is converting between the type systems of the two languages.
+there's no equivalent of a char* in most languages - it's something that's simply not expressible;
+so you need some kind of conversion from the interface in the using-language,
+and the interface in the implementing-language.
+
+almost always, that's hand-coded (or expressed with some DSL or annotations),
+but one opportunity that seems under-explored is generating the implementing-language interface,
+from the using-language interface;
+that seems like it could save some hand-coding,
+even though it's not fundamentally better.
+
+that's how schema languages work:
+the using-language is the schema language, which has no support for writing actual values/terms, only types,
+so all the adaption work necessarily has to be done in the implementing-language.
+this is usually diffuse
+
+for libraries/signatures,
+the hand-coding required to make the using-language interface compatible with the implementing-language interface
+is most commonly done in the using-language.
+The using-language is usually able to call into 
+some auto-generated using-language version of the implementing-language interface,
+but such calls require special manipulations and special types;
+to create a real using-language interface, then, an adapter is hand-coded.
+
+compare this to the situation with schemas;
+from the schema, a client is generated in the using-language.
+this client is often pretty high-quality, when compared to the situation with libraries;
+but it still usually needs hand-coded adapter code
+(which is often diffused throughout the program rather than centralized)
+
+compare also to the situation with custom network protocols that aren't described by a schema.
+there, you might try to model the network protocol with some helper library,
+but ultimately you probably will have to do a great deal of work by hand
+in both the using-language and implementing-language.
+
+this all raises the question:
+why do schemas generate better clients and servers than library
+
+
+this is similar to implementing a custom network protocol by hand (or with some simple utilities).
+a custom network protocol doesn't
+
+
+  -->
+    <!-- 
+worst case, just write the adapter from Haskell interface to Java and R manually,
+yeah... I guess it's a question of whether you write the adapter code in Haskell,
+or in the implementation language. hmm...
+hey, with schemas, you can't write an "adapter" in the schema language itself.
+
+so...
+
+ -->
+    <!-- 
+hmmmmmmmm
+HMMMMMMMMMMMMMMMMMMM
+
+haskell calling Java...
+something something...
+if we can call the Java or whatever...
+we can pass functions...
+
+which means we can implement a library.
+
+but...
+
+if I have some Haskell interface, and I want to implement that with another library...
+oh! I can just manually write it!
+
+ -->
+
+      
+    <!--
+     !--   This is often used to have a single library which is wrapped in many languages,
+     !--   but you can also use it to have a single 
+     !-- 
+     !--   This is straightforward if the signature of the library is available as C headers;
+     !--   either by directly defining it as C headers or by generating C headers from a type signature in an arbitrary language
+     !--   as <a href="https://en.wikipedia.org/wiki/Java_Native_Interface">JNI</a> does.
+     !--   Such a signature can be implemented in any language with a C FFI.
+     !--   You could also use 
+     !-- You can also define the type signature in a higher-level language,
+     !-- generate C headers from that high-level description,
+     !-- and then implement those headers (or other signatures).
+     !-- 
+     !-- works like that; it reads Java type signatures and generates implementable C headers with function declarations.
+      -->
     <!--
 I don't actually know of anything doing such "reverse SWIG" generation, though...
 that would be really helpful actually.
 That could serve as the foundation of a good cross-language type system...
 in .NET maybe?
+ah, java does this.
+https://typedefs.com/ is interesting
  -->
   <li>Run in parallel, using multiple cores.
     <p>
