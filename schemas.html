@@ -75,96 +75,96 @@ there's no equivalent of a char* in most languages - it's something that's simpl
 so you need some kind of conversion from the interface in the using-language,
 and the interface in the implementing-language.
 
-almost always, that's hand-coded (or expressed with some DSL or annotations),
-but one opportunity that seems under-explored is generating the implementing-language interface,
-from the using-language interface;
-that seems like it could save some hand-coding,
-even though it's not fundamentally better.
-
-that's how schema languages work:
-the using-language is the schema language, which has no support for writing actual values/terms, only types,
-so all the adaption work necessarily has to be done in the implementing-language.
-this is usually diffuse
-
-for libraries/signatures,
-the hand-coding required to make the using-language interface compatible with the implementing-language interface
-is most commonly done in the using-language.
+For libraries/signatures,
+this conversion is most commonly hand-coded in the using-language.
+(Sometimes it's in a separate DSL, but we won't consider that here)
 The using-language is usually able to call into 
 some auto-generated using-language version of the implementing-language interface,
 but such calls require special manipulations and special types;
 to create a real using-language interface, then, an adapter is hand-coded.
 
-compare this to the situation with schemas;
-from the schema, a client is generated in the using-language.
-this client is often pretty high-quality, when compared to the situation with libraries;
-but it still usually needs hand-coded adapter code
-(which is often diffused throughout the program rather than centralized)
+Sometimes, the conversion is expressed with a separate DSL,
+either annotations on the implementing-language interface,
+or a model of the implementing-language interface in a separate DSL.
+This allows the generated using-language signature to be higher-quality.
+It's kind of like having a schema in the middle.
 
-compare also to the situation with custom network protocols that aren't described by a schema.
+Writing the conversion completely in the implementing-language is rare, for unclear reasons.
+The JNI takes the approach of writing the conversion in the implementing-language;
+the using-language signature is fixed, and an auto-generated implementing-language signature is created from it,
+which needs to be adapted to the idioms of the implementing-language.
+
+Compare this to the situation with schemas.
+The schema is an extra layer between the using-language and the implementing-language.
+From the schema, a client (with a signature) is generated in the using-language,
+and a server-stub (with a signature) is generated in the implementing-language.
+These signatures are often pretty high-quality, when compared to the situation with libraries;
+but they still usually need hand-coded adapter code,
+which is often diffused throughout the program rather than centralized.
+Note also that there's no way to write the "adaptor" in the schema language itself.
+
+Compare also to the situation with custom network protocols that aren't described by a schema.
 there, you might try to model the network protocol with some helper library,
 but ultimately you probably will have to do a great deal of work by hand
 in both the using-language and implementing-language.
 
-this all raises the question:
-why do schemas generate better clients and servers than library
+So, a schema generates better using-language and implementing-language signatures,
+compared to generating the using-language signature from the implementing-language signature,
+or generating the implementing-language signature from the using-language signature.
+Why?
 
+The obvious answer is that schemas are greatly constrained relative to signatures,
+so translating the schema into a signature stays in a well-understood, simple part of the signature language.
 
-this is similar to implementing a custom network protocol by hand (or with some simple utilities).
-a custom network protocol doesn't
+But then, why doesn't generating one signature from another signature work well,
+if they're both in the simple subset?
 
+Well... that's just complex.
+
+So I feel like, if we could just enhance C to make a standard thing...
+but no, it's not C that's the problem...
+
+I mean, going from HLL1 to HLL2 should be good! Why isn't it?
+It's just that a pivot language makes it easier to implement lots.
+But we can still implement individual pairs.
+
+also, my idea of generating the config-code, the CLI-arg-parsing stuff...
+oh, whether we generate from Python signatures to Java/C++,
+or generating from Java/C++ signatures to Python,
+it's just shifting where the adaptor code lives,
+and we'd prefer to write the adaptor code in Python...
 
   -->
-    <!-- 
-worst case, just write the adapter from Haskell interface to Java and R manually,
-yeah... I guess it's a question of whether you write the adapter code in Haskell,
-or in the implementation language. hmm...
-hey, with schemas, you can't write an "adapter" in the schema language itself.
+ <!-- 
+A higher level language to a lower level one...
 
-so...
+I mean, there *is* no signature at the CLI level. That's the problem.
 
+Suppose we had one; what would we want to do?
+
+Well, so... We could generate a typed Python wrapper for it. And that... Would be good actually. It's appealing.
+
+But, wait... The signature at the CLI level can't have full exposure to what all these types actually are.
+
+Hmmmmmm. Like, what I'm saying is that if we have just some tagged path passed as an arg,
+We don't actually know where that path comes from.
+
+The path isn't guaranteed to be constructed correctly, because it has a public constructor. Not like in Python...
+
+So that seems like a reason to generate down...
+
+And that would be a matter of making a signature that has a path argument, which is only usable by us validly... If we call it, we'll be correct...
+
+Seems not totally sound...
  -->
-    <!-- 
-hmmmmmmmm
-HMMMMMMMMMMMMMMMMMMM
-
-haskell calling Java...
-something something...
-if we can call the Java or whatever...
-we can pass functions...
-
-which means we can implement a library.
-
-but...
-
-if I have some Haskell interface, and I want to implement that with another library...
-oh! I can just manually write it!
-
- -->
-
-      
-    <!--
-     !--   This is often used to have a single library which is wrapped in many languages,
-     !--   but you can also use it to have a single 
-     !-- 
-     !--   This is straightforward if the signature of the library is available as C headers;
-     !--   either by directly defining it as C headers or by generating C headers from a type signature in an arbitrary language
-     !--   as <a href="https://en.wikipedia.org/wiki/Java_Native_Interface">JNI</a> does.
-     !--   Such a signature can be implemented in any language with a C FFI.
-     !--   You could also use 
-     !-- You can also define the type signature in a higher-level language,
-     !-- generate C headers from that high-level description,
-     !-- and then implement those headers (or other signatures).
-     !-- 
-     !-- works like that; it reads Java type signatures and generates implementable C headers with function declarations.
-      -->
-    <!--
-I don't actually know of anything doing such "reverse SWIG" generation, though...
-that would be really helpful actually.
-That could serve as the foundation of a good cross-language type system...
-in .NET maybe?
-ah, java does this.
-https://typedefs.com/ is interesting
- -->
+<!--
+ !-- I don't actually know of anything doing such "reverse SWIG" generation, though...
+ !-- that would be really helpful actually.
+ !-- That could serve as the foundation of a good cross-language type system...
+ !-- in .NET maybe?
+ !-- ah, java does this.
+ !-- https://typedefs.com/ is interesting
+  -->
   <li>Run in parallel, using multiple cores.
     <p>
     Obviously: You can run library functions on multiple threads.
