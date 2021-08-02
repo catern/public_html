@@ -30,7 +30,7 @@ they can employ either "exit" or "voice".
 <ul>
   <li>Voice: A user can file bugs, complain, and request that the software developer make the user's desired changes.
   <li>Exit: Or the user can switch to using some other piece of software which is more to their liking,
-    paying various switching costs, like learning to use the new software.
+    and pay large upfront switching costs, such as learning to use the new software.
 </ul>
 <h3>Open source provides a third option: fork</h3>
 For open source software, there's a third option.
@@ -44,6 +44,13 @@ That's a bit of a misnomer, because this sense of "forking" doesn't have to be a
 A user might make some private change to the software
 which they know wouldn't be accepted into the main version,
 while still making other changes as part of the main community.
+<p>
+This isn't like "voice";
+the user doesn't have to persuade a specific group to make the change.
+And this isn't like "exit";
+the user doesn't have to pay large upfront switching costs,
+just the ongoing costs of maintenance
+which are proportional to the fork's divergence from the main version.
 <p>
 The ability to fork has implications for "exit" and "voice".
 <h3>Exit is less important for open source</h3>
@@ -86,8 +93,9 @@ In the use of "voice" in software, there are two participants, the user and the 
 The behavior of both sides is changed by the ability to fork.
 <ul>
   <li>The user can invest less effort into persuading the developer,
-    because they can ultimately just make the change themselves.
-    Also, the user is able to more easily prove the goodness of their proposals
+    because they can ultimately just make the change themselves (or pay someone to do it).
+    Also, the user is able to more easily <a href="./constructive.html">prove</a>
+    the goodness of their proposals
     by implementing them in a fork and showing that to the developer.
   <li>The developer can dismiss user requests more readily,
     knowing that that the user has options other than "exit".
@@ -135,8 +143,9 @@ Some resources that might not be duplicated in a fork:
     the resources used to host that service are not duplicated in a fork.
     Most obviously, unlike normal application software which runs on the user's computer,
     a service depends on computers controlled by the service provider.
-    To use the service, the user must set up copies of such machines,
-    rather than simply run the software locally.
+    To use the service, the user must <a href="./freedist.html">set up copies</a>
+    of such machines,
+    rather than simply <a href="./run.html">run the software</a> locally.
 </ul>
 All this weakens the ability to fork and forces software users to depend more on exit and voice.
 </body>
