@@ -56,34 +56,40 @@ The ability to fork has implications for "exit" and "voice".
 <h3>Exit is less important for open source</h3>
 In different situations - not just in software - "exit" can be easier or harder.
 For example, someone working in a small town will have fewer job opportunities than someone working in a big city,
-so exiting a bad job is harder.
+so exiting a bad job is harder in the small town.
 <p>
 Since exit is essentially one's only option if voice fails,
 people will do things to make exit easier - like taking a job in a big city where there are many other jobs.
 <p>
-In software, one of the key influences on the ability to "exit" is portability.
-Portable software can be used on different platforms or with different dependencies
-and portable data formats can be read by different programs.
+Users (which might be other software) which are "portable" for a certain dependency
+can easily exit that dependency.
+That is, they can easily switch to different implementations of that dependency.
+Typically, the key to portability is using "portable features" (ones which are widely available in other implementations)
+and avoiding "non-portable features" (ones which are not available in other implementations).
 <p>
 For example,
-if a piece of software "FooSoft" depends on non-portable features of a proprietary library "libprop",
-the piece of software can't easily stop using the proprietary library.
-FooSoft and its users are reliant on "voice" to make sure that libprop changes only in good ways.
+imagine there's a piece of software "FooSoft" and a proprietary library "libprop",
+and that FooSoft depends on non-portable features of libprop.
+If libprop changes (or refuses to change) in bad ways,
+FooSoft is reliant on voice to prevent (or cause) that change, because exit is hard.
 <p>
-If FooSoft instead only depends on such portable, widely available features of libprop,
+If FooSoft instead sticks to only portable features of libprop,
 then if libprop changes in a bad way,
-libprop can just be switched out for some other implementation of those features.
+FooSoft can exit easily.
+libprop can just be switched out for some other implementation.
+So, to preserve the ability to exit,
+FooSoft would prefer to only use portable features of libprop.
 <p>
-Making it easy to "exit" in this way is the primary motivation to write portable software.
+But imagine that there's an open source library "libopen".
+If FooSoft depends on non-portable features of libopen,
+then it will be hard for FooSoft to exit libopen.
+But this inability to exit libopen is less important,
+because FooSoft still has the option to fork if they want certain changes;
+this fork might only involve a few private patches to tweak some small behavior.
 <p>
-For open source software, it's less important for users to preserve the ability to exit from the software,
-because they can fork it instead.
-<p>
-If, as in the example before, FooSoft depends on a non-portable feature of an open source library "libopen",
-and libopen changes in a bad way,
-FooSoft can fork libopen and continue using it.
-<p>
-So it's less important for software to only use portable features of open source dependencies.
+In general, it's less important for users to only use portable features of open source software.
+That's because the ability to fork open source software
+makes it less important to preserve the ability to exit that software.
 <h3>Voice is less important for open source</h3>
 In the use of "voice" in software, there are two participants, the user and the developer.
 <ul>
@@ -99,7 +105,8 @@ The behavior of both sides is changed by the ability to fork.
     by implementing them in a fork and showing that to the developer.
   <li>The developer can dismiss user requests more readily,
     knowing that that the user has options other than "exit".
-    Also, the developer can require that the user implement and demonstrate the change with a long-lived fork,
+    Also, the developer can require that the user <a href="./constructive.html">implement</a>
+    and demonstrate the change with a long-lived fork,
     before applying the change to the main version.
 </ul>
 On both sides, some of the effort that would otherwise be spent on voice
