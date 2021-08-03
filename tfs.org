@@ -30,6 +30,10 @@ rather than a hard-coded predetermined langauge.
 In this way, one can replace compilers,
 which inspect syntax trees and operate on the meta-level,
 with regular code operating on the object-level.
+If you want to be able to analyze your data and programs without compilers,
+you don't need to use "[[https://www.w3.org/DesignIssues/Principles.html#PLP][less powerful]]" languages;
+just avoid globals and implicit authority.
+# which might in fact require a more powerful language
 * Examples
   :PROPERTIES:
   :CUSTOM_ID: examples
