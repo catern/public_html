@@ -1,107 +1,113 @@
 <html>
   <head>
-<title>We need a free software license for distributed systems</title>
+<title>We need an open source license for distributed systems</title>
 </head>
 <body>
-<h1>We need a free software license for distributed systems</h1>
+<h1>We need an open source license for distributed systems</h1>
 It is good for users to be able to run,
 modify, distribute, and distribute modified versions of the software they use.
-If for nothing else,
-because such abilities make software much better and much cheaper,
-as proven by our empirical experience with free software.
-Everyone can agree this is good.
+Empirically, we've seen over the last 30 years of open source
+that this makes software better and cheaper.
 <p>
-When <a href="./run.html">software runs</a>
-on a single local machine,
-then if the user has access to the source code of the software under a free software license,
-it is easy for the user to run modified versions of the software,
+When software runs on a single local machine,
+then if the software is open source,
+it's easy for the user to run modified versions of the software,
 and distribute those modified versions to others for collaboration.
-That collaboration creates a feedback loop which makes the free software even better.
+That collaboration creates a feedback loop which makes the software even better.
 <p>
-When software runs as a service, as part of a broader distributed system on nodes not controlled by the user,
-then even if the user has access to the source code of the software under a free software license,
-it is relatively difficult for the user to run and distribute modified versions of the software.
-<p>
-The reason that it's more difficult to run such software is that the user needs to,
-in effect,
-administer their own distributed system which is composed of the service, other supporting services,
+But when software is used as a service it is much more difficult for the user to run and distribute modified versions of the software,
+even if the software is open source.
+The service runs as part of a broader distributed system on nodes not controlled by the user.
+For the user to run their own copy,
+the user must <a href="./run.html">run</a> their own distributed system which is composed of the service, other supporting services,
 and clients for that service, all spread across multiple nodes.
 <p>
 It's known that it's more difficult to run distributed systems than local software, but why?
 <p>
-In some respects, this is a simple technical problem:
+In some respects, this is a technical problem.
 We have a good understanding of how to write and run individual processes on a single machine,
-and how even novice users can relatively easily administrate such a machine.
-But we have little understanding of how to do the same for distributed systems,
-spread across multiple nodes.
+and how even novice users can administrate such a machine at a basic level.
+But we have relatively little understanding of how to do the same for distributed systems,
+spread across multiple nodes,
+and so it's a difficult task even with all the tools we've developed.
 <p>
-In some other respects, however, this is a social problem:
-The scripts and software and techniques that one user (which may be a single person or an entire organization)
+In other respects, however, this is a social problem.
+The scripts and software and techniques that one user
+(which may be a single person or an entire organization, e.g. Facebook, Amazon, Netflix, Google, etc.)
 develops to run a specific distributed system,
 are typically not shared with other users.
-And, crucially, those scripts and techniques are not available to the end users of a service:
+And, crucially, those scripts and techniques are not available to the end users of a service.
 If the end user wishes to run the service themselves,
-they start from nothing:
+they start from nothing;
 they have to recreate the distributed system from scratch.
 <p>
-Now, it's not clear how useful such scripts would be.
+Such scripts would probably not be very useful if they were made available immediately tomorrow.
 This comes back to the technical issues:
-We don't understand how to run distributed systems very well at a theoretical level.
+We don't have a good understanding of how to <a href="./run.html">run distributed systems</a>
+at a theoretical level,
+and so the scripts we write to do it are highly specialized and bespoke.
 <p>
-However, imagine a world where many large users (Facebook, Amazon, Netflix, Google, etc)
+However, imagine a world where all users, including the largest organizations,
 published the scripts they use to run their distributed system.
-The most useful and portable and flexible such scripts would be adopted by others,
+Over time,
+the most useful and portable and flexible such scripts would be adopted by others,
 and they would be extended to be even more useful.
-This is the same dynamic that we see for all free software.
+This is the same dynamic that we see for all open source.
 <p>
-Linux is not "well-designed" on a theoretical level.
+Consider an example in local software: Linux.
+Linux is not "<a href="https://en.wikipedia.org/wiki/Tanenbaum%E2%80%93Torvalds_debate">well-designed</a>"
+on a theoretical level.
 However, in practice, it's high quality, relatively easy to use,
 and used extremely widely for many different purposes.
-It made it to this state because it was free software,
+It made it to this state because it was open source,
 and everyone contributed to the shared Linux codebase;
 they had to, if they wanted to ship products using Linux.
 <p>
-Today, there's no such feedback loop for software for running distributed systems.
-The software that's actually used for the largest distributed systems isn't available,
-even as it incorporates large amounts of free software to run as a service.
-We might use those services,
-but we're not allowed to see or use the code for the distributed system that runs it.
+Today, the feedback loop that exists for Linux does not exist for distributed systems.
+The software that's actually used for the largest distributed systems
+maintained by the largest organizations isn't available,
+even though individual services within it are open source.
+A user has access to source code of a few individual components,
+but they don't have access to the code for the broader distributed system,
+so there's no open source feedback loop of improvements making that system high quality and reusable.
 <p>
-When a piece of "local" software links against a free library licensed under the GPL,
+For local software,
+we can preserve the freedom to run the entire local application by using copyleft.
+When a piece of local software uses an open source library licensed under the GPL,
 that software is required to provide its users all the freedoms of the GPL for the entire combined work.
-This ensures that free software continues to be improved by its largest, most well-resourced users.
-Again, this has been most famously effective with Linux.
+This ensures that the users of some software always have the ability to improve on it,
+sustaining the feedback loop that is so effective for Linux.
 <p>
-We can write similar licenses for distributed systems.
-When a distributed system links against a free service so licensed,
-that system would be required to provide its users with all the freedoms of free software.
-The users would have the ability to run and modify their own copies of the system,
+We could write new, similar copyleft open source licenses for distributed systems.
+When a distributed system uses a service licensed under the new license,
+that system would be required to provide its users with all the freedoms of open source for the entire combined distributed system.
+The users would have the ability to run and modify their own copies of the distributed system,
 and make it better, just like with Linux.
-Such a license would be a free software license;
-this would be a provision essentially identical to copyleft.
 <p>
 Some are concerned that such a license would not allow a service
 to be hosted on top of proprietary cloud hosting;
 an end-user would not be able to use the APIs of a proprietary distributed system to run the service.
-That's something that the GPL dealt with, too;
-it contains a "system linking exemption", to allow linking against proprietary "system libraries",
-part of proprietary operating systems.
+That's an issue the GPL dealt with, too.
+The GPL contains a "system linking exemption", to allow the use of proprietary "system libraries",
+part of proprietary operating systems;
+this was important back when proprietary operating systems were dominant.
 Our new distributed license could have a similar system linking exemption
 to allow use with proprietary cloud hosting.
 <p>
 The proponents of the SSPL claim
 <a href="https://writing.kemitchell.com/2019/06/13/SSPL-Not-Commons-Clause.html">it is an attempt</a>
-to write such a free software license.
+to write such an copyleft open source license for  distributed systems.
 The detractors claim it's something completely different.
 I don't really care;
-I just want a free software license which requires that,
+I just want an open source license which requires that,
 when licensed software is used to provide a service as part of a larger distributed system,
 the users of that service must be provided the freedom to run and modify their own copies of that distributed system.
 If that's not the SSPL, then we should work on a new such license.
 <p>
 The AGPL was intended, in part, to guarantee this freedom to users, but it has failed.
 Proprietary distributed systems frequently incorporate AGPL software to provide services.
-They believe that as long as the individual process that provides the service complies with the AGPL,
+The organizations implementing such systems
+believe that as long as the individual process that provides the service complies with the AGPL,
 the rest of the distributed system does not need to comply;
 and it appears that the legal world agrees.
 <p>
@@ -109,6 +115,6 @@ I want users to be able to run high-quality distributed systems easily.
 There are lots of technical advances that we can pursue to make this easier,
 but we should also pursue social remedies.
 We will never have a large collection of low-cost, high-quality distributed system software
-unless the free software feedback loop starts running for distributed systems.
+unless the open source feedback loop starts running for distributed systems.
 </body>
 </html>
