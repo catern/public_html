@@ -46,10 +46,13 @@ If you want to make your configuration more dynamic,
 write code to dynamically determine the arguments to pass.
 <p>
 If you want to make rapid changes and don't want to wait for builds,
-call the function from a REPL, or rely on fast incremental builds.
+call the function from an interpreted language, or rely on fast incremental builds.
 <p>
 If you want to see what arguments are being passed to your function in your program,
 use logging and debuggers, according to your preference.
+<p>
+If you want to roll back to an old configuration,
+just roll back to an old binary, which you need to be able to do anyway.
 <p>
 Code written in this way in your actual programming language
 can be easily constrained to only allow valid configurations;
@@ -70,6 +73,9 @@ whether as an object, a module, a struct of function pointers, or something else
 One can write a function (or a template, a functor, a macro, or something else)
 which takes the implementation directly as an argument,
 with no possibility of issues due to mismatches between a string identifier and the actually available implementations.
+<p>
+And the resulting encoding is compact in size. For example, instead of large text strings for keys and values,
+a binary just stores pointers at the right offsets in structs.
   <li>In a typical configuration DSL,
 we would specify a set of key-value pairs to configure some component.
 We might run some validator over the DSL to ensure it matches some schema
