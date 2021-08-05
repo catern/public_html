@@ -4,18 +4,78 @@
 </head>
 <body>
 <h1>Technical advantages of open source software</h1>
+
+The main motivation to open source some software is the social and organizational advantages of open source over proprietary software.
+For example, open source has a larger pool of possible contributors.
+
+The technical advantages of open source over proprietary software are far less frequently discussed,
+and sometimes people are not even aware they exist.
+Open source gives you options that are impossible with proprietary software,
+though you might choose not to take those options in practice.
+Here's a partial list of some of those options.
 <ul>
   <li>You can have a single source repository containing both the code providing an API, and the code using that API,
     allowing easy <a href="https://coccinelle.gitlabpages.inria.fr/website/">system-wide refactorings</a>.
   <li>Relatedly, you don't have to provide a
-    <a href="https://www.kernel.org/doc/Documentation/process/stable-api-nonsense.rst">stable plugin API</a>.
-    <!-- See also C:DDA, which has mods in the main rpeo -->
-  <li>You can safely ship your software as source code,
-    meaning you don't have to support verification or analysis on compiled binaries.
-    This makes it easy to avoid the <a href="http://catern.com/microkernels.html">"microkernel"</a> antipattern.
-  <li>You and your users can actually <a href="http://catern.com/run.html">run the software</a>.
-  <li>You don't have to ship binaries for many different platforms; package managers will handle that.
-    (Although it's not clear that this one is a purely technical advantage, it might be a social one.)
+    <a href="https://www.kernel.org/doc/Documentation/process/stable-api-nonsense.rst">stable plugin API</a>
+    to extend your system;
+    extensions can be maintained in that same repository and benefit from the same system-wide refactorings.
+    <!-- Besides Linux, see also C:DDA, which has mods in the main rpeo -->
+  <li>You can ship software as source code
+    and then have the end-user run source-code-level safety-verification on it
+    to ensure that the source code won't violate memory safety or access objects it's not allowed to access.
+    Among other things, this makes it easy to avoid the "<a href="./microkernels.html">microkernel</a>" antipattern.
+    (<a href="https://en.wikipedia.org/wiki/Proof-carrying_code">Proof-carrying code</a>
+    and <a href="https://en.wikipedia.org/wiki/Java_virtual_machine">bytecode virtual machines</a>
+    are two alternatives for doing this which work for proprietary software,
+    but they require you to write a lot more code;
+    if you ship the source code, you can use the compiler you already have for verification)
+  <li>Your users can <a href="./run.html">run your code</a>,
+    so they can actually test against your software.
+  <li>Your dependencies can run your code as a <a href="./usertests.html">test suite</a>.
+  <li>You don't have to ship binaries for many different platforms; package managers will handle that,
+    if you're willing to rely on them.
+    <!-- 
+> wrote a quick note about the technical advantages of free software http://catern.com/freetech.html
+<moon-child> catern: that seems geared towards a very specific set of application types
+<moon-child> which admittedly probably comprise a majority, but I think it would be good to say in what cases those arguments are applicable
+> could you elaborate? concretely what do you think this doesn't apply to?
+<moon-child> software which is developed and used entirely internally
+<moon-child> in particular, this seems to be geared towards fsf-style 'free' defined software; that is, it's advantageous for source code to be available to people who interact with it; but doesn't argue why it's useful to let people interact with your software in the first place.  Which, again, is frequently a given for many business models and applications, but I think it's worthwhile to mention it
+> I'm not sure I understand
+> isn't it useful for anyone to, e.g., avoid the need to maintain yet another stable API?
+<moon-child> catern: at my work, we have an interpreter which is only used by employees.  It's not exposed to anyone else; there's no secondary api to maintain.  Why is it advantageous in this case to opensource it?
+> well, it's already open source
+> in most senses anyway
+> you can run, modify, distribute, and distribute modified versions of the software (although only to other employees)
+<moon-child> my understanding of the term is that it refers to software whose source code is made publically and 'open'ly available
+> but I see what you mean now
+> I misread "software which is developed and used entirely internally" as you saying that was the category of software that this *does* apply to
+> I'll have to think about this but thanks for this observation
+<moon-child> ahh, I see
+> (totally my bad in misunderstanding, I see now your critique and it does make sense, will need to think about it)
+ -->
+  <!-- 
+right so I'd argue it's essentially open source.
+but... yeah... how does this relate?
+
+cuz obvious
+ -->
+  <!-- 
+umm okay so what about...
+for internal stuff, usertests against the services you're depending on?
+
+and, what about the benefit of... helping your neighbor by distributing...
+ -->
+
 </ul>
+These advantages apply if you're providing a service to users,
+but what if your software is entirely internal to a given company?
+
+Well, then you already (presumably) have access to the source code and can apply all these techniques whether the software is open source or not.
+<!-- actually maybe I should put this note in the introduction?
+     I can explain this is, like, for someone providing software to other people,
+     and listing the technical advantages for that person of being open source...
+ -->
 </body>
 </html>
