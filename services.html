@@ -31,13 +31,10 @@
   in other words, <a href="./run.html">let users run the software</a>
   themselves, by writing libraries instead of services.
 <p>
-  One easy way to write a library rather than a service,
-  is to write a module rather than a server;
-  that is, an importable piece of code rather than a standalone executable.
-  While a server can be run by users just as well,
-  modules are typically easier to use and run.
-  <a href="./schemas.html">Modules are much more capable</a> than many people think,
-  so this is possible in a wide variety of scenarios.
+  "Write a library", in this sense, can still mean writing a standalone server reached through a network protocol.
+  As long as the user runs the server themselves, you're still saving the administration costs.
+  Both standalone servers and importable code are <a href="./schemas.html">equally expressive</a>,
+  and equally cheap for you to administrate if you're not operating a service yourself.
 <p>
   By avoiding the maintenance and upgrade costs of a service,
   a library can afford to contain more functionality.
