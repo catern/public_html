@@ -1,0 +1,117 @@
+* introduction
+** ssh
+hmm... sshd without proxying... I guess that would be like...
+an ability
+** service discovery
+** NAT traversal
+   (This is like [[https://github.com/capnproto/capnproto/blob/master/c%2B%2B/src/capnp/rpc.capnp#L93-L95][three-way interaction]]/three-vat introduction in the jargon of CapTP)
+   (Or, a better example is NAT traversal!
+   for gameservers, you talk to some central STUN server,
+   it does some matchmaking
+   and then "introduces" you to the location of the actual destination you want to connect to,
+   and then you and your actual destination directly talk.
+   and if your NATs get in the way, the gameserver has to proxy)
+
+   the gameserver and STUN server *are* introduction servers.
+** mosh
+Or mosh, that's another good example.
+** treasure hunt
+the treasure hunt game is an example of introduction serving to gate permissions in a
+resource space that's large enough to make exhaustive enumeration infeasible (namely, the
+physical world)
+** hypertext! URLs!
+absolutely full of introduction!
+
+https://github.com/cwebber/rwot9-prague/blob/bearcaps/topics-and-advance-readings/bearcaps.md
+https://www.w3.org/TR/capability-urls/
+** post
+I should make a post about this.
+
+The concept of "introduction",
+which is vaguely pointed at sometimes,
+but doesn't have a concrete idea.
+*** title
+An underappreciated distributed systems concept: "introduction"
+
+no no, it should be an action
+
+Model systems with "introduction"
+
+When a server passes you a reference to another server, that's introduction
+
+An introduction to "introduction"; a rarely-named distributed systems concept
+
+"Introduction": A very common but rarely-named distributed systems concept
+
+An introduction to "introduction": A very common but rarely-named systems concept
+*** post
+Introduction is simple to describe:
+It's when you (A) talk to some server B,
+which gives you a way to communicate directly to (introduces you to) some other server C.
+
+A few things which do introduction:
+
+- A webserver (B) returns HTML which contains URLs which introduce you to other servers (C)
+- A query to a DNS server (B) can return an IP address which introduces you to another server (C)
+- Service discovery in general
+
+Introduction is not always simple to implement. In fact, it's more interesting when it's not simple.
+
+A good example is an idealized video game matchmaking server.
+You (A) talk to the matchmaking server (B),
+and it identifies some other player (C) who you should play a match against.
+
+But both you and the other player might be behind a NAT,
+which means the matchmaking server can't just give you the IP address of the other player and let you talk directly.
+
+Instead, a more complex [[https://en.wikipedia.org/wiki/STUN][process]] of introduction has to happen,
+coordinated by the matchmaking server (and possibly more servers),
+which establishes a bidirectional direct connection between you and the other player
+which passes through the NAT.
+
+The presence of a NAT means there's not a single globally accessible address space where anyone can reach anyone else.
+Instead, you have to go through a more complicated process to establish a channel for communication.
+
+Another example is Unix domain sockets,
+which like Internet sockets support sending and receiving raw bytes to a local Unix server,
+but which also, through a feature called [[https://man7.org/linux/man-pages/man7/unix.7.html][SCM_RIGHTS]],
+allow you to send and receive /connections to servers/, in the form of file descriptors.
+
+So if you (A) send a request to a Unix server (B),
+then it can introduce you to another Unix server (C)
+by sending you an already open connection to that server,
+even if the server is inside a container or otherwise inaccessible to you.
+
+Note that introduction can be iterated.
+Once I'm introduced to C,
+C might in turn introduce me to still more servers:
+D and E, which introduce F and G, and so on.
+
+An example of something that is not introduction is your interaction with a typical load-balancer.
+You (A) talk to a load-balancer (B),
+and then send and receive some data from another server,
+but you're typically not in direct communication with the other server:
+All your communication with that server is proxied through the load-balancer.
+Among other differences, this creates a performance overhead.
+
+Once you know what introduction is,
+you begin to see it everywhere.
+A short list of some more instances of introduction:
+
+- When you use mosh, you ssh (A) to an sshd (B) which then tells you the secrets for connecting to mosh (C).
+- If you (A) call a method on an object (B) it might return to you another object (C).
+
+
+other issues:
+- communicating securely
+- programming
+- real world examples, maybe (treasure hunts, bureaucracy)
+
+Let's see.... other disconnected networks would be good, if I had some examples...
+corporate firewalls...
+*** more examples
+- near and far address spaces...
+  a far pointer is an introduction to an object... in some sense
+- VPNs! VPNs are kind of like introduction
+- web of trust (kinda)
+  
