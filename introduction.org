@@ -80,7 +80,7 @@ allow you to send and receive /connections to servers/, in the form of file desc
 So if you (A) send a request to a Unix server (B),
 then it can introduce you to another Unix server (C)
 by sending you an already open connection to that server,
-even if the server is inside a container or otherwise inaccessible to you.
+even if the server is inside a different container or is otherwise inaccessible to you.
 
 Note that introduction can be iterated.
 Once I'm introduced to C,
@@ -127,3 +127,36 @@ corporate firewalls...
 * slept
 I guess unauthenticated introduction is really just returning a pointer to something.
 
+* #networking
+topside:
+
+GET-VPN
+RFC 3547
+
+<topside> catern, ill check but the design overview section of this
+isn't too bad
+https://www.cisco.com/c/dam/en/us/td/docs/solutions/CVD/Aug2014/CVD-GETVPNDesignGuide-AUG14.pdf
+
+<topside> https://www.ciscolive.com/c/dam/r/ciscolive/us/docs/2018/pdf/BRKSEC-2054.pdf as well
+
+> topside: do you know off the top of your head, does RFC 3547 itself
+(the thing that this says GET VPN is based on) also have this
+attribute? I'll be looking at the RFC anyway
+
+<topside> yes although I'd need to look at the data-plane a little
+closer to see about whether it actually tells you "who to talk to"
+
+<topside> but the premise is that it's authenticating endpoints before
+distributing group keys to them which are used to communicate with
+other members of the group
+* more ideas
+
+webrtc??
+
+end to end encrypted messaging?
+
+I guess I'd want to see a protocol where you're given a secret and a globally-routable IP address
+
+SIP + sRTP, I'm told!
+
+nice.

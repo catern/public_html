@@ -1,9 +1,9 @@
 <html>
   <head>
-<title>An introduction to "introduction": A common but rarely-named systems concept</title>
+<title>An introduction to "introduction": a common but rarely-named systems concept</title>
 </head>
 <body>
-<h1>An introduction to "introduction": A common but rarely-named systems concept</h1>
+<h1>An introduction to "introduction": a common but rarely-named systems concept</h1>
 Introduction is simple to describe:
 It's when you (A) talk to some server B,
 which gives you a way to communicate directly to (introduces you to) some other server C.
@@ -13,13 +13,19 @@ A few things which do introduction:
 <ul>
  <li>A webserver (B) returns HTML which contains URLs which introduce you to other servers (C)
  <li>A query to a DNS server (B) can return an IP address which introduces you to another server (C)
- <li>Service discovery in general
+ <li>In general, a query to a service discovery server (B) can return a route to someone providing that service (C)
+ <!--
+  !-- <li>Service discovery in general
+   -->
+ <!--
+  !-- <li>A lookup in a service
+   -->
 </ul>
 <p>
 Introduction is not always simple to implement. In fact, it's more interesting when it's not simple.
 <ul>
 <li>
-Consider an idealized video game matchmaking server.
+Consider a video game matchmaking server.
 You (A) talk to the matchmaking server (B),
 and it identifies some other player (C) who you should play a match against.
 <p>
@@ -32,6 +38,8 @@ more complex process
 of introduction (such as <a href="https://en.wikipedia.org/wiki/STUN">STUN</a>) has to happen,
 coordinated by the matchmaking server (and possibly more servers),
 which establishes a bidirectional direct connection, passing through the NAT, between you and the other player.
+<!-- this is also how WebRTC works -->
+<!-- and end-to-end encrypted peer-to-peer messaging -->
 <p>
 The presence of a NAT means there's not a single globally accessible address space where anyone can reach anyone else.
 Instead, you have to go through a more complicated process to establish a channel for communication.
@@ -40,17 +48,25 @@ Another example is Unix domain sockets,
 which like Internet sockets support sending and receiving raw bytes to a local Unix server,
 but which also, through a feature called
 <a href="https://man7.org/linux/man-pages/man7/unix.7.html">SCM_RIGHTS</a>,
-allow you to send and receive /connections to servers/, in the form of file descriptors.
+allow you to send and receive <em>connections to servers</em>, in the form of file descriptors.
 <p>
 So if you (A) send a request to a Unix server (B),
 then it can introduce you to another Unix server (C)
 by sending you an already open connection to that server,
-even if the server is inside a container or otherwise inaccessible to you.
+even if the server is inside a different container or is otherwise inaccessible to you.
+<li>
+With <a href="https://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a>,
+you (A) call some user by contacting a SIP server (B),
+and get back an IP address and cryptographic key for the user you want to call (C).
+You can then securely send and receive media to and from that IP address, using that key,
+over <a href="https://en.wikipedia.org/wiki/Secure_Real-time_Transport_Protocol">SRTP</a>.
 </ul>
 Note that introduction can be iterated.
 Once I'm introduced to C,
 C might in turn introduce me to still more servers:
 D and E, which introduce F and G, and so on.
+For example, an NS record pointing to another DNS server,
+or a URL pointing to another webpage with still more URLs on it.
 <p>
 An example of something that is not introduction is a typical load-balancer.
 You (A) talk to a load-balancer (B),
@@ -61,17 +77,23 @@ Among other differences, this creates a performance overhead.
 <p>
 Once you know what introduction is,
 you begin to see it everywhere.
-A short list of some more instances of introduction:
+Some more examples of introduction:
 <p>
 <ul>
   <li>When you use mosh, you ssh (A) to an sshd (B) which then tells you the secrets for connecting to mosh (C).
+  <li>Some forms of end-to-end encrypted messaging involve your client (A) connecting to some central server (B)
+    and receiving a key for communicating with another client (C).
+  <!--
+   !-- <li>A DHCPDISCOVER broadcast to a DHCP server (B) can return an IP address of a gateway (C) used for Internet connectivity
+    -->
   <li>If you (A) call a method on an object (B) it might return to you another object (C).
   <li>The term "introduction" comes from Mark S. Miller's work on
     <a href="http://erights.org/elib/distrib/captp/3vat.html">capabilities</a>,
-    where the full term is "three-vat introduction",
-    since each entity runs in a process-like context called a "vat".
+    where the full term is "three-vat introduction".
     Three-vat introduction is when
     you in vat A receive a message from vat B containing a reference to an object in vat C.
+    If that sounds like gibberish to you, no problem:
+    That's why I wrote this page.
 </ul>
 </body>
 </html>
