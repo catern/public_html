@@ -160,3 +160,20 @@ I guess I'd want to see a protocol where you're given a secret and a globally-ro
 SIP + sRTP, I'm told!
 
 nice.
+* criticism
+why is it not just name resolution?
+
+gwern: the most important reason why it's not just name resolution is
+that you might provide more or less arguments than just a string name;
+e.g. the mosh example doesn't have a name involved, and the Unix
+socket example might have much more than just a name; but you make a
+good point that I should have a good example of that
+** hm
+okay so... let's emphasize the arguments besides names...
+
+so in a webserver, it's not just a name but also an index in some HTML...
+* reword
+Introduction is not always simple to implement. In fact, it's more interesting when it's not simple.
+
+Introduction is not always a simple map from a query to one or more addresses.
+* alternative names and why they don't work?

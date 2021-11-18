@@ -1,9 +1,9 @@
 <html>
   <head>
-<title>An introduction to "introduction": a common but rarely-named systems concept</title>
+<title>"Introduction", the most common systems concept you've never heard of</title>
 </head>
 <body>
-<h1>An introduction to "introduction": a common but rarely-named systems concept</h1>
+<h1>"Introduction", the most common systems concept you've never heard of</h1>
 Introduction is simple to describe:
 It's when you (A) talk to some server B,
 which gives you a way to communicate directly to (introduces you to) some other server C.
@@ -13,21 +13,19 @@ A few things which do introduction:
 <ul>
  <li>A webserver (B) returns HTML which contains URLs which introduce you to other servers (C)
  <li>A query to a DNS server (B) can return an IP address which introduces you to another server (C)
- <li>In general, a query to a service discovery server (B) can return a route to someone providing that service (C)
+ <li>A query to a service discovery server (B) can introduce you to someone providing that service (C)
  <!--
   !-- <li>Service discovery in general
    -->
- <!--
-  !-- <li>A lookup in a service
-   -->
 </ul>
 <p>
-Introduction is not always simple to implement. In fact, it's more interesting when it's not simple.
+Introduction is not always just a simple map from a name to a response containing addresses.
+In fact, it's more interesting when it's not simple.
 <ul>
 <li>
 Consider a video game matchmaking server.
 You (A) talk to the matchmaking server (B),
-and it identifies some other player (C) who you should play a match against.
+and it identifies some other player (C) with a similar skill level who you should play a match against.
 <p>
 But both you and the other player might be behind a
 <a href="https://en.wikipedia.org/wiki/Network_address_translation">NAT</a>,
@@ -58,6 +56,7 @@ even if the server is inside a different container or is otherwise inaccessible 
 With <a href="https://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a>,
 you (A) call some user by contacting a SIP server (B),
 and get back an IP address and cryptographic key for the user you want to call (C).
+The key is issued specifically for each session.
 You can then securely send and receive media to and from that IP address, using that key,
 over <a href="https://en.wikipedia.org/wiki/Secure_Real-time_Transport_Protocol">SRTP</a>.
 </ul>
