@@ -9,7 +9,7 @@ A microkernel separates different components into different address spaces,
 communicating via RPC,
 to modularize and isolate components written in memory-unsafe C.
 However, when writing an operating system in a modern memory-safe language,
-there is no point in putting components in different address spaces:
+there is no point to putting components in different address spaces:
 a memory-safe programming language can modularize and isolate components just as well in a single address space.
 <p>
 Memory-safety means it doesn't matter whether you're running in a separate address space or not;
