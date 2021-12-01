@@ -39,18 +39,6 @@ Nevertheless, contrary to popular belief, libraries can do anything, including:
     In fact, a library is strictly more powerful than a protocol schema in this regard:
     If you really wanted to,
     you could use a protocol schema directly to define the format of the data passed in and out of the library.
-  <li>Be updated without restarting the process using them.
-    <p>
-    This field of techniques is called
-    <a href="https://en.wikipedia.org/wiki/Dynamic_software_updating">dynamic software updating</a>.
-    These techniques are actually quite easy
-    if the library only does things that one could do over a protocol schema.
-    If the library uses more than that bare minimum of features,
-    dynamic software updating becomes harder, but still possible.
-    <p>
-    One interesting use of this ability is to implement
-    extremely high-performance, but backwards-incompatible,
-    <a href="http://catern.com/mobilelibs.html">wire protocols</a>.
   <li>Be used from, or implemented by, programs written in multiple languages
     <p>
     The most common way to support cross-language interaction in libraries is to go through the C type system;
@@ -64,6 +52,7 @@ Nevertheless, contrary to popular belief, libraries can do anything, including:
     which allow one language to call functions in another language without going through C.
     This also allows a signature in one language
     to have multiple implementations in other languages.
+    <!-- decent article https://queue.acm.org/detail.cfm?id=2543971 -->
     <!-- 
 it's important to note that the fundamental difficulty here isn't converting calling conventions,
 or figuring out how to read datastructures in one language from another,
@@ -165,10 +154,6 @@ Seems not totally sound...
  !-- ah, java does this.
  !-- https://typedefs.com/ is interesting
   -->
-  <li>Run in parallel, using multiple cores.
-    <p>
-    Obviously: You can run library functions on multiple threads.
-    Different threads can even have different IO and CPU priority levels.
   <li>Be built separately from the rest of the program, and have different dependencies.
     <p>
       For example,
@@ -176,6 +161,22 @@ Seems not totally sound...
       or with linker scripts, <a href="https://man7.org/linux/man-pages/man3/dlopen.3.html">dlmopen</a>
       or <a href="https://github.com/NVIDIA/libglvnd">DT_FILTER</a> in C.
     <p>
+  <li>Run in parallel, using multiple cores.
+    <p>
+    Obviously: You can run library functions on multiple threads.
+    Different threads can even have different IO and CPU priority levels.
+  <li>Be updated without restarting the process using them.
+    <p>
+    This field of techniques is called
+    <a href="https://en.wikipedia.org/wiki/Dynamic_software_updating">dynamic software updating</a>.
+    These techniques are actually quite easy
+    if the library only does things that one could do over a protocol schema.
+    If the library uses more than that bare minimum of features,
+    dynamic software updating becomes harder, but still possible.
+    <p>
+    One interesting use of this ability is to implement
+    extremely high-performance, but backwards-incompatible,
+    <a href="http://catern.com/mobilelibs.html">wire protocols</a>.
   <li>Isolate failures.
     <p>
       "<a href="https://cs155.stanford.edu/papers/sfi.pdf">Software fault isolation</a>"
