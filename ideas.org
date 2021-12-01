@@ -17,30 +17,69 @@ Most of this will require getting rid of the setuid bit as a prerequisite.
    just let a process multiplex between a set of dirfds that it has access to.
 
    This allows doing very fancy policy, without paying the cost of that policy in the kernel.
-* FD passing of dirfds as an IPC mechanism
-  Sending a file descriptor isn't composable or self-describing
-  But if you send a directory file descriptor,
-  you can freely add more files in that directory,
-  and extend your IPC interface
+* FD passing of dirfds as an RPC mechanism
+  :PROPERTIES:
+  :CUSTOM_ID: ipc_dirfds
+  :END:
+Use Plan 9's approach to designing RPC interfaces as filesystems,
+but don't have the 9P protocol and mounted filesystems behind it;
+instead just have raw dirfds and pass those around.
 
-  You can also piggy-back on the structured-ness of filesystems,
-  to get structure for your IPC mechanism for free
-** prerequisite: lightweight userspace implementation of dirfds
-   FUSE can allow this already, but it's too heavyweight.
+That is, rather than mounting the RPC interface into your global filesystem namespace as with Plan 9 or FUSE,
+you can just contact some server (perhaps over a Unix socket)
+and get a dirfd passed back to you.
+That dirfd doesn't need to exist in any global filesystem namespace.
+** Prerequisite: Lightweight userspace implementation of dirfds
+   We need some way for a userspace program to implement a dirfd.
 
-   With filesystems as dirfds,
-   this would also allow a more composable/lightweight/minimal alternative to FUSE.
-* file descriptors backed by uploaded in-kernel eBPF programs
-  So you can do IPC/privilege isolation, without the cost of switching address spaces
+   Both FUSE and 9P have the problem that you can't return an arbitrary FD from, say, an =openat= call.
+   So you couldn't return a socket, or a dirfd for another server.
+   If you wanted to return such things,
+   you'd need to stick around as a proxy in the middle,
+   which reduces your opportunities for abstraction.
+   In other words, you want to be able to do [[https://catern.com/introduction.html][introduction]] rather than proxying.
 
-  They should be able to own other file descriptors as well and arbitrate access
-** revocability of arbitrary file descriptors through proxying
+   So a new way to implement a dirfd is needed.
+   It would be nice if it didn't even require mounting a filesystemm.
+
+   One way is described in the next section:
+   file descriptors backed by uploaded in-kernel eBPF programs.
+* File descriptors backed by uploaded in-kernel eBPF programs
+  :PROPERTIES:
+  :CUSTOM_ID: generic_fds
+  :END:
+  So you can do IPC/privilege isolation, without the cost of switching address spaces.
+
+  They should be able to own other file descriptors as well and arbitrate access.
+
+  You could use this to implement lots of other file descriptor behaviors which would otherwise need kernel modules.
+
+  That would increase the power of programs which take file descriptors as arguments,
+  because they would be much more customizable:
+  You could give them file descriptors which do more sophisticated things.
+
+  This is just a specialization of the universal concept of
+  "servers/objects which you access through a capability/interface and which are privilege-isolated/abstract".
+  The capability we have in Unix is file descriptors,
+  so we should be able to create new kinds of objects backing those file descriptors easily,
+  so that we can work with more generic designs
+  which are based around passing around opaque file descriptors
+  and operating on/with them.
+
+  You can do this today with FUSE/CUSE to some degree but only for a very limited subset of syscalls.
+  (for example, you couldn't emulate =waitid(P_PIDFD)=)
+** Application: Revocability of arbitrary file descriptors through proxying
    If a file descriptor is proxied by an eBPF program,
    that program can hold some extra FD which it monitors for shutdown commands;
-   this gives us revocability
+   this gives us revocability.
 
    This would also work if userspace processes were able to emulate arbitrary file descriptors,
    but an extra roundtrip to userspace for every file access is pretty heavyweight.
+** Application: Remote file descriptors
+   One could have a type of fd which communicates with a remote server,
+   transparently proxying each syscall to an fd on a remote server.
+   Then a local program could operate on remote resources just by being handed an fd for a remote resource.
+** Application: Implementing everything else on this page that mentions file descriptors
 * remove setuid dependence in userspace
   the filesystem setuid bit is a big limiting factor,
   we should get userspace ready for a world without the setuid bit.
