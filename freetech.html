@@ -4,23 +4,23 @@
 </head>
 <body>
 <h1>Technical advantages of open source software</h1>
-
-The main motivation to open source some software is the social and organizational advantages of open source over proprietary software.
+The main motivation for open source software is the social, ethical and organizational advantages of open source over proprietary software.
 For example, open source has a larger pool of possible contributors.
-
+<p>
 The technical advantages of open source over proprietary software are far less frequently discussed,
 and sometimes people are not even aware they exist.
 Open source gives you options that are impossible with proprietary software,
 though you might choose not to take those options in practice.
 Here's a partial list of some of those options.
 <ul>
-  <li>You can have a single source repository containing both the code providing an API, and the code using that API,
+  <li>You can have a single repository of source code containing both the code providing an API, and the code using that API,
     allowing easy <a href="https://coccinelle.gitlabpages.inria.fr/website/">system-wide refactorings</a>.
   <li>Relatedly, you don't have to provide a
     <a href="https://www.kernel.org/doc/Documentation/process/stable-api-nonsense.rst">stable plugin API</a>
     to extend your system;
     extensions can be maintained in that same repository and benefit from the same system-wide refactorings.
     <!-- Besides Linux, see also C:DDA, which has mods in the main rpeo -->
+    <!-- or see DCSS, which doesn't even have a modding API; people just fork instead -->
   <li>You can ship software as source code
     and then have the end-user run source-code-level safety-verification on it
     to ensure that the source code won't violate memory safety or access objects it's not allowed to access.
