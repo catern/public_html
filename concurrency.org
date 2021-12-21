@@ -805,11 +805,12 @@ Rather than, for example, "writer creates or modifies a file in a directory, rea
 This gives you no indication of when the writer side, or the reader side,
 are dead.
 This can cause deadlocks and issues and doesn't allow you to detect failures, on either side.
-* content, attempt 4
+* Tips for concurrent programming
 Here are some tips for concurrent programming.
-** use communication mechanisms which have built-in failure detection
-You should use a communication channel that supports notifying you when the other side has died.
-Such as pipes and sockets.
+** Use communication mechanisms which have built-in failure detection
+You should use a communication mechanism that supports notifying you when the other side has failed.
+Such as pipes and sockets,
+which will return an EPIPE or other error if you read or write when there's no-one on the other side.
 
 Not having a built-in failure detection system can cause deadlocks and issues, on both the sender and receiver side.
 
@@ -817,17 +818,21 @@ Consider, for example, "writer creates a file in a directory, reader waits for i
 This gives the writer no indication if the reader is dead and will never receive the file,
 and the reader no indication if the writer is dead and will never send the file.
 
-Heartbeat-timeout-based failure detection is also very slow, because you have to wait for the timeout.
-This will bog down your system and cause severe issues when you actually hit failures.
-(can't find stuff about this. it's kind of like bufferbloat? no trio stuff either)
+Here are a few examples of communication mechanisms with failure detection:
+- Pipes
+- Socketpairs
+- Unix domain sockets
+- TCP connection sockets
 ** don't add timeouts
 An arbitrary timeout on an operation is usually wrong;
 you'll spontaneously fail in a different network or load environment,
 even when you might otherwise have succeeded.
 
 A timeout is a way to avoid nontermination, not a way to detect failures.
-Detect failures by using communication mechanisms with built-in failure detection,
-not by adding timeouts.
+You should detect failures by using communication mechanisms with built-in failure detection,
+not with timeouts.
+Timeout-based failure detection will increase the latency of your system and decrease its ability to respond to failures,
+because you have to wait for the timeout to know a failure has happened.
 
 The right reason to use a timeout is because otherwise your program might never terminate.
 And you only need one such timeout, at the top-level or in the user interface,
@@ -840,60 +845,75 @@ Some docs on this:
   https://sre.google/sre-book/addressing-cascading-failures/#deadline-propagation-1
 - The trio concurrency library docs talk about it:
   https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
-** prefer completion-based APIs to readiness-based APIs
-Prefer APis where you send a request and don't get a response until the operation is complete.
-That's easier to use and easier to get right.
+** prefer completion interfaces to readiness interfaces
+Prefer interfaces where you send a request and don't get a response until the operation is complete.
+This is sometimes called "completion notification", or "the completion model for async",
+and it's easier to use and easier to get right.
+See discussions of [[http://lkml.iu.edu/hypermail/linux/kernel/0010.3/0849.html][readiness vs completion models]].
 
-Maybe there's no data availalbe when you send the request,
-or there's some other transient issue.
-Still, just send the request, and wait however long (minutes, hours) that it might take for the response to come back.
+For example, suppose you're trying to allocate some resource,
+and there's no resources available when you send the request.
+In a completion interface, you just send the request,
+and wait however long (minutes, hours) that it takes for the response to come back with an allocated resource.
 
-The alternative is a readiness-based API;
+The alternative is a readiness interface;
 where you wait for the right state for the operation,
 and only then do it.
+For example, you wait until you receive a notification telling you that there are resources available,
+and then you send a separate request to allocate that resource.
 
-A readiness-based API can be implemented more cheaply,
-but it's harder to use correctly.
-In particular, in a completion API,
+A readiness interface requires the implementer to spend less resources on tracking outstanding requests,
+but it's harder for the user to use correctly.
+In particular, in a completion interface,
 waiting and operating are coupled together,
 so it's impossible to wait for the "wrong state" for a given operation,
 or wait for the state in an incorrect way.
-In readiness-based APIs,
-that's all too easy.
+In readiness interfaces,
+it's all too easy to wait on the wrong thing,
+as I'll discuss in the next section.
 
-Some completion-based APIs:
+Some completion interfaces:
+- the "read" and "write" syscalls
 - using socket activation when starting up processes so clients can immediately send requests
-- IOCP
-** prefer readiness-based APIs to sleeping (or nothing)
-In a readiness-based API, you wait for the server to be ready before performing an operation.
+- IOCP on Windows
+** prefer readiness interfaces to sleeping (or nothing)
+In a readiness interface, you wait for the right state for an operation before performing it.
 
-If you must do this rather than a completion API, don't do it by sleeping.
-Sleeping instead of waiting for explicit notifications
-is a good way to make a program which is slow (waiting too long) and buggy (not waiting long enough).
+A surprisingly common misdesign is to initiate some preparations,
+then to simply sleep for some number of seconds,
+and assume that everything is in the right state once you wake up.
+This will resulting in a program which is both slow,
+because it waits longer than it needs to,
+and buggy,
+because sometimes it doesn't wait long enough and causes failures.
 
-And, of course, don't just *assume* that the other side is ready.
-That's like sleeping for 0 seconds.
-You might get lucky, maybe even 99.99% of the time,
-but under load or with bad scheduling,
-you'll eventually get unlucky and cause breakages.
+Another surprisingly common misdesign is to not sleep or wait at all,
+but to initiate some preparations and then to just assume that everything is ready immediately afterwards.
+This is like sleeping,
+but for a random amount of time which depends on how long your code takes to run.
+If you actually instantaneously performed the operation after initiating the request,
+you'd always fail,
+but because there's some small delay,
+you might get lucky 99.99% of the time.
+Eventually, however, under load or with bad scheduling,
+you'll get unlucky and things will break.
 
-Having failure detection in the waiting process is important here too.
-You should know when the thing you're waiting for will never happen,
-and you should do that by using communication mechanisms with built-in failure detection.
+Instead, you should wait for things to be in the correct state.
+You'll need to receive some kind of notification
+about the state of various entities involved in whatever operation you're performing.
+If you're writing client-side code,
+don't be afraid of adding support for these kinds of status updates on the server-side.
+Again, make sure you use communication mechanisms with built-in failure detection.
 
-Achieving good support for such waiting will often require a high-quality service implementation
-which exposes some kind of notifications about when it changes state.
-If you're writing a client,
-don't be afraid of adding support for these kinds of status updates to the server.
-
-Some readiness-based APIs:
-- starting up servers and waiting for them to be ready
+Some readiness interfaces:
+- the server can only perform certain requests when they're allowed;
+  the client has to wait for the server to notify that the requests are allowed
+  to be able to send those requests without encountering failures
+- starting up daemons and waiting for them to be ready
 - waiting for O_NONBLOCK fds to be readable
-- state changes in processes
-  (what's a good normal-person example? I guess I can just say "a certain stock being no longer available for trading")
 
-Some more tips:
-*** when using readiness-based APIs, don't wait for the wrong thing
+Some more tips on readiness interfaces:
+*** when using readiness interfaces, don't wait for the wrong thing
 Sometimes you can be performing operations on one thing,
 and the status updates you're getting are for a different thing,
 and it's easy to confuse them.
@@ -903,38 +923,41 @@ just because service X is ready, or has seen some event, or something,
 doesn't mean that service Y has.
 
 And remember that some services forward operations to other services;
-they may be incorrectly coded.
-*** don't send ready-notifications too soon
-Make sure that when they're saying "X is ready",
-that means any requests which come *instantaneously* at that point will succeed.
-X shouldn't say "X is ready" until that's true.
+you need status updates based on the state of the service you're actually interacting with,
+not just the proxy.
+*** when implementing readiness interfaces, don't send ready-notifications too soon
+Make sure that when you say "X is ready",
+that means any requests for X which come *instantaneously* at that point will succeed.
+Don't say "X is ready" until that's true.
 
 It's always better to delay a ready-notification,
 than to issue it too soon.
 If you issue it too soon, the ready-notification is useless to your client:
-No matter how many times they wait for ready-notifications,
-they're never guaranteed to get an operation that passes,
-if they send operations fast enough.
+They can't send an operation immediately, because it might still fail.
+They have to resort to sleeping - exactly what we were trying to avoid.
 ** don't use retries
-You should arrange things so that you don't need to add retries.
+A combination of all the above techniques will usually save you from needing to retry.
 
-A combination of all the previous techniques will often save you from needing to retry.
+Retries:
+- mask serious failures, rather than letting them be appropriately handled.
+- waste CPU time
 
 Even if you might want to retry,
 you can often just fail instead,
 and let the next level up above you deal with retrying.
-For example, you can just let the exception propagate,
-or just crash your process and let someone restart it.
+Just let the exception propagate and let your caller handle it;
+just crash your process and let your supervisor restart it.
 
-But sometimes, retrying is necessary for correctness.
+But sometimes, retrying is part of a correct algorithm.
 For example,
-TOCTOU issues can require retrying when using a readiness interface,
+a readiness interface can require retrying due to TOCTOU issues,
 and a completion interface without [[https://en.wikipedia.org/wiki/PCLSRing][PCLSRing]] can need to be retried on the client side.
 
 Just make sure that, before you resort to retries, you've fully implemented all the other techniques in this article.
 
 Some examples of necessary retrying:
-- the server said it was ready, but then it failed again before executing the client's operation,
+- the server said it was ready, and the client sent a request,
+  but the server became non-ready before receiving the request and returned a failure to the client,
   so the client needs to wait for it to be ready again
 - an FD no longer readable after you're woken up, because some other thread consumed the event
 - condition variable usage
