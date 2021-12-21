@@ -800,6 +800,102 @@ This gives you no indication of when the writer side, or the reader side,
 are dead.
 This can cause deadlocks and issues and doesn't allow you to detect failures, on either side.
 * content, attempt 4
+** use communication mechanisms which have built-in failure detection
+You should use a communication channel that supports notifying you when the other side has died.
+Such as pipes and sockets.
+
+Rather than, for example, "writer creates or modifies a file in a directory, reader waits for it to show up".
+This gives you no indication of when the writer side, or the reader side,
+are dead.
+This can cause deadlocks and issues and doesn't allow you to detect failures, on either side.
+** don't add timeouts
+At the UI level, or some other top-level, there are timeouts.
+Anywhere else, you shouldn't be adding timeouts.
+
+Remember,
+outside of a TCP implementation, a timeout is *not a failure detection technique*.
+If you want that, use communication mechanisms which have built-in failure detection, as mentioned previously.
+
+A timeout is a *nontermination checker*.
+You use it because otherwise your program might never terminate,
+not as a way to check if other nodes have failed.
+
+And you only need one of those, at the top-level,
+to make sure that your program does in fact terminate.
+
+An arbitrary timeout on an operation is usually wrong;
+you'll spontaneously fail in a different network or load environment.
+Even when you might otherwise have succeeded!
+
+Also, it makes your failure detection very slow (because you have to wait for the timeout),
+which will bog down your system and cause severe issues when you actually hit failures.
+(can't find stuff about this. it's kind of like bufferbloat? no trio stuff either)
+
+Timeouts should only exist at the very top-level - the user interface.
+So these days, if you're not writing Javascript that runs in a web browser,
+you probably shouldn't be writing timeouts - and often not even then.
+
+stuff on top-level timeouts:
+the trio docs:
+https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
+google's RPC:
+https://sre.google/sre-book/addressing-cascading-failures/#deadline-propagation-1
+** wait until your operations will succeed before trying them
+very frequently, an operation will fail unless X other side is in the right state.
+somewhere, somehow, you should wait for X to be in the right state before doing the operation.
+don't just blindly do the operation!
+you might get lucky, maybe even 99.9% of the time,
+but under load or scheduling changes,
+you'll eventually get unlucky and cause breakages!
+
+be sure to distinguish this from operations which themselves don't return until they've succeeded.
+a blocking read, for example;
+you need to wait until the pipe exists at all,
+but once it does, you can perform a blocking read without having to wait for it to be ready.
+you should prefer this wherever possible, but it's often not possible.
+
+Having failure detection in the waiting process is important here too.
+You should know when the thing you're waiting for will never happen,
+and you should do that by using communication mechanisms with built-in failure detection.
+
+achieving good support for such waiting will often require a high-quality service implementation
+which exposes such notifications/waiting support,
+which is sadly rare,
+so don't be afraid of going in and adding support for these kind of status updates.
+
+Things this covers:
+- starting up servers and waiting for them to be ready;
+  you can often avoid needing to wait in this scenario by using socket activation
+- waiting for O_NONBLOCK fds to be readable
+- state changes in processes
+  (what's a good normal-person example? I guess I can just say "a certain stock being no longer available for trading")
+** don't just sleep to implement this waiting
+Just throwing a sleep(5) into your program instead of waiting for explicit notifications
+is a good way to make a program which is slow (waiting too long) and buggy (not waiting long enough).
+
+Don't ever sleep.
+** don't wait for the wrong thing
+Sometimes you can be performing operations on one thing,
+and the status updates you're getting are for a different thing,
+but it's easy to confuse them.
+
+Remember that communication is never instant;
+just because service X is ready, or has seen some event, or something,
+doesn't mean that service Y has.
+
+And remember that some services forward operations to other services;
+they may be incorrectly coded.
+
+Make sure that when they're saying "X is ready",
+that means any requests which come *instantaneously* at that point will succeed.
+X shouldn't say "X is ready" until that's true.
+
+It's always better to delay a ready-notification,
+than to issue it too soon.
+If you issue it too soon, the ready-notification is useless to your client:
+No matter how many times they wait for ready-notifications,
+they're never guaranteed to get an operation that passes,
+if they send operations fast enough.
 ** don't use retries
 You should arrange things so that you don't need to retry, e.g. with a loop.
 
