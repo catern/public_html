@@ -874,17 +874,19 @@ because you're just operating on one thing!
 
 maybe I should just say, "if you do use a readiness-based API, do it right",
 merging the sleeping and "wait until your operations will succeed before trying them" sections together.
-** prefer readiness-based APIs to sleeping
+
+ya good.
+** prefer readiness-based APIs to sleeping (or nothing)
 In a readiness-based API, you wait for the server to be ready before performing an operation.
 
-Don't do that by sleeping.
+If you must do this rather than a completion API, don't do it by sleeping.
 Sleeping instead of waiting for explicit notifications
 is a good way to make a program which is slow (waiting too long) and buggy (not waiting long enough).
 
-And, of course, don't just assume that the other side is ready.
+And, of course, don't just *assume* that the other side is ready.
 That's like sleeping for 0 seconds.
-You might get lucky, maybe even 99.9% of the time,
-but under load or scheduling changes,
+You might get lucky, maybe even 99.99% of the time,
+but under load or with bad scheduling,
 you'll eventually get unlucky and cause breakages.
 
 Having failure detection in the waiting process is important here too.
@@ -904,7 +906,7 @@ Things this covers:
 ** when using readiness-based APIs, don't wait for the wrong thing
 Sometimes you can be performing operations on one thing,
 and the status updates you're getting are for a different thing,
-but it's easy to confuse them.
+and it's easy to confuse them.
 
 Remember that communication is never instant;
 just because service X is ready, or has seen some event, or something,
