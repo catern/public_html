@@ -800,6 +800,7 @@ This gives you no indication of when the writer side, or the reader side,
 are dead.
 This can cause deadlocks and issues and doesn't allow you to detect failures, on either side.
 * content, attempt 4
+Here are some tips for concurrent programming.
 ** use communication mechanisms which have built-in failure detection
 You should use a communication channel that supports notifying you when the other side has died.
 Such as pipes and sockets.
@@ -840,19 +841,51 @@ the trio docs:
 https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
 google's RPC:
 https://sre.google/sre-book/addressing-cascading-failures/#deadline-propagation-1
-** wait until your operations will succeed before trying them
-very frequently, an operation will fail unless X other side is in the right state.
-somewhere, somehow, you should wait for X to be in the right state before doing the operation.
-don't just blindly do the operation!
-you might get lucky, maybe even 99.9% of the time,
-but under load or scheduling changes,
-you'll eventually get unlucky and cause breakages!
+** prefer completion-based APIs to readiness-based APIs
+Prefer APis where you just send a request and don't get a response until the operation is complete.
 
-be sure to distinguish this from operations which themselves don't return until they've succeeded.
-a blocking read, for example;
-you need to wait until the pipe exists at all,
-but once it does, you can perform a blocking read without having to wait for it to be ready.
-you should prefer this wherever possible, but it's often not possible.
+If you have to send a request for something which might not be ready yet,
+prefer to just send the request and block for an unusually long time.
+It might take hours, but that's fine.
+
+That's easier to use and easier to get right.
+
+The alternative is to wait for the right state for the operation,
+and only then do it.
+This is a readiness-based API.
+
+A readiness-based API is less expensive for the server to implement,
+so it's often used.
+But you should still prefer completion-based API whenever possible.
+
+A completion-based API corresponds to:
+- using socket activation when starting up processes so you can immediately send requests
+- IOCP
+*** thoughts
+I guess my style 1/2/3 above is actually, very different.
+1 is readiness-based, 2 and 3 are completion-based!
+
+busy looping, also readiness-based.
+
+oh completion stuff also has less risk of, waiting on the wrong thing.
+
+you can't mix up what you're waiting on and what you're operating on,
+because you're just operating on one thing!
+
+maybe I should just say, "if you do use a readiness-based API, do it right",
+merging the sleeping and "wait until your operations will succeed before trying them" sections together.
+** prefer readiness-based APIs to sleeping
+In a readiness-based API, you wait for the server to be ready before performing an operation.
+
+Don't do that by sleeping.
+Sleeping instead of waiting for explicit notifications
+is a good way to make a program which is slow (waiting too long) and buggy (not waiting long enough).
+
+And, of course, don't just assume that the other side is ready.
+That's like sleeping for 0 seconds.
+You might get lucky, maybe even 99.9% of the time,
+but under load or scheduling changes,
+you'll eventually get unlucky and cause breakages.
 
 Having failure detection in the waiting process is important here too.
 You should know when the thing you're waiting for will never happen,
@@ -864,17 +897,11 @@ which is sadly rare,
 so don't be afraid of going in and adding support for these kind of status updates.
 
 Things this covers:
-- starting up servers and waiting for them to be ready;
-  you can often avoid needing to wait in this scenario by using socket activation
+- starting up servers and waiting for them to be ready
 - waiting for O_NONBLOCK fds to be readable
 - state changes in processes
   (what's a good normal-person example? I guess I can just say "a certain stock being no longer available for trading")
-** don't just sleep to implement this waiting
-Just throwing a sleep(5) into your program instead of waiting for explicit notifications
-is a good way to make a program which is slow (waiting too long) and buggy (not waiting long enough).
-
-Don't ever sleep.
-** don't wait for the wrong thing
+** when using readiness-based APIs, don't wait for the wrong thing
 Sometimes you can be performing operations on one thing,
 and the status updates you're getting are for a different thing,
 but it's easy to confuse them.
@@ -914,4 +941,26 @@ and in such cases, you'll need to retry.
 - an FD no longer readable after you're woken up, because some other thread consumed the event
 - condition variable usage
 - spinlock implementation
+- calling read again after a partial read returning less data than you want
+*** readiness vs completion...
+if it's completion-based...
+maybe I don't need retries ever...?
+
+well, completion-based, like... implies I won't get recoverable failures propagated to me anyway.
+so I should just fail...
+
+except maybe sometimes I do....
+
+oh hey: read is a good example again.
+this is like PCLSRing.
+
+read can "fail" with a partial read when interrupted,
+and I need to retry.
+
+so that's completion-based and needs a retry. sure.
+
+so... really I just mean, avoid retries.
+wherever possible, just fail up.
+
+if you've followed the previous rules, this will be possible more often than not
 
