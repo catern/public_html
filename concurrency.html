@@ -1,0 +1,178 @@
+<html>
+  <head>
+<title>Tips for concurrent programming</title>
+</head>
+<body>
+<h1>Tips for concurrent programming</h1>
+Here are some tips for concurrent programming.
+<h2>Use communication mechanisms which have built-in failure detection</h2>
+You should use a communication mechanism that supports notifying you when the other side has failed.
+Such as pipes and sockets,
+which will return an EPIPE or other error if you read or write when there's no-one on the other side.
+<p>
+Not having a built-in failure detection system can cause deadlocks and issues, on both the sender and receiver side.
+<p>
+Consider, for example, "writer creates a file in a directory, reader waits for it to show up".
+This gives the writer no indication if the reader is dead and will never receive the file,
+and the reader no indication if the writer is dead and will never send the file.
+<p>
+Here are a few examples of communication mechanisms with failure detection:
+<ul>
+ <li>Pipes
+ <li>Socketpairs
+ <li>Unix domain sockets
+ <li>TCP connection sockets
+</ul>
+<h2>Don't add timeouts</h2>
+An arbitrary timeout on an operation is usually wrong;
+you'll spontaneously fail in a different network or load environment,
+even when you might otherwise have succeeded.
+<p>
+A timeout is a way to avoid nontermination, not a way to detect failures.
+You should detect failures by using communication mechanisms with built-in failure detection,
+not with timeouts.
+Timeout-based failure detection will increase the latency of your system and decrease its ability to respond to failures,
+because you have to wait for the timeout to know a failure has happened.
+<p>
+The right reason to use a timeout is because otherwise your program might never terminate.
+And you only need one such timeout, at the top-level or in the user interface,
+to make sure that your program does in fact terminate.
+So don't add more timeouts on your own;
+whoever is running your program or calling your service is the one responsible for timing out.
+<p>
+Some docs on this:
+<ul>
+  <li>Google calls it "<a href="https://sre.google/sre-book/addressing-cascading-failures/#deadline-propagation-1">deadline propagation</a>".
+ <li>The <a href="https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts">trio concurrency library docs</a>
+   talk about it.
+</ul>
+<h2>Prefer completion interfaces to readiness interfaces</h2>
+Prefer interfaces where you send a request and don't get a response until the operation is complete.
+This is sometimes called "completion notification", or "the completion model for async",
+and it's easier to use and easier to get right.
+See discussions of <a href="http://lkml.iu.edu/hypermail/linux/kernel/0010.3/0849.html">readiness vs completion models</a>.
+<p>
+For example, suppose you're trying to allocate some resource,
+and there's no resources available when you send the request.
+In a completion interface, you just send the request,
+and wait however long (minutes, hours) that it takes for the response to come back with an allocated resource.
+<p>
+The alternative is a readiness interface;
+where you wait for the right state for the operation,
+and only then do it.
+For example, you wait until you receive a notification telling you that there are resources available,
+and then you send a separate request to allocate that resource.
+<p>
+A readiness interface requires the implementer to spend less resources on tracking outstanding requests,
+but it's harder for the user to use correctly.
+In particular, in a completion interface,
+waiting and operating are coupled together,
+so it's impossible to wait for the "wrong state" for a given operation,
+or wait for the state in an incorrect way.
+In readiness interfaces,
+it's all too easy to wait on the wrong thing,
+as I'll discuss in the next section.
+<p>
+Some completion interfaces:
+<ul>
+ <li>the "read" and "write" syscalls
+ <li>using socket activation when starting up processes so clients can immediately send requests
+ <li>IOCP on Windows
+</ul>
+<h2>Prefer readiness interfaces to sleeping (or nothing)</h2>
+In a readiness interface, you wait for the right state for an operation before performing it.
+<p>
+A surprisingly common misdesign is to initiate some preparations,
+then to simply sleep for some number of seconds,
+and assume that everything is in the right state once you wake up.
+This will resulting in a program which is both slow,
+because it waits longer than it needs to,
+and buggy,
+because sometimes it doesn't wait long enough and causes failures.
+<p>
+Another surprisingly common misdesign is to not sleep or wait at all,
+but to initiate some preparations and then to just assume that everything is ready immediately afterwards.
+This is like sleeping,
+but for a random amount of time which depends on how long your code takes to run.
+If you actually instantaneously performed the operation after initiating the request,
+you'd always fail,
+but because there's some small delay,
+you might get lucky 99.99% of the time.
+Eventually, however, under load or with bad scheduling,
+you'll get unlucky and things will break.
+<p>
+Instead, you should wait for things to be in the correct state.
+You'll need to receive some kind of notification
+about the state of various entities involved in whatever operation you're performing.
+If you're writing client-side code,
+don't be afraid of adding support for these kinds of status updates on the server-side.
+Again, make sure you use communication mechanisms with built-in failure detection.
+<p>
+Some readiness interfaces:
+<ul>
+ <li>the server can only perform certain requests when they're allowed;
+  the client has to wait for the server to notify that the requests are allowed
+  to be able to send those requests without encountering failures
+ <li>starting up daemons and waiting for them to be ready
+ <li>waiting for O_NONBLOCK fds to be readable
+</ul>
+<p>
+Some more tips on readiness interfaces:
+<h3>When using readiness interfaces, don't wait for the wrong thing</h3>
+Sometimes you can be performing operations on one thing,
+and the status updates you're getting are for a different thing,
+and it's easy to confuse them.
+<p>
+Remember that communication is never instant;
+just because service X is ready, or has seen some event, or something,
+doesn't mean that service Y has.
+<p>
+And remember that some services forward operations to other services;
+you need status updates based on the state of the service you're actually interacting with,
+not just the proxy.
+<h3>When implementing readiness interfaces, don't send ready-notifications too soon</h3>
+Make sure that when you say "X is ready",
+that means any requests for X which come *instantaneously* at that point will succeed.
+Don't say "X is ready" until that's true.
+<p>
+It's always better to delay a ready-notification,
+than to issue it too soon.
+If you issue it too soon, the ready-notification is useless to your client:
+They can't send an operation immediately, because it might still fail.
+They have to resort to sleeping - exactly what we were trying to avoid.
+<h2>Don't use retries</h2>
+A combination of all the above techniques will usually save you from needing to retry.
+<p>
+Retries:
+<ul>
+ <li>mask serious failures, rather than letting them be appropriately handled.
+ <li>waste CPU time
+</ul>
+<p>
+Even if you might want to retry,
+you can often just fail instead,
+and let the next level up above you deal with retrying.
+Just let the exception propagate and let your caller handle it;
+just crash your process and let your supervisor restart it.
+<p>
+But sometimes, retrying is part of a correct algorithm.
+For example,
+a readiness interface can require retrying due to TOCTOU issues,
+and a completion interface without
+<a href="https://en.wikipedia.org/wiki/PCLSRing">PCLSRing</a>
+can need to be retried on the client side.
+<p>
+Just make sure that, before you resort to retries, you've fully implemented all the other techniques in this article.
+<p>
+Some examples of necessary retrying:
+<ul>
+ <li>the server said it was ready, and the client sent a request,
+  but the server became non-ready before receiving the request and returned a failure to the client,
+  so the client needs to wait for it to be ready again
+ <li>an FD no longer readable after you're woken up, because some other thread consumed the event
+ <li>condition variable usage
+ <li>spinlock implementation
+ <li>calling read again after a partial read returning less data than you want
+</ul>
+</body>
+</html>
