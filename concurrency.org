@@ -105,7 +105,13 @@ stop writing busy looping, timeout-ing, racy garbage
 *** question
 style 1: while (!has_data()) sleep(1); style 2: block_for_data(); style 3: call_when_data(callback);
 
-style 1 is sometimes called "busy looping". style 2 and style 3 aren't busy looping. what's a good single name for this "lack of busy looping" that covers both style 2 and style 3?
+style 1 is sometimes called "busy looping". style 2 and style 3 aren't busy looping.
+what's a good single name for this "lack of busy looping" that covers both style 2 and style 3?
+**** later thoughts
+I guess my style 1/2/3 above is actually, very different.
+1 is readiness-based, 2 and 3 are completion-based!
+
+busy looping is also readiness-based.
 *** answers
 are all garbage!
 everyone's saying they don't know something that covers 2 and 3, argh!
@@ -805,77 +811,59 @@ Here are some tips for concurrent programming.
 You should use a communication channel that supports notifying you when the other side has died.
 Such as pipes and sockets.
 
-Rather than, for example, "writer creates or modifies a file in a directory, reader waits for it to show up".
-This gives you no indication of when the writer side, or the reader side,
-are dead.
-This can cause deadlocks and issues and doesn't allow you to detect failures, on either side.
-** don't add timeouts
-At the UI level, or some other top-level, there are timeouts.
-Anywhere else, you shouldn't be adding timeouts.
+Not having a built-in failure detection system can cause deadlocks and issues, on both the sender and receiver side.
 
-Remember,
-outside of a TCP implementation, a timeout is *not a failure detection technique*.
-If you want that, use communication mechanisms which have built-in failure detection, as mentioned previously.
+Consider, for example, "writer creates a file in a directory, reader waits for it to show up".
+This gives the writer no indication if the reader is dead and will never receive the file,
+and the reader no indication if the writer is dead and will never send the file.
 
-A timeout is a *nontermination checker*.
-You use it because otherwise your program might never terminate,
-not as a way to check if other nodes have failed.
-
-And you only need one of those, at the top-level,
-to make sure that your program does in fact terminate.
-
-An arbitrary timeout on an operation is usually wrong;
-you'll spontaneously fail in a different network or load environment.
-Even when you might otherwise have succeeded!
-
-Also, it makes your failure detection very slow (because you have to wait for the timeout),
-which will bog down your system and cause severe issues when you actually hit failures.
+Heartbeat-timeout-based failure detection is also very slow, because you have to wait for the timeout.
+This will bog down your system and cause severe issues when you actually hit failures.
 (can't find stuff about this. it's kind of like bufferbloat? no trio stuff either)
+** don't add timeouts
+An arbitrary timeout on an operation is usually wrong;
+you'll spontaneously fail in a different network or load environment,
+even when you might otherwise have succeeded.
 
-Timeouts should only exist at the very top-level - the user interface.
-So these days, if you're not writing Javascript that runs in a web browser,
-you probably shouldn't be writing timeouts - and often not even then.
+A timeout is a way to avoid nontermination, not a way to detect failures.
+Detect failures by using communication mechanisms with built-in failure detection,
+not by adding timeouts.
 
-stuff on top-level timeouts:
-the trio docs:
-https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
-google's RPC:
-https://sre.google/sre-book/addressing-cascading-failures/#deadline-propagation-1
+The right reason to use a timeout is because otherwise your program might never terminate.
+And you only need one such timeout, at the top-level or in the user interface,
+to make sure that your program does in fact terminate.
+So don't add more timeouts on your own;
+whoever is running your program or calling your service is the one responsible for timing out.
+
+Some docs on this:
+- Google calls it "deadline propagation"
+  https://sre.google/sre-book/addressing-cascading-failures/#deadline-propagation-1
+- The trio concurrency library docs talk about it:
+  https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
 ** prefer completion-based APIs to readiness-based APIs
-Prefer APis where you just send a request and don't get a response until the operation is complete.
-
-If you have to send a request for something which might not be ready yet,
-prefer to just send the request and block for an unusually long time.
-It might take hours, but that's fine.
-
+Prefer APis where you send a request and don't get a response until the operation is complete.
 That's easier to use and easier to get right.
 
-The alternative is to wait for the right state for the operation,
+Maybe there's no data availalbe when you send the request,
+or there's some other transient issue.
+Still, just send the request, and wait however long (minutes, hours) that it might take for the response to come back.
+
+The alternative is a readiness-based API;
+where you wait for the right state for the operation,
 and only then do it.
-This is a readiness-based API.
 
-A readiness-based API is less expensive for the server to implement,
-so it's often used.
-But you should still prefer completion-based API whenever possible.
+A readiness-based API can be implemented more cheaply,
+but it's harder to use correctly.
+In particular, in a completion API,
+waiting and operating are coupled together,
+so it's impossible to wait for the "wrong state" for a given operation,
+or wait for the state in an incorrect way.
+In readiness-based APIs,
+that's all too easy.
 
-A completion-based API corresponds to:
-- using socket activation when starting up processes so you can immediately send requests
+Some completion-based APIs:
+- using socket activation when starting up processes so clients can immediately send requests
 - IOCP
-*** thoughts
-I guess my style 1/2/3 above is actually, very different.
-1 is readiness-based, 2 and 3 are completion-based!
-
-busy looping, also readiness-based.
-
-oh completion stuff also has less risk of, waiting on the wrong thing.
-
-you can't mix up what you're waiting on and what you're operating on,
-because you're just operating on one thing!
-
-maybe I should just say, "if you do use a readiness-based API, do it right",
-merging the sleeping and "wait until your operations will succeed before trying them" sections together.
-
-ya good.
 ** prefer readiness-based APIs to sleeping (or nothing)
 In a readiness-based API, you wait for the server to be ready before performing an operation.
 
@@ -893,17 +881,19 @@ Having failure detection in the waiting process is important here too.
 You should know when the thing you're waiting for will never happen,
 and you should do that by using communication mechanisms with built-in failure detection.
 
-achieving good support for such waiting will often require a high-quality service implementation
-which exposes such notifications/waiting support,
-which is sadly rare,
-so don't be afraid of going in and adding support for these kind of status updates.
+Achieving good support for such waiting will often require a high-quality service implementation
+which exposes some kind of notifications about when it changes state.
+If you're writing a client,
+don't be afraid of adding support for these kinds of status updates to the server.
 
-Things this covers:
+Some readiness-based APIs:
 - starting up servers and waiting for them to be ready
 - waiting for O_NONBLOCK fds to be readable
 - state changes in processes
   (what's a good normal-person example? I guess I can just say "a certain stock being no longer available for trading")
-** when using readiness-based APIs, don't wait for the wrong thing
+
+Some more tips:
+*** when using readiness-based APIs, don't wait for the wrong thing
 Sometimes you can be performing operations on one thing,
 and the status updates you're getting are for a different thing,
 and it's easy to confuse them.
@@ -914,7 +904,7 @@ doesn't mean that service Y has.
 
 And remember that some services forward operations to other services;
 they may be incorrectly coded.
-
+*** don't send ready-notifications too soon
 Make sure that when they're saying "X is ready",
 that means any requests which come *instantaneously* at that point will succeed.
 X shouldn't say "X is ready" until that's true.
@@ -926,43 +916,27 @@ No matter how many times they wait for ready-notifications,
 they're never guaranteed to get an operation that passes,
 if they send operations fast enough.
 ** don't use retries
-You should arrange things so that you don't need to retry, e.g. with a loop.
+You should arrange things so that you don't need to add retries.
 
 A combination of all the previous techniques will often save you from needing to retry.
 
-Often, you can just fail, and let the next level up above you deal with retrying;
-you can just let the exception propagate,
-or just crash the process and let someone restart it.
+Even if you might want to retry,
+you can often just fail instead,
+and let the next level up above you deal with retrying.
+For example, you can just let the exception propagate,
+or just crash your process and let someone restart it.
 
-But if you do need to retry, all the previous techniques are even more important.
-Sometimes, TOCTOU issues will cause failures in a system,
-even after you waited to be in the right state,
-and in such cases, you'll need to retry.
+But sometimes, retrying is necessary for correctness.
+For example,
+TOCTOU issues can require retrying when using a readiness interface,
+and a completion interface without [[https://en.wikipedia.org/wiki/PCLSRing][PCLSRing]] can need to be retried on the client side.
 
-- an active system can have state changes
+Just make sure that, before you resort to retries, you've fully implemented all the other techniques in this article.
+
+Some examples of necessary retrying:
+- the server said it was ready, but then it failed again before executing the client's operation,
+  so the client needs to wait for it to be ready again
 - an FD no longer readable after you're woken up, because some other thread consumed the event
 - condition variable usage
 - spinlock implementation
 - calling read again after a partial read returning less data than you want
-*** readiness vs completion...
-if it's completion-based...
-maybe I don't need retries ever...?
-
-well, completion-based, like... implies I won't get recoverable failures propagated to me anyway.
-so I should just fail...
-
-except maybe sometimes I do....
-
-oh hey: read is a good example again.
-this is like PCLSRing.
-
-read can "fail" with a partial read when interrupted,
-and I need to retry.
-
-so that's completion-based and needs a retry. sure.
-
-so... really I just mean, avoid retries.
-wherever possible, just fail up.
-
-if you've followed the previous rules, this will be possible more often than not
-
