@@ -1,0 +1,821 @@
+* stop writing racy garbage
+don't busy-loop, instead block on connections
+
+don't have timeouts in your test (or anywhere), timeout at the top-level
+just basically don't have timeouts anywhere! they're racy!
+
+avoid race conditions;
+don't assume something happens as soon as you request it to happen;
+only say "X happened" after you receive confirmation of X happening.
+
+why long timeouts are not an issue:
+if you're waiting for something happen, rather than not happen,
+it won't matter.
+
+don't sleep, for god's sake.
+you might not be obviously sleeping, but you might be doing it accidentally:
+if you request something and just immediately proceed as if it happened,
+it *might* usually happen in time depending on how slow your code runs.
+but be explicit, because that fully depends on the relative performance of your code!
+
+(all these are "do not ever do this or you will suffer")
+** run the service in parallel with other things?
+hm.
+
+well I guess this is a general principle:
+
+if something can run on live data, rather than batched at the end,
+run it on live data!
+
+then you can get notifications of errors in real time,
+and you can maybe support querying the thing you're running for its state,
+and all that.
+and it's faster, of course.
+
+this is beneficial in tests of course...
+but also prod...
+
+the question is:
+assuming you can run something in parallel or you can run it at the end in a batch,
+and both are existing capabilities,
+which one should you do?
+
+(well actually I'm ignoring that it is actually harder in TSINT to run in parallel than in a batch,
+so I actually am arguing for investing development effort)
+
+more specifically it's like:
+should you do streaming processing of data, or "at the end" in a batch?
+** what is this
+this is... suggestions on how to write the individual components in a single-program system!!!
+
+how does this relate to the game idea?
+well, it's pretty vague...
+
+but I guess the game idea is specific things you should be able to do
+
+and suggestions on writing componenets is... connecting that to real-world use cases.
+
+but that's almost self-evident once you know the things, I think!
+** sched_fifo
+but with random priorities and sometimes with other schedulers too,
+to ensure we don't depend on fifo scheduling.
+
+we've never even done this though lol :(
+
+OH!HH!H!H!H!H!H!!
+OH!
+
+oh oh!
+this would be good for the game!!!!
+
+and we're allowed to be SCHED_FIFO unprivileged if RLIMIT_RTPRIO is set
+
+yeah this would be perfect for the game....
+
+oh and also restricted to a single core of course
+*** what's the benefit?
+disables:
+- memory polling
+- filesystem polling
+- maybe even polling other processes periodically?
+
+well wait. it doesn't actually disable those.
+you can still call "sleep" and give others time to run, hm.
+it just stops busy-looping.
+
+but, at least, it will help, I think... hmm....
+*** so the real point here:
+don't busy loop,
+don't sleep and retry,
+stop having race conditions,
+don't have timeouts.
+
+be triggered by events! stop all this other nonsense!
+what's a good name for this practice? being event-driven?
+
+what's a good name for the practice of programming where instead of doing while (!not_ready) sleep(10);
+you do block_until_ready(); ?
+
+e.g. reading from a pipe instead of repeatedly checking for a file to appear in a directory
+
+basically, stop writing fucking shitty busy looping garbage
+don't have shitty fucking timeouts
+
+stop writing busy looping, timeout-ing, racy garbage
+*** question
+style 1: while (!has_data()) sleep(1); style 2: block_for_data(); style 3: call_when_data(callback);
+
+style 1 is sometimes called "busy looping". style 2 and style 3 aren't busy looping. what's a good single name for this "lack of busy looping" that covers both style 2 and style 3?
+*** answers
+are all garbage!
+everyone's saying they don't know something that covers 2 and 3, argh!
+
+okay, I guess I have to think about this myself, SIGH
+
+event-driven vs polling...
+
+yielding vs busy-looping
+
+blocking
+
+event-driven
+
+well. actually. isn't the busy-looping fine?
+
+it just wastes CPU...
+
+well it's fine if it's actually sched_yielding/sleeping; if it's just a noop it's no good.
+
+so what are the real issues?
+** real issues
+you should block forever waiting for a message instead of busy-looping and then timing out.
+if the other end hangs up, you'll see it by your blocking failing.
+
+and you shouldn't be writing race conditions where you don't synchronize.
+
+oh and also, the busy looping with a sleep slows things down! that's a big issue too.
+cuz you don't get notified of the event immediately.
+causing increased slowness in general.
+ya it's higher-latency heh.
+
+well it increase system-wide latency, if cores are oversubscribed.
+you can *maybe* do it for shared memory communication but you should be futexing to block...
+or eventfding or something to block.
+
+yeah so:
+- no busy loops/spinning/polling (which waste CPU)
+  (you can avoid the in-kernel-blocking latency hit with techniques... maybe)
+- no communicating via mutable state (which make it hard to detect when the other side is dead)
+  (and don't support blocking, anyway. but some do I guess. like futexes... but then again, there's reliable futexes,
+  which notify you if the holder of the lock is dead...
+  or, no, inotify, on directories, that's a good example of what you shouldn't do)
+- no sleep loops (which increase latency)
+- no timeouts (which reduce stability and introduce bugs while under load) (should look into the trio docs about this)
+- always synchronize (to avoid race conditions which break things)
+  (rather than just sleep for an arbitrary amount of time)
+  (synchronization tips... use the same path for synchronization and for operation, (like bink)
+  to avoid a TOCTOU issue...)
+  (and just... make sure you're actually getting state updates from the components that actually do the handling...
+  you might get a state update from component A, but A just forwards requests to B, and B might not be in the same state)
+** no busy looping? futex speedup?
+okay so...
+
+FUTEX_WAKE is fine, we can tolerate that kernel transition latency hit, I guess.
+(worst case we can delegate the WAKE to another thread)
+
+so we want to call WAIT if either there's no data or it's full...
+
+ummm well.
+we could spin a little in userspace before calling wake.
+
+we could just use pthreads primitives, I guess.
+
+ughh ummm umuhghrghu
+
+cache line.. message passing... so bad...
+
+well I mean, at a low-level, it's just how we implement it with these cache-based message passing.
+
+I can't just block and wait for message
+
+well anyway, I'll put this in with a note about,
+"(except if you're dedicating cores exclusively to specific processes, and busy-looping is how cores in your CPU architecture wait for messages from other cores)"
+or maybe just the part about "receiving messages", not the dedicating cores, maybe... or maybe not...
+after all I don't really believe the kernel should be spinlocking either! why should it pass messages? that's stinky and gross!
+(well I guess if it's messaging the scheduler core or something)
+(WELL!!! no so it's... only if it knows nothing needs to run. so)
+
+except if you're in a process with exclusive ownership of a core,
+except if you're the only thing running on this core
+except if nothing else is running on this core, 
+except if nothing else is runnable on this core, 
+
+except if you have exclusive ownership of the core, and busy-looping is how cores in your CPU architecture wait for messages from other cores
+** concurrency title?
+this is kind of tips on how to write concurrent stuff
+
+concurrency is always relevant
+
+unix operating system... stuff...
+
+provides opportunities for shared state concurrency at the OS level,
+without threads.
+
+and that's bad and you should avoid screwing it up
+
+so yeah basically it's like...
+how to write concurrent Unix programs that aren't slow and unreliable
+
+in some sense...
+
+Systems in a Unix environment...?
+
+no...
+
+bah, the title doesn't matter, let's just write it.
+
+part of the idea is...
+the pain of shared memory concurrency exists even if you're single-threaded on a single machine.
+because you've still got multiple concurrent processes.
+and you can screw it up.
+*** title thoughts
+Common concurrency bugs in single-threaded systems
+
+Tips for correct concurrency on Unix uhh
+
+It's not really just Unix, I'm sure this all applies to Windows
+
+Writing systems without concurrency
+
+My tips for avoiding concurrency bugs
+
+Concurrency bugs to avoid in distributed systems
+
+What is it really? It's, just....
+
+Well it's tips for writing components and a system so you don't have tons of spontaneous failures/flakes when running under unusual load (such as in tests)
+
+Race conditions... Is a good word... Maybe...
+
+Concurrency bugs, really...
+
+How to write a reliable concurrent system
+
+How to write a concurrent system that won't break horribly under unusual load
+
+How to write a concurrent system that isn't full of latent concurrency bugs
+
+The real world is concurrent, and you can't avoid that by avoiding being threads
+
+Being single-threaded doesn't get you out of thinking about concurrency
+
+Being single-threaded doesn't save you from concurrency
+
+All systems are concurrent, here's how to write one without tons of latent concurrency bugs
+
+All systems are concurrent; here are some common concurrency bugs
+
+Ya that's good
+
+Common concurrency bugs in single-threaded programs
+
+(I'm worried that phrasing is, like, bugs caused by adding threads)
+
+(But I think the title is compelling enough... And it's useful as a reference anyway)
+
+(lol! I'm back to where I started)
+
+title: Common concurrency bugs in single-threaded programs
+* content
+title: Common concurrency bugs in single-threaded programs
+
+Single-threaded programs can still have concurrency bugs,
+because they're almost always part of a larger multi-process concurrent system.
+
+Here's a list of some of those bugs.
+These are just the ones that I have to explain most often.
+** communicating via mutable state
+Some process creates or modifies a file in a directory and the other side waits for it to show up.
+
+This gives you no indication of when the writer side, or the reader side,
+are dead.
+This can cause deadlocks and issues and doesn't allow you to detect failures, on either side.
+
+Both the writer and reader need to be able detect failures!
+
+Instead, you should use a communication channel that supports notifying you when the other side has died.
+Such as pipes and sockets.
+
+(or why is posdelta bad? well the mutable state - the directory it gets iqueues in - is just busy-looped over)
+(rather than, explicitly registering iqueues)
+(yeah and if we explicitly registered iqueues, we'd know if the registration failed!)
+
+** timeouts
+An arbitrary timeout on an operation is usually wrong;
+you'll spontaneously fail in a different network or load environment.
+Even when you might otherwise have succeeded!
+
+Also, it makes your failure detection very slow (because you have to wait for the timeout),
+which will bog down your system and cause severe issues when you actually hit failures.
+(can't find stuff about this. it's kind of like bufferbloat? no trio stuff either)
+
+Also not everything can be timed out! Sometimes you'll only receive an event once every hour or so.
+You still want to be able to detect if the other side has failed!
+(and heartbeats are just more epicycles)
+
+Instead, you should... again, use a channel which supports notifying you when the other side has died.
+(maybe condense multiple solutions together?)
+
+Also, maybe... have top-level timeouts for operations?
+by e.g. killing the process doing the operation if it takes too long.
+or cancelling the request or whatever.
+
+stuff on top-level timeouts:
+the trio docs:
+https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
+google's RPC:
+https://sre.google/sre-book/addressing-cascading-failures/#deadline-propagation-1
+
+okay i actually grudgingly admit that some top-level timeouts are necessary,
+in case of bugs causing deadlocks or infinite loops or whatever.
+so maybe this section should be 100% "use top-level timeouts",
+not "using a communication mechanism with failure notification"
+
+outside of a TCP implementation, a timeout is *not a failure notification technique*.
+it's a *nontermination heuristic*.
+you use it because otherwise your program might never terminate,
+not as a way to check if other nodes have failed.
+
+for failure notification techniques, see the "communicating via mutable state" section above.
+** you need to synchronize with other things you performed operations on; communication is not instant
+And you need to actually wait for the right thing to be done
+
+if you changed state in A, that doesn't mean that changed state is instantly reflected in B.
+you aren't guaranteed to be able to talk to B right away.
+OBVIOUSLY.
+
+(and just... make sure you're actually getting state updates from the components that actually do the handling...
+you might get a state update from component A, but A just forwards requests to B, and B might not be in the same state)
+
+this is actually separate from the sleeping thing actually
+
+what's this even about?
+
+this is definitely the most subtle point here.
+
+so it's kind of like TOCTOU issues but...
+
+the issue is when we're not even checking the right thing.
+
+well!! actually!!!
+
+normally we wouldn't be able to just "check" something to see if it works.
+
+because we're in a live system.
+we can't just check, even if we're checking the right thing,
+because it might change again...
+
+so actually.... maybe this "wait for X to happen" approach is bad anyway...
+
+maybe I should just... try... and loop?
+but no, locking would be better...
+
+yeah, the trick is that in a non-test, this is something we'd witness as a TOCTOU issue.
+
+because we can't merely check (even if we check the right place) and assume things are working.
+it can always fail! due to TOCTOUs!!
+
+hmmmmmm
+
+well what if we...
+try, then wait for the failure condition to clear,
+then try again, then wait again, etc?
+
+hmmmmmMMMMM
+
+it's like, I try and take the lock, I fail,
+I wait to take it,
+when I'm woken up, I try and take it,
+and then I fail again...
+
+kind of... like a... condvar or things like that..........
+
+but still, okay, that's not really a clean way... since it's vulnerable to thundering herds...
+
+again, so what does this original problem correspond to, in a real system?
+should I really just be polling, trying repeatedly until I fail or succeed?
+
+no wait, it's kind of like a... readiness notification.
+
+where you can wake up and try to read and get nothing and have to wait again
+
+so it's like... watch for the right readiness notification! or you'll suffer a deadlock!
+
+yeah so maybe I should adjust my other ones, becuase...
+busy looping is bad, and sleep looping is bad,
+but looping on a "wait for readiness, try operation, back to start if failure"
+is fine...
+
+well, it's risking thundering herds, but it's mostly fine...
+
+well how do we avoid thundering herds?
+we wake up only one thing...
+
+ala EPOLLEXCLUSIVE or EPOLLONESHOT or EPOLLET as such..
+
+but I can see, completion notification is a little nicer... hmm...
+
+so, I mean, if we have multiple people using some resource,
+we can't just say "hey you, you get the notification that the resource is available",
+because that's tantamount to just giving them the resource.
+I mean, that's basically a completion API!
+
+well I mean, I guess it does give the one who was woken up the resource...
+
+and if they crash that's bad
+
+hmm, in a real world tactic case,
+I really would sit there waiting for marketdata to be good,
+send an order when it is,
+stop sending when I get a reject for bad marketdata,
+and then wait once more for marketdata to be good.
+
+i guess this is like waiting for a process to start up?
+except it can go down and then you can need to wait for it to come back up
+
+hard to summarize/explain for normies though...
+
+since I think they usually have some kind of...
+well, manual failover,
+but also load balancers to automatically send to a working service...
+
+but what if things are down? I guess they just do manual failover...
+
+or the connection drops and they try to reconnect, I guess.
+but no, we can also have individual instruments/lines (services) go down.
+we can't just drop the connection because of that!
+
+okay so this is a followup to "sleeping is not a notification mechanism".
+
+that we need to use the *right* notification mechanism.
+
+the solution to sleeping is not "block until you're notified".
+it's "have a notification exist at all".
+the blocking isn't the solution, the notification is.
+
+because we might still need to loop on the notification!
+
+RIGHT!
+don't just sleep and retry!
+have an actual notification about whether something is ready or not!!!!!
+this is about retries!!! yes!!!
+have an actual notification system about readiness! PERFECT!
+
+so it's:
+
+- don't just loop and sleep on your retries, have an actual notification mechanism.
+and,
+- make sure you're actually getting notifications from the right place.
+
+oh, also:
+- do retry! retry! don't just fail the first time...? maybe?
+
+so I actually don't dislike loops!
+er maybe...
+*** retries
+retries, do I like them or not?
+
+well it's a question of whether you crash or not on failure.
+
+crash on failure - which is very often a good idea -
+or retry indefinitely - until you get timed out or some other kind of more severe failure happens.
+
+prefer to crash on failure.
+but, if you can't (which is rare)...
+
+right, crashing on failure puts the retry logic one level up.
+you crash, and someone above you has to decide whether to retry or not.
+(like the inherited deadlines thing)
+
+but, if you are the one implementing retrying, do some good things
+
+that is, if you are the one handling failures, do some good things.
+
+well yeah... it's fine to retry transient errors.
+if it's not transient, then crash! simple as.
+
+even if it's transient... if you have no guarantee that it will ever be fixed... just crash.
+
+mmm... hm... hmmMMm..
+
+right, if you don't know if it will be fixed, then... just... crash...........
+rather than implementing retry logic.......
+
+can I work this in with the tests?
+why in tests should you not retry?
+well because... it probably will never be fixed? maybe...????
+
+in a test we're basically single-threaded:
+we're the one who would fix it, and we're the one waiting for it.
+so we can't just retry. because... we're the one who would fix it!
+
+that doesn't really apply for a service crashing on failure to talk to an upstream system, hm....
+
+well, okay, so.
+
+I guess this also is, make sure your upstream service is ready for requests before you send requests.
+have a notification mechanism.
+
+- make sure a service is ready for requests before you send it requests.
+- don't just do that by sleeping (or by running at a specific wallclock time which is after the upstream has started, which is equivalent to a sleep.
+  e.g. don't have two cron jobs, one at 8:55, the next at 9:00, where the second blindly expects the first to be done when it runs),
+  instead, have a notification mechanism for when upstream is ready, so you're sure.
+- make sure that notification mechanism is actually for the right place. and of course make sure that you can block on it so you know if the service will never be ready.
+
+and then. if you want to retry, you can wrap this all in a retry,
+but most of the time you shouldn't retry.
+
+and we can s/ready for requests/in the appropriate state for your requests, before you send requests/
+because sometimes we want to fail or something, in a test.
+we can just clarify: "ready" means "in the appropriate state for your requests", which might depend on your application.
+(e.g. maybe you want the service to be down for maintenance!)
+*** readiness notification
+there's a surprising amount of robust readiness notification in TS systems
+it's weird...
+do other systems do this?? I've never really heard of it...
+*** trading example of the right notification
+getting notification of LULD resumption from MD and then sending orders,
+rather than waiting for the resumption notification from the order entry system.
+** sleeping is not a synchronization (notification?) mechanism
+After starting an operation,
+don't just sleep to wait for it to be done.
+You have to wait for the operation in a way specific to the operation.
+
+And these increase latency, anyway!
+Because it might finish before your sleep is through.
+Which makes your system slow, in addition to buggy.
+
+try blocking on a read syscall on a pipe or socket.
+** no busy loops
+I don't like busy loops wrapped around sleeps checking some mutable state...
+but........
+why?
+
+hmmmmmm I can't think of any small improvement to make it more palatable,
+fixing any of these things would fix all
+
+okay so wrapping a loop around the sleep does fix the "possibly buggy" part.
+it doesn't fix the potential deadlock, but slapping a timeout on fixes that.
+
+lol so:
+timeout on a busy loop around a sleep, which is repeatedly checking some mutable state.
+
+the worst! garbage! trash!
+
+okay actually so the mutable state deadlock problem we can avoid by checking an NONBLOCK pipe...
+and we can remove the sleep just for fun...
+
+then it's just busy looping on a NONBLOCK pipe.
+okay, so what's wrong with that?
+
+well, obviously the CPU usage...
+ummm and it won't work on SCHED_FIFO I guess
+*** this is really about retries
+and I can just omit it because actually some retries are fine,
+as long as we're not doing it by sleeping,
+that is, as long we're actually waiting until we have a reason to retry.
+* content, attempt 2
+** wait for a service to be ready before you send it requests
+Ummm well...
+I don't want to suggest that individual services should do this...
+
+Preferably outside...
+
+Maybe I just mean, track...
+
+Okay let's just say it as...
+
+have a notification mechanism for when the service is ready.
+
+one which clients should use, I guess?
+
+right basically just.
+have a notification mechanism for when your state changes in ways that are relevant to your client.
+
+that is, when things will start failing or succeeding or things like that.
+
+*** notify your clients when operations will start failing (or succeeding)
+and your clients should wait for that
+
+no this should be focused on the client
+
+title: wait until your operations will succeed before trying them
+* content, attempt 3
+** wait until your operations will succeed before trying them
+very frequently, an operation will fail unless X other side is in the right state.
+somewhere, somehow, you should wait for X to be in the right state before doing the operation.
+don't just blindly do the operation!
+you might get lucky, maybe even 99.9% of the time,
+but under load or scheduling changes,
+you'll eventually get unlucky and cause breakages!
+
+be sure to distinguish this from operations which themselves don't return until they've succeeded.
+a blocking read, for example;
+you need to wait until the pipe exists at all,
+but once it does, you can perform a blocking read without having to wait for it to be ready.
+you should prefer this wherever possible, but it's often not possible.
+
+Having failure detection in the waiting process is important here too.
+You should know when the thing you're waiting for will never happen,
+and you should do that by using communication mechanisms with built-in failure detection.
+
+achieving good support for such waiting will often require a high-quality service implementation
+which exposes such notifications/waiting support,
+which is sadly rare,
+so don't be afraid of going in and adding support for these kind of status updates.
+
+Things this covers:
+- starting up servers and waiting for them to be ready;
+  you can often avoid needing to wait in this scenario by using socket activation
+- waiting for O_NONBLOCK fds to be readable
+- state changes in processes
+  (what's a good normal-person example? I guess I can just say "a certain stock being no longer available for trading")
+
+*** retry thinking
+so what's the intent with the retries?
+well...
+
+basically that you shouldn't need retries if you're doing the rest right
+
+retries should happen at a higher level,
+or better yet, shouldn't be necessary at all.
+
+you should arrange things so that you don't need to retry in a loop.
+** don't just sleep to implement this waiting
+Just throwing a sleep(5) into your program instead of waiting for explicit notifications
+is a good way to make a program which is slow (waiting too long) and buggy (not waiting long enough).
+
+Don't ever sleep.
+** don't wait for the wrong thing
+Sometimes you can be performing operations on one thing,
+and the status updates you're getting are for a different thing,
+but it's easy to confuse them.
+
+Remember that communication is never instant;
+just because service X is ready, or has seen some event, or something,
+doesn't mean that service Y has.
+
+And remember that some services forward operations to other services;
+they may be incorrectly coded.
+
+Make sure that when they're saying "X is ready",
+that means any requests which come *instantaneously* at that point will succeed.
+X shouldn't say "X is ready" until that's true.
+
+It's always better to delay a ready-notification,
+than to issue it too soon.
+If you issue it too soon, the ready-notification is useless to your client:
+No matter how many times they wait for ready-notifications,
+they're never guaranteed to get an operation that passes,
+if they send operations fast enough.
+** don't use timeouts
+Don't use timeouts.
+
+Remember,
+outside of a TCP implementation, a timeout is *not a failure notification technique*.
+It's a *nontermination heuristic*.
+You use it because otherwise your program might never terminate,
+not as a way to check if other nodes have failed.
+
+How do you see if other nodes have failed?
+See the "communicating via mutable state" section above.
+
+An arbitrary timeout on an operation is usually wrong;
+you'll spontaneously fail in a different network or load environment.
+Even when you might otherwise have succeeded!
+
+Also, it makes your failure detection very slow (because you have to wait for the timeout),
+which will bog down your system and cause severe issues when you actually hit failures.
+(can't find stuff about this. it's kind of like bufferbloat? no trio stuff either)
+
+Timeouts should only exist at the very top-level - the user interface.
+So these days, if you're not writing Javascript that runs in a web browser,
+you probably shouldn't be writing timeouts - and often not even then.
+
+stuff on top-level timeouts:
+the trio docs:
+https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
+google's RPC:
+https://sre.google/sre-book/addressing-cascading-failures/#deadline-propagation-1
+
+so this section, I should retitle:
+stick to top-level timeouts
+or:
+don't add more timeouts
+or:
+stick to a single timeout
+
+it should be clear for tsint programmers...
+
+don't add more timeouts is, I think, the right way.
+
+if there's no top-level timeout, don't add any.
+if there's one, don't add more.
+
+anyway so, title:
+don't add more timeouts
+
+or... maybe...???
+"use timeouts to check for nontermination, not a means of failure detection" 
+
+well that's what people are doing, actually, checking for nontermination (??? or are they?).
+it's just that, it's pointless for them to do that, because there's already a global timeout.
+
+let's focus on that (not duplicating the global timeout) I guess.
+
+wait I don't even believe in the global timeout
+things should just be interruptible/cancellable all the way down.
+
+what even is cancellation... it's like...
+well hey, how would I handle cancellation in dneio?
+oh that's right, I don't.
+you can't cancel things, you can just stop waiting for them.
+
+yeah so.. hm...
+don't add timeouts...
+don't even be cancellable?
+
+except... if we take too long we'll begin to suspect it's broken and we want to free the resources.
+so... maybe the global timeout is fine.
+that's a usecase which isn't UI-driven.
+but it's what happens if we're doing multiple things at once...
+*** don't add timeouts
+At the UI level, or some other top-level, there are timeouts.
+Anywhere else, you shouldn't be adding timeouts.
+
+Remember,
+outside of a TCP implementation, a timeout is *not a failure detection technique*.
+If you want that, use communication mechanisms which have built-in failure detection, as mentioned previously.
+
+A timeout is a *nontermination checker*.
+You use it because otherwise your program might never terminate,
+not as a way to check if other nodes have failed.
+
+And you only need one of those, at the top-level,
+to make sure that your program does in fact terminate.
+
+An arbitrary timeout on an operation is usually wrong;
+you'll spontaneously fail in a different network or load environment.
+Even when you might otherwise have succeeded!
+
+Also, it makes your failure detection very slow (because you have to wait for the timeout),
+which will bog down your system and cause severe issues when you actually hit failures.
+(can't find stuff about this. it's kind of like bufferbloat? no trio stuff either)
+
+Timeouts should only exist at the very top-level - the user interface.
+So these days, if you're not writing Javascript that runs in a web browser,
+you probably shouldn't be writing timeouts - and often not even then.
+
+stuff on top-level timeouts:
+the trio docs:
+https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
+google's RPC:
+https://sre.google/sre-book/addressing-cascading-failures/#deadline-propagation-1
+
+** don't communicate via mutable state
+Some process creates or modifies a file in a directory and the other side waits for it to show up.
+
+This gives you no indication of when the writer side, or the reader side,
+are dead.
+This can cause deadlocks and issues and doesn't allow you to detect failures, on either side.
+
+Both the writer and reader need to be able detect failures!
+
+Instead, you should use a communication channel that supports notifying you when the other side has died.
+Such as pipes and sockets.
+
+(or why is posdelta bad? well the mutable state - the directory it gets iqueues in - is just busy-looped over)
+(rather than, explicitly registering iqueues)
+(yeah and if we explicitly registered iqueues, we'd know if the registration failed!)
+*** retitle?
+maybe I should retitle this section to more focus on,
+"use communication mechanisms which have built-in failure detection".
+
+and I can just say, "hey mutable state doesn't provide that, lol!"
+
+mutable state... also... well, shrug, blah.
+it has... race condition possibilities...
+but even without that. doesn't really matter!
+
+mlist, e.g., doesn't have race conditions!
+but it still doesn't have failure detection.
+
+yeah I think this is a good retitle.
+*** use communication mechanisms which have built-in failure detection
+You should use a communication channel that supports notifying you when the other side has died.
+Such as pipes and sockets.
+
+Rather than, for example, "writer creates or modifies a file in a directory, reader waits for it to show up".
+This gives you no indication of when the writer side, or the reader side,
+are dead.
+This can cause deadlocks and issues and doesn't allow you to detect failures, on either side.
+* content, attempt 4
+** don't use retries
+You should arrange things so that you don't need to retry, e.g. with a loop.
+
+A combination of all the previous techniques will often save you from needing to retry.
+
+Often, you can just fail, and let the next level up above you deal with retrying;
+you can just let the exception propagate,
+or just crash the process and let someone restart it.
+
+But if you do need to retry, all the previous techniques are even more important.
+Sometimes, TOCTOU issues will cause failures in a system,
+even after you waited to be in the right state,
+and in such cases, you'll need to retry.
+
+- an active system can have state changes
+- an FD no longer readable after you're woken up, because some other thread consumed the event
+- condition variable usage
+- spinlock implementation
+
