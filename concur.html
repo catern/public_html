@@ -154,6 +154,8 @@ you can often just fail instead,
 and let the next level up above you deal with retrying.
 Just let the exception propagate and let your caller handle it;
 just crash your process and let your supervisor restart it.
+<!-- also, don't let errors pass silently... maybe I should say that... prefer to fail, rather than log an error and continue -->
+<!-- I should definitely say that - we just had that issue with Alcove, for example -->
 <p>
 But sometimes, retrying is part of a correct algorithm.
 For example,

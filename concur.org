@@ -876,7 +876,7 @@ Some completion interfaces:
 - the "read" and "write" syscalls
 - using socket activation when starting up processes so clients can immediately send requests
 - IOCP on Windows
-** prefer readiness interfaces to sleeping (or nothing)
+7** prefer readiness interfaces to sleeping (or nothing)
 In a readiness interface, you wait for the right state for an operation before performing it.
 
 A surprisingly common misdesign is to initiate some preparations,
