@@ -963,3 +963,1055 @@ Some examples of necessary retrying:
 - condition variable usage
 - spinlock implementation
 - calling read again after a partial read returning less data than you want
+** prefer failing up to retrying
+prefer retrying to failing silently and just sitting there in an error state
+
+yes, okay, this is another good ordering.
+
+should say, prefer propagating errors to retrying
+
+and prefer retrying to silently doing nothing
+
+(hah what does this mean in the context of people...)
+
+anyway.
+prefer to fail up instead of retrying
+
+do I really prefer retrying to sitting there and doing nothing?
+
+also, sometimes failing up isn't actually the best thing to do.
+
+what are these different scenarios, hmm.
+
+like, sometimes I prefer not retrying, and instead failing up
+and other times, I don't.
+
+yes, I should inspect this.
+so... if I have a completion interface that can transiently fail...
+that is, I believe it should work again later...
+
+then I should retry...
+
+but then again - I guess if I retry anyway and it fails again immediately,
+that's not really completion.
+
+so it's more like, I should fail up if it would fail immediately when I wait next time.
+
+(also, I should fail up if I have reason to believe it will never work again...)
+like in the marketdata scenario, where I'm controlling MD.
+
+okay, so, of course I should fail up if I can't wait anymore.
+and... I guess... I should fail up if I know waiting again would not terminate...
+
+but then again, isn't that something a timeout should detect?
+
+hm.
+
+
+well, more early failures is better...
+
+also.. hm.. timeouts...
+
+like, if I keep getting some specific failure and keep retrying it...
+
+how do I know that it won't be fixed by someone?
+well, if I'm the one fixing things.
+but that's not something most applications can claim...
+
+okaaay....
+
+again, early failures are nice...
+
+okay so if i'm calling into some thing,
+and it fails because X,
+that tells me that X is broken and I need to fix it.
+
+I don't necessarily have any other way to see that;
+I mean, I can have monitoring,
+but the only robust way to know if something works,
+is to know if the things that use it are working.
+really, that's the definition of it working!
+(this is much like usertests...)
+
+on the other hand, state changes aren't "failures" as such.
+like, they're within the range of normal operation.
+
+because it's an open system.
+
+state changes in a test though... then they are not within the range of normal operation.
+
+and also, services going down aren't within the range of normal operation.
+
+i mean... if I'm getting a failure, the question is:
+will just waiting fix it?
+or does someone need to do something somewhere?
+
+well... in those words, clearly any kind of MD failure or halt or something,
+needs an action from someone...
+
+and if a resource is exhausted and I'm waiting for more,
+someone needs to return the resource...
+(or stop spinning and taking it repeatedly...)
+
+
+hm.
+
+so maybe if I'm some tactic sending orders in one instrument,
+and I get a halt in that instrument,
+I should indeed just crash.
+
+then whoever is scheduling each individual instrument-tactic,
+can restart me, after waiting for that instrument to be ready...
+
+likewise if I can't get resources, I guess...???
+
+okay so what would that mean, if I crashed after getting halted?
+then someone above me would restart me after the instrument is unhalted.
+they do the waiting in a retry loop.
+
+but that basically means they're also in a retry loop.
+so how do they know that the instrument is going to be unhalted?
+
+they want to say...
+"hey! someone! unhalt the instrument, please!"
+
+so maybe that's what you need to do in a retry loop?
+in plebian terms, log;
+in patrician terms, wish.
+
+so okay, that's the best they can do...
+and they don't want to crash everything else...
+
+they just want to signal someone to fix it...
+
+and, of course, if there *is no signal* that they can send to get someone to fix it,
+then the signal they should send is to crash
+(that's a test's situation)
+
+yeah, okay, so, the question is,
+why does an instrument-tactic crash,
+and the broader thing does not?
+
+well, if we can't function at all while we're in a bad state,
+then we should crash.
+maybe that's the guideline?
+
+this justifies bump crashing on posdelta timeouts, for example
+
+we should crash, because that's the best way to signal that things are broken.
+
+if we can still do other useful, productive things
+then we should stay up.
+(and we should have a high standard for those useful productive things,
+because crashing is so nice),
+
+okay, so how does this fit in with spinlocks and partial reads?
+why should someone above me retry when there's not enough data?
+
+well actually...
+if we're requested to get so-and-so amount of data...
+
+we maybe should signal "hey we want more data".
+and actually, we are signaling that! by removing backpressure.
+
+because when there's backpressure, more data can't be produced.
+so without backpressure, more data can be produced
+(and we assume in a steady state it will be, I guess, so we don't have to signal)
+
+with a spinlock...
+we want to signal, "hey, we want the lock, please release it".
+
+i guess it's like...
+
+if you're not reading then backpressure will happen on the writer
+so if you are reading, then the writer can write
+
+if you are spinning on the lock... how does that encourage releasing the lock?
+
+if no-one is spinning, then...
+well, someone could hold the lock forever...?
+or...
+it means no-one needs the lock? so it's not an active lock,
+it's not contended?
+
+if a lock is contended...
+I guess it's kind of like a prisoner's dilemma heh;
+if you give up the lock faster,
+you'll get the lock faster!
+
+yeah, that's a really interesting observation!
+
+a selfish thread could hold the lock forever,
+defecting against others to get the wonderful value of exlusive access to the datastructure.
+
+but a cooperating thread will release the lock, cooperating,
+because this is an iterated PD,
+and it will get the benefit of future cooperates:
+future fast releases of the lock by others...
+
+when the lock is uncontended, you can hold it forever, whatever...
+
+it's contention that sets up the PD incentive to release quickly.
+*** message to kai
+why should any thread give up the lock quickly?
+
+because it expects to want to take the lock again later,
+and when the spinlock is contended, it will get it faster if others give up the lock quickly
+
+maybe the thread might want to hold the lock for longer so it can do more work
+but that would be a defection!
+
+if it instead cooperates, as part of a cooperate/cooperate strategy
+then it will be better off, since others will also cooperate
+in this way, selfish threads can sustain an equilibrium of short spinlock hold times
+
+of course, it's more of a continuous PD, which makes it more complicated...
+it's hard to judge whether someone defected,
+or if they just got scheduled poorly or something and had to hold the lock for longer
+classic PD issue
+iterated prisoner's dilemma with noise, it's known as
+
+so the continuous nature isn't the important part,
+it's the fact that there are different use cases which need different amount of usage,
+and they can have noise introduced by the scheduler
+*** hah
+I love this game theoretic analysis of spinlocks!
+
+so yeah. there's, like,
+an equilibrium strategy, game theoretic reason
+why you should give up the lock quickly.
+
+although I guess this is only when it's contended - when it's not,
+maybe you could hold it for longer...
+
+but since you don't have any notification of when someone else is spinning,
+you have to cooperate all the time.
+
+I guess this gives some insight into PD too...
+
+like what if it's prisoner's dilemma where sometimes there isn't another prisoner?
+
+prisoner's dilemma where sometimes randomly there isn't another prisoner!
+
+that's an interesting scenario!
+**** more thoughts
+incompetent programming is also a possible defense
+"I don't know how to give up the spinlock fast, I write slow code because I'm incompetent!"
+"so don't punish me, please!"
+*** okay so what does this mean
+basically...
+
+you can retry when you've sent a signal to others that they should "fix things"
+(such as by giving up the lock)
+
+spinning on a spinlock is a *counterfactual signal*.
+they don't have to actually receive it,
+to know that they need to give up the lock quickly.
+
+(although... maybe the chance of there not being another thread/prisoner...
+gives you some leeway to probabilisitically defect,
+which is maybe equivalent to,
+a certain (not probabilisitic) greater amount of work under the lock)
+
+very interesting.
+
+(i've been reading EY's new fiction too much, lol, that's why I'm thinking this way)
+*** okay
+okay, so.
+
+- prefer crashing to logging (wishing, notifying). that's a core point.
+  (if the error doesn't stop you from performing other functions,
+  then you can log, but you should prefer to crash)
+  (i.e. crash/raise until you reach the level
+  where the error doesn't stop you from performing other functions)
+  (so, maybe:
+  fail/crash/throw upwards, until you reach a point
+  where the error stops preventing you from doing work;
+  then and there, try to fix it.
+  um... anyway that should be the headline)
+- only retry if you've done something to fix the issue
+  (such as wishing)
+  (or possibly just logging/signaling it somehow)
+  (possibly counterfactually... although it should be a strong counterfactual equilibrium)
+  (yeah, "done something to fix the issue" includes
+  "counterfactually cooperating to create a C/C equilibrium")
+
+  
+
+wait okay crashing is tied to retrying.
+
+basically, crash unless you've done something to fix the issue
+don't just continue on in a state where you can't do anything.
+
+ummm..
+well, okay, what if I haven't done anything to fix the issue,
+but I havem more responsibilities to do?
+
+or what if I've done something to fix the issue,
+but I don't have any more responsibilities?
+
+okay, then it's clear;
+we shouldn't be doing things to fix the issue unless we need to keep running.
+
+so, prefer to crash until the error isn't stopping you
+from fulfilling other responsibilities.
+(doing at least a little work?)
+prefer to crash until you reach the point
+where the error isn't stopping you from doing at least a little work
+
+(like read return partial reads)
+
+then, there, try to fix it.
+
+um, so...
+
+does this advice fit tests?
+
+well in a test...
+if I see an error...
+
+I can't really fix it,
+because it implies a logic error!
+
+that's down to the programmer!
+I signal to them, by failing!
+
+In a supervisor, we can have logic errors...
+well, all things are logic errors...
+
+no no, in a test, the only possible issue is a logic error.
+whereas in prod, there are real other issues that can happen too.
+
+the fact that we can tolerate them *is our logic* that we've written
+
+if we see an error in a test method, on the other hand,
+the error indicates that our logic, including any error-toleration, *has failed*
+
+raise it back to the programmer so they can figure out why...
+(but the answer isn't to just add a retry.
+so... hm.)
+
+well actually if we were trying to break a system and then test the repair logic...
+it would be right to fix the repair logic.
+
+but not add retries to the test itself.
+
+mmm mmm hmmmmm sure? maybe?
+
+hmmmmm
+
+okay so sure. only add retries at the level that already handles multiple things,
+is very plausible.
+
+oh, and the test method doesn't handle multiple things, I guess?
+can we make that argument?
+
+well we can certainly say, like,
+"A test, for example, handles one thing:
+performing a sequence of events and assertions to validate a system.
+Retrying the test, or anything inside it, should be handle at a higher level:
+The test runner, whether that's an automated system or a human."
+
+sure, that sounds plausible.
+
+
+okay, so next question:
+why don't we just fail out of a spinlock?
+it only handles one thing.
+so what's the big idea, retrying, eh?
+
+well uhhhhhhhhhhhhhhhhhhhhhhhhhh
+
+uhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
+
+I guess all it handles is retrying...?????
+it's a completion API?
+
+but so is "read_N_bytes"....
+
+hmmmmmmmmmm
+
+well in the bump case....
+the failure is in something we... need to continue.
+so we... fail
+
+hmmmm
+
+also, I'd probably want to just wrap a retry loop around the instrument-tactic anyway.
+
+like I wouldn't have any fancy logic there...
+
+and that's a function that does one thing!
+
+so when can I fail and when can I not fail?
+I don't think "fail up to multiple responsibilities" is right!
+
+since spinlocks don't fail and I think that (has to be) fine...
+
+I guess...
+maybe I fail up to the point where I can do something about it, then?
+like, bump can't fix posdelta...
+
+but a spinlock contention can't unlock the lock...
+but it can counterfactually...
+
+posdelta doesn't rely on bump as such; well... it does in some sense...
+
+okay, so fine, I fail up to the point where I can do something about it.
+
+or...
+
+I fail up to the first point where I can either:
+- do something about it, or
+- I have multiple responsbilities.
+
+if I have multiple responsibilities then I guess I have to do something about it.
+
+so I guess it's more:
+
+fail up to the first point where you can do something useful about the problem!
+
+how do we get this as pithy as "prefer failing over logging an error and continuing"?
+
+maybe that can be the title,
+and we can just say:
+logging an error and continuing (or, "trying to fix the situation"?)
+is appropriate in some situations;
+like when you have multiple responsibilities,
+or when you can actually fix the situation.
+
+but try as much as possible to just fail instead.
+
+recovering is the right word!
+
+prefer throwing/raising/aborting/crashing over recovering
+
+recovering is appropriate when you really can recover.
+
+maybe I should say, also,
+
+prefer recovering over logging and continuing/retrying
+
+ummm...
+hmmm......
+
+well, recovering is not always better, actually.
+i can imagine it being a nightmare.
+and logging *is* a way to recover....
+
+prefer throwing/raising/aborting/crashing over doing something not useful
+(like, we want to fail until we can get to someone who can really fix the problem)
+(but also, if we're doing other things... we need to stop...)
+
+prefer throwing/raising/aborting/crashing over being in a bad state where you're useless
+
+like, the bad situation is... if you're just spinning trying to reconnect, say
+
+urgh maybe also I should factor in something about not having useless error logs;
+like if you log an error, it should be stopping you from doing something!
+like... you should fail, maybe, instead!
+
+lol, well,
+"prefer throwing/raising/aborting/crashing over doing something not useful"
+is a useless thing to say.
+
+obviously doing something is better than doing something not useful.
+since there's a chance that something is useful...
+
+actually...
+"prefer to crash rather than do nothing"
+that's actually... a pretty incisive comment.
+
+that's basically,
+"prefer to crash until you reach the point,
+where the error isn't stopping you from doing at least a little work"
+
+and also, rather than hanging around in a bad state, you should just crash.
+
+now, I guess you could log errors,
+and assume someone will get them.
+
+so it's:
+
+crash > log errors > do nothing
+
+we're back at this again.
+
+crash > recover and retry > do nothing
+
+crashing punts it up a level,
+which is something you should always want to do.
+
+on the other hand,
+if there error isn't preventing you from completing all your responsibilities,
+you can't viably crash.
+in which case, proceed to the next section:
+
+recovering and retrying is better than doing nothing and retrying.
+don't retry unless you have some reason to believe things will be fixed!
+(counterfactual spinlock...)
+
+if you have no reason to believe things will be fixed,
+but you have other responsibilities...
+ugh...
+sigh....
+
+crashing is the best way to notify your parent...
+
+well, okay, so actually,
+doing something to fix the problem when you don't have other responsibilities is valid, too.
+
+oh! right!
+
+design your systems such that for any problem, they can either:
+- fix the problem
+- they can reasonably just crash/fail (and make it someone else's problem)
+
+right!
+we should make this situation of,
+I have many responsibilities but I can't fail,
+impossible!
+
+most systems should not be able to fix most problems,
+so you should divide responsibilities,
+such that they can just crash until they hit someone who can
+
+so, title:
+
+either fix the problem correctly, or just crash/fail.
+
+don't limp along in a degraded state;
+either fix the problem,
+or crash!
+
+responsibilities should be divided so that this is always possible.
+
+fixing the problem may involve signaling someone...
+well... okay... logging is a pretty bad way of fixing the problem.
+
+oh, also, this doesn't actually cover what to do when, e.g.,
+a single instrument goes down.
+
+ARGH, COOL, COOL, MORE THINKING
+sure do love to endlessly think in circles.
+
+OK!
+I like the idea of "either fix the problem or crash".
+
+but how does this fit in with multi-responsibility systems,
+which can't fix certain problems which don't interfere with all their responsibilities?
+
+right, that's a real situation!
+
+then, well, perhaps it's reasonable to just log,
+or to just do something to fix the problem...
+
+okay, well, maybe we can say: those systems should be able to fix the problem!
+
+e.g. bump, when an instrument is halted,
+should... appropriately scream?
+
+um. blugh??
+what does it do today? nothing, basically.
+it just starts rejecting orders.
+
+and it marks the instrument as down.
+
+but... this isn't really a *problem* for bump.
+like, it's just a normal state.
+
+marketdata being down, now that's a problem...
+and it can scream about that, I guess?
+
+hmMMMMmmmMmmMMmMMMmmMMmm
+
+it really should be able to just...
+fail? really tho?
+i mean, sure, why not!
+it's not all that transient!
+and it fully prevents running!
+
+rather than mark in the validators that it's bad or whatever, sigh.
+
+i mean, yeah! I actually think that would probably be good.
+it would bring down the tactic etc,
+but we'd restart everything when bump came back up (which would happen when MD comes up)
+
+(we'd need to recover, but let's ignore that cost;
+maybe we'd have some clean way to minimize the cost of recovering state)
+
+heck we could even have HFMD go down when MD goes down, cascading failure all the way.
+
+meanwhile if we can keep running, I guess,
+we do?
+
+e.g. like the disemminator multiplexing over the SIP feeds
+
+okaaay soooo.
+multiplexing, is that a good word here?
+
+no not really.
+I mean, it's more like,
+we're a channel selector or something.
+
+anyway.
+
+so if we have multiple things we can do and one goes down,
+what do we do?
+what do... WE DO...????
+
+i mean obviously we try to fix it.
+
+so like...
+there should be some thing that is responsible for fixing that thing,
+and it should be... us....???
+
+wait, but the tactic will also see/hear that the thing is down.
+
+so maybe... that's an appropriate propagation up?
+
+right, we can return an error status for that instrument,
+to punt the problem up to the tactic.
+
+okay, so that, actually seems reasonably good?
+
+like, if you can't fix the problem,
+at least push it upstream.
+
+*rather than* just logging blindly.
+
+like, tell your upstream about failures, basically.
+whether that's by crashing, by throwing, or by sending status updates.
+
+okay.
+so.
+
+either push failures upstream, or fix the problem yourself.
+
+don't just log a failure and continue on in a bad state.
+
+abort! throw! send "IN_BAD_STATE" status updates to your clients!
+
+aborting/throwing is better if you aren't multiplexing.
+pushing it upstream is your only non-fix-it option if you are multiplexing.
+
+(crap I don't like the word multiplexing here. but. ugh, it's stuck now)
+
+arbitrating?
+multiplexing is kind of right, sigh.
+
+it's not just making multiple out of one,
+it's making one out of multiple.
+
+combining
+i'll just say combining.
+
+so yeah, push failures upstream.
+notifying your clients is your only non-fix-it option if you're combining.
+(maybe multiplexing works actually)
+
+okay. so.
+
+yeah. this seems right.
+
+and retrying is a way to fix the problem yourself...
+but you shouldn't retry if you can push the failure upstream.
+
+well...
+no, you can retry, but only if you can *actually fix the problem*.
+
+can you fix this failing server when you retry in the client?
+
+either push failures upstream, or fix the problem yourself.
+
+don't just log a failure and continue on in a bad state,
+or retry blindly,
+or other such things.
+
+you can retry, but only if you're *actually fixing the problem*
+in the server before you retry.
+
+okay, so what does "actually fixing the problem" mean?
+well, it means...
+if you're doing the best thing that's possible globally?
+
+like, if your response is worse than what someone else could do,
+you should push the failure upstream,
+and let them respond to the failure.
+
+that's actually a really good rule/phrasing.
+
+don't do suboptimal retrying or fixes yourself,
+push the problem upstream so someone at a higher level can deal with it;
+the highest level is the human operator,
+but most problems can be fixed before that.
+
+only do a fix yourself if it's actually the globally optimal fix.
+
+okay, I like this, I like this.
+
+this covers:
+- spinlocks (spinning is optimal)
+- read (push partial reads up)
+- read_exeact (retrying is optimal)
+- bump instruments going down (push it to the tactic)
+- bump seeing posdelta/marketdata going down (crash, push it to the supervisor)
+- an FD is no longer readable after wakeup (waiting again is uptimal)
+
+what about...
+retrying after a state change
+
+"if the state is changed by events, retrying is optimal"?
+
+is that true?
+so we're thinking like, bump sends us "you're all good to send orders!"
+then we send, and get rejected.
+do we just wait again?
+sure, waiting again is optimal - either we'll get more information with a failure,
+or it was a transient error.
+
+yeah, and the globally optimal thing to do with transient errors is to retry.
+
+but the globally optimal thing to do with permanent errors is to restart the service,
+or something,
+which a random client can't do,
+so it needs to push the failure upstream.
+
+okay.
+so how do we word this?
+
+one phraseing:
+
+prefer to push errors upstream than to do a non-globally-optimal fix
+
+except that's highly obscure what I'm even saying.
+
+one manifestation of that is:
+prefer to abort than to log an error and continue
+
+(unless the only thing someone could do globally is to just continue)
+
+another phrasing:
+
+push errors upstream if you can't fix the problem locally
+
+push errors upstream if you can't *properly* fix the problem locally?
+
+no, no adjectives.
+
+push errors upstream if you can't fix the problem optimally locally?
+
+actually yeah that's slightly better, becaues there are suboptimal fixes,
+like blindly retrying...
+
+consider what the omniscient, global solution to an error is,
+and implement that.
+
+this requires pushing errors upstream,
+rather than doing suboptimal local fixes,
+like logging the error and ignoring it.
+
+title: implement the globally optimal solution to errors
+
+(now I'm just saying, "be willing to fix things everywhere", heh)
+
+(is that maybe what I really mean? hm....)
+(like, that is, be willing to change other components to make the best system)
+
+so, I can't say:
+"prefer pushing errors upstream to fixing the problem locally"
+because sometimes the optimal solution is to fix the problem locally...
+
+and I want advice which always applies... hmm...
+(I didn't bother thinking about that for completion/readiness stuff...
+but then again, those are matters of performance, latency, memory usage)
+
+so... if I want people to fix things everywhere...
+that's an important post to link...
+
+but taking that as a given...
+
+I'm specifically telling them to implement the globally optimal solution - but wait,
+that's not actually different from fixing things everywhere
+
+the tao of being willing to change other components *is* to find global optimality.
+
+so I guess, more specifically,
+I'm saying the specific strategy of:
+propagate errors up to the point where they can be best handled.
+
+ooh, ooh, I like that.
+some errors can be handled best where they're seen,
+whereas others need to go up to be handled.
+sure.
+
+it would be nice to say, just abort, though.
+like, that's a concrete strategy...
+
+keep failing until you reach the level where the failure can be best handled.
+keep failing up until you reach the level where the failure can be best handled.
+
+OK  OK OK OK
+
+let's think about what we'll actually say.
+
+I don't think we need to worry about the notion of "failure" not exactly matching spinlocks...
+it's fine, I suppose
+
+propagate errors up to the point where they can be best handled.
+
+send failures upstream to the point where they can be best handled
+
+send failures upstream, don't retry
+
+send failures upstream, to where they can be fixed
+*** what about if fixing it is downstream?
+    some failures are in, say, storage systems.
+
+    well, I guess I just don't think there should be any such stuff!
+
+    the user should pass in the caps for what storage system to use
+    or things like that.
+
+    it's always the user's fault.
+    the user always needs to fix it.
+    or, at least, react to it...?
+
+    okaaaaaaaaaaaay fiiiiiiiine this is even more complex.
+
+    so I could:
+    - send failures upstream
+    - send failures downstream
+    - just retry
+
+    is there any scenario I think "send failures downstream" is good?
+
+    I mean, I guess "send failures downstream" is the same thing as "just retry"
+
+    it's just, you should actually try to fix failures rather than blindly retrying;
+
+    either send failures upstream, downstream, or fix it yourself.
+
+    like. either notify your user that something is broken,
+    notify your dependencies that something is broken (???),
+    or fix something yourself...
+
+    argh.
+
+    maybe I should just simplify it to...
+
+    "be willing to send failures upstream".
+*** title: be willing to send failures upstream
+    it is not your responsibility, nor should you even try,
+    to paper over every possible failure.
+
+    you should propagate failures upstream.
+    there are many ways to do this:
+    - respond to requests from your users with failures immediately (rather than retrying)
+    - when your dependencies fail, abort your program so your users (the process supervisor) knows you've failed; don't just wait
+
+    this makes your system more responsive to failures
+    and avoids getting things stuck in a failed state.
+** don't retry!!!
+   like, okay.
+   when can we retry?
+
+   only if we actually fixed the issue.
+
+   that's actually a pretty simple answer.
+
+   (and what do you do if you can't retry?
+   send the failure upstream!)
+*** only retry if you've actually fixed the issue
+    don't just retry in a loop, or sleep and retry in a loop.
+
+    only retry if you've actually fixed the issue
+
+    - in spinlocks you retry because you've counterfactually fixed it
+    - in read_exact...
+
+    okay.
+
+    the real issue with my earlier statement
+    "don't do suboptimal retrying or fixes yourself"
+    is: "what is the globally optimal fix? how do I know it?"
+
+    how do I know that read_exact is globally optimal?
+
+    i mean, it's not clearly optimal...
+    mmm hmmm mmm mm I suppose it should depend on the spec for read_exact.
+    the possible failures...
+
+    read_exact has a control effect, it blocks if there's not enough data
+
+    the spec is that it returns exactly that much data...
+    not a partial amount...
+
+    also, an fd is no longer readable after wakeup;
+    waiting again is optimal - why?
+
+    why don't we fail up with an EAGAIN?
+
+    well it's that it's not in the spec of these functions.
+
+    if you have this kind of failure in your spec/signature,
+    then don't retry to try to avoid it!
+    just propagate it!
+
+    on the other hand, if it's not in your signature...
+    you have to retry to avoid it.
+
+    so the question is, do you want to ever allow failure?
+
+    basically:
+    don't have some fixed number of retries and then failure;
+    fail immediately or retry forever.
+
+    okay, sure, so that's a given.
+
+    but when do you propagate certain failures up and when do you not?
+
+    if e.g. failure to store something can't be propagated...
+    then you might just block forever while retrying...
+
+    rather than allow the failures to propagate up
+
+    okay, so then this is just a point about allowing failures to propagate.
+**** POINTS ONCE MORE
+     - either retry infinitely or not at all (allow failures to propagate upwards)
+     - allow failures to propagate upwards
+
+     okay so then the question is,
+     when do you propagate failures upwards and when do you retry infinitely?
+
+     i.e. when do you put some failure condition in your interface?
+
+     well... different interfaces have different failure conditions...
+
+     I guess, basically:
+     expose as many possible failures in your interface as possible.
+
+     read_exact handles exactly one failure
+
+     retrying with EAGAIN handles exactly one failure.
+
+     handle one failure at a time and propagate the rest.
+
+     or, maybe not that, but at least,
+     expose as many possible failures as possible.
+
+     ya. ya ya ya.
+
+     okay so:
+
+     - expose as many failures as possible (push them out)
+
+     but then, how do you know which failures to handle yourself?
+     well...
+     it depends on the application.
+
+     the point of some application should be to handle some kind of failures...
+     i guess?
+
+     so, question:
+     what failures should the application ahndle
+***** kai response
+      it depends on the cost of handling the failure...
+
+      the only thing you can do is retry.
+
+      (wait is that really the only kind of failure handling?)
+      well we need to know all the details of retrying;
+      i.e. we can't just retry on a broken connection that we didn't create.
+      we need to know how to create
+
+      kai says: should be on the outermost layer.
+
+      so expose every failure that isn't totally internal?
+
+      or, it should be handled at the outermost place that has the ability to handle it.
+
+      kai: if you expose it too far up, aggregating errors can happen,
+      where you retry too much and your failure recovery is inefficient
+      e.g. retrying the whole pipeline
+
+      okay so two things here:
+      - handle the error at the outermost place
+      - efficiency of handling an error (not retrying too much)
+
+      kai attempt at totalizing rule:
+      handle each error only once.
+**** shower thoughts
+     ok, I think I just resign to:
+
+     - push failures up
+       (be willing to just push a failure up instead of trying to handle it)
+       (be willing to say "this will cause me to fail dramatically if it happens",
+       that is, to include that failure in your spec.)
+       (and also... that spec should describe upstream things.
+       like put them in your upstream spec... rather than your downstream stuff...
+       which is basically internal anyway.
+       okay, "include the failure in your external-facing spec")
+       (try to have a narrow set of functionality,
+       which includes not trying to paper over every possible failure,
+       but instead pushing those upstream)
+     - don't just retry
+       (don't just sleep and retry, fix the problem;
+       if you can't fix the problem, push the failure out.
+       and if you do retry, retry infinitely)
+       (if a failure is in your spec definitely don't retry, just fail)
+
+     just punt on the question of "when should you handle the failure yourself?"
+     i.e. when should conceal a failure from your spec.
+
+     right so, retries is fully determined right?
+     if it's in your spec, don't retry;
+     if it's not in your spec, retry forever, but also,
+     make sure to actually fix the issue.
+     (if you can't actually fix the issue, perhaps the failure should be in your spec,
+     so that people upstream of you can see the failure)
+*** title: prefer to propagate failures up
+    Be willing to just push a failure up instead of trying to handle it.
+
+    Be willing to include failures as part of the specification of your component
+    (even if you don't actually have a specification).
+
+    It is not your responsibility, nor should you even try,
+    to paper over every possible failure.
+
+    There are many ways to propagate failures up:
+    - Allow exceptions to propagate rather than catching them
+    - Respond to requests from your users with errors
+    - Crash the service, so the process supervisor sees the process exit non-zero
+
+    This makes your system more responsive to failures
+    and avoids getting things stuck in a failed state.
+
+    Only handle a small specific set of failures in your component;
+    let the rest be passed through and handled by your user.
+*** title: when handling a failure, don't just retry
+    When you do handle a failure rather than propagating it up to your user,
+    handle it right.
+
+    Do something to fix the failure before retrying.
+    Such as:
+    - waiting for more data to be available, before trying to read again
+    - restarting the problematic component
+    - counterfactually releasing the lock, before trying to take the lock
+      (link to spinlock game theory analysis)
+
+    Don't:
+    - do nothing
+    - sleep for an arbitrary amount of seconds
+
+    (but also I want to say that busy loops are bad... hmm...)
+
+    (but I guess event loops are loops anyway... they're just not busy...)
+    (ok it's that you're waiting and retrying for the program to exit, or something.
+    and each time you step it forward, whatever)
+* another note
+  not waking up pointlessly in busy loops allows your process to be paged out,
+  and also avoids wasting energy.
+
+  both are good.
+  the former is great if you have lots of different processes which aren't actively running (like tabs in a browser)
