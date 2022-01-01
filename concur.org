@@ -1994,24 +1994,27 @@ send failures upstream, to where they can be fixed
     handle it right.
 
     Do something to fix the failure before retrying.
-    Such as:
+    Inside the body of your retry loop, do something like:
     - waiting for more data to be available, before trying to read again
-    - restarting the problematic component
+    - waiting for more events to arrive, before running more event handlers
+    - waiting for the service to be ready again, before sending another request
     - counterfactually releasing the lock, before trying to take the lock
       (link to spinlock game theory analysis)
 
-    Don't:
-    - do nothing
-    - sleep for an arbitrary amount of seconds
+    Don't busy loop; that is, don't just wrap a loop around:
+    - do nothing and try again
+    - sleep for an arbitrary amount of seconds, before sending another request
 
-    (but also I want to say that busy loops are bad... hmm...)
+    If you don't do anything to fix the issue,
+    it may never be fixed, or may be fixed purely accidentally,
+    which means your retries will mask serious failures
+    rather than letting them be appropriately handled.
 
-    (but I guess event loops are loops anyway... they're just not busy...)
-    (ok it's that you're waiting and retrying for the program to exit, or something.
-    and each time you step it forward, whatever)
-* another note
-  not waking up pointlessly in busy loops allows your process to be paged out,
-  and also avoids wasting energy.
+    Busy looping wastes resources.
+    Without busy looping, an idle process can be paused and paged out,
+    so that it consumes no CPU time, memory, or energy
+    until the operation it's waiting for completes.
 
-  both are good.
-  the former is great if you have lots of different processes which aren't actively running (like tabs in a browser)
+    If you can't fix the issue,
+    then you shouldn't be retrying at all;
+    propagate the issue upstream.
