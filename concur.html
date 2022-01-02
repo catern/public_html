@@ -169,8 +169,8 @@ Inside the body of your retry loop, do something like:
  <li>waiting for more data to be available, before trying to read again
  <li>waiting for more events to arrive, before running more event handlers
  <li>waiting for the service to be ready again, before sending another request
- <li>counterfactually releasing the lock, before trying again to take the lock
-  (link to spinlock game theory analysis)
+ <li><a href="./lockgame.html">counterfactually</a>
+   releasing the lock, before trying again to take the lock
 </ul>
 Don't busy loop; that is, don't just wrap a loop around:
 <ul>

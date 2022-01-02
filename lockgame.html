@@ -1,0 +1,67 @@
+<html>
+  <head>
+<title>The game theory of locks</title>
+</head>
+<body>
+<h1>The game theory of locks</h1>
+A lock is an infinitely-iterated game of N>2 players, each corresponding to a thread.
+In each round, one player is a lock-holder,
+and the other N-1 players are lock-takers, trying to take the lock.
+
+If you're a lock-holder, you can either release the lock slowly or quickly.
+You prefer to release the lock slowly,
+because that gives you more time to do work while holding the lock.
+<!-- your payoff is sublinear in T -->
+
+If you're a lock-taker,
+you have to wait for the lock-holder to release the lock.
+Once the lock is released, a randomly-selected player will become the new lock-holder.
+You prefer for the lock-holder to release the lock quickly,
+because then you have to spend less time waiting on the lock.
+<!-- your payoff is basically superlinear in T -->
+
+Thus note that if the lock-holder benefits by releasing the lock slowly,
+every other player pays a cost.
+
+This mirrors an infinitely-iterated N-player prisoner's dilemma,
+where releasing the lock quickly is cooperation,
+and releasing the lock slowly is defection.
+
+An iterated prisoner's dilemma can sustain a cooperative equilibrium;
+in the lock game, this corresponds to players releasing the lock quickly
+so that others will release the lock quickly for them.
+
+<h2>Signalling the lock holder to release the lock</h2>
+Consider a variation where players can be in a third state:
+Lock-indifferent, neither a lock-holder nor a lock-taker;
+corresponding to doing other work which doesn't involve the lock.
+
+In this state, they don't care how long the lock-holder holds the lock.
+But, they may randomly transition into lock-taker state.
+
+Ideally, the lock-holder would be able to hold the lock indefinitely,
+as long as there are no lock-takers.
+Once a lock-taker appears, the lock-holder would quickly release the lock.
+This would be the globally optimal outcome; socially optimal, in game theory terms.
+
+However, there's conventionally no way to signal to the lock-holder
+that there's a lock-taker.
+So we can't achieve this globally optimal outcome.
+
+The lock-taker would like to signal the lock-holder to release the lock,
+but all they do is sit and spin, waiting for the lock-holder.
+
+Instead,
+the cost that the lock-taker is paying while waiting is a <b>counterfactual signal</b>.
+
+The lock-holder knows that they could also be in the counterfactual universe where
+they are a lock-taker rather than a lock-holder.
+Thus when they choose a policy,
+they need to choose a policy which is optimal across all universes.
+
+In this way, the cost that a lock-taker feels while waiting
+is also felt by the lock-holder.
+And the lock-holder will take actions to reduce that cost:
+namely, releasing the lock quickly.
+</body>
+</html>
