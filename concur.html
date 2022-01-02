@@ -140,41 +140,60 @@ than to issue it too soon.
 If you issue it too soon, the ready-notification is useless to your client:
 They can't send an operation immediately, because it might still fail.
 They have to resort to sleeping - exactly what we were trying to avoid.
-<h2>Don't use retries</h2>
-A combination of all the above techniques will usually save you from needing to retry.
-<p>
-Retries:
+<h2>Prefer to propagate failures up</h2>
+It is not your responsibility, nor should you even try,
+to paper over every possible failure.
+
+Be willing to just push a failure up instead of handling it.
+In doing so, you're including that failure
+as part of the (likely informal) specification of your component.
+
+There are many ways to propagate failures up:
 <ul>
- <li>mask serious failures, rather than letting them be appropriately handled.
- <li>waste CPU time
+ <li>Allow exceptions to propagate rather than catching them
+ <li>Respond to requests from your users with errors
+ <li>Crash the service, so the process supervisor sees the process exit non-zero
 </ul>
-<p>
-Even if you might want to retry,
-you can often just fail instead,
-and let the next level up above you deal with retrying.
-Just let the exception propagate and let your caller handle it;
-just crash your process and let your supervisor restart it.
-<!-- also, don't let errors pass silently... maybe I should say that... prefer to fail, rather than log an error and continue -->
-<!-- I should definitely say that - we just had that issue with Alcove, for example -->
-<p>
-But sometimes, retrying is part of a correct algorithm.
-For example,
-a readiness interface can require retrying due to TOCTOU issues,
-and a completion interface without
-<a href="https://en.wikipedia.org/wiki/PCLSRing">PCLSRing</a>
-can need to be retried on the client side.
-<p>
-Just make sure that, before you resort to retries, you've fully implemented all the other techniques in this article.
-<p>
-Some examples of necessary retrying:
+This makes your system more responsive to failures
+and avoids getting things stuck in a failed state.
+
+Each component should handle only one or a few kinds of failures;
+the rest should pass through and be propagated upstream towards the user.
+<h2>When handling a failure, don't just retry</h2>
+When you do handle a failure rather than propagating it upstream,
+handle it right.
+
+Do something to fix the failure before retrying.
+Inside the body of your retry loop, do something like:
 <ul>
- <li>the server said it was ready, and the client sent a request,
-  but the server became non-ready before receiving the request and returned a failure to the client,
-  so the client needs to wait for it to be ready again
- <li>an FD no longer readable after you're woken up, because some other thread consumed the event
- <li>condition variable usage
- <li>spinlock implementation
- <li>calling read again after a partial read returning less data than you want
+ <li>waiting for more data to be available, before trying to read again
+ <li>waiting for more events to arrive, before running more event handlers
+ <li>waiting for the service to be ready again, before sending another request
+ <li>counterfactually releasing the lock, before trying again to take the lock
+  (link to spinlock game theory analysis)
 </ul>
+Don't busy loop; that is, don't just wrap a loop around:
+<ul>
+ <li>do nothing and try again
+ <li>sleep for an arbitrary amount of seconds, before sending another request
+</ul>
+If you don't do anything to fix the failure,
+it may never be fixed.
+Worse, it may be fixed by others purely accidentally,
+which means your retries will mask serious failures and create unnecessary delays.
+
+And busy looping wastes resources.
+Without busy looping, an idle process can be paused and paged out,
+so that it consumes no CPU time, memory, or energy
+until the operation it's waiting for completes.
+
+And don't limit your number of retries.
+Either your fix will work eventually,
+or it's not a fix at all.
+Putting a limit on the number of retries is just setting an arbitrary timeout.
+
+If a certain component can't fix the failure,
+then it shouldn't be retrying at all;
+it should immediately propagate the failure upstream instead.
 </body>
 </html>
