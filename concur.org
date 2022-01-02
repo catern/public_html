@@ -1987,10 +1987,10 @@ send failures upstream, to where they can be fixed
     This makes your system more responsive to failures
     and avoids getting things stuck in a failed state.
 
-    Only handle a small specific set of failures in your component;
-    let the rest be passed through and handled by your user.
+    Each component should handle only one or a few kinds of failures;
+    the rest should pass through and be propagated upstream towards the user.
 *** title: when handling a failure, don't just retry
-    When you do handle a failure rather than propagating it up to your user,
+    When you do handle a failure rather than propagating it upstream,
     handle it right.
 
     Do something to fix the failure before retrying.
@@ -1998,23 +1998,28 @@ send failures upstream, to where they can be fixed
     - waiting for more data to be available, before trying to read again
     - waiting for more events to arrive, before running more event handlers
     - waiting for the service to be ready again, before sending another request
-    - counterfactually releasing the lock, before trying to take the lock
+    - counterfactually releasing the lock, before trying again to take the lock
       (link to spinlock game theory analysis)
 
     Don't busy loop; that is, don't just wrap a loop around:
     - do nothing and try again
     - sleep for an arbitrary amount of seconds, before sending another request
 
-    If you don't do anything to fix the issue,
-    it may never be fixed, or may be fixed purely accidentally,
-    which means your retries will mask serious failures
-    rather than letting them be appropriately handled.
+    If you don't do anything to fix the failure,
+    it may never be fixed.
+    Worse, it may be fixed by others purely accidentally,
+    which means your retries will mask serious failures and create unnecessary delays.
 
-    Busy looping wastes resources.
+    And busy looping wastes resources.
     Without busy looping, an idle process can be paused and paged out,
     so that it consumes no CPU time, memory, or energy
     until the operation it's waiting for completes.
 
-    If you can't fix the issue,
-    then you shouldn't be retrying at all;
-    propagate the issue upstream.
+    And don't limit your number of retries.
+    Either your fix will work eventually,
+    or it's not a fix at all.
+    Putting a limit on the number of retries is just setting an arbitrary timeout.
+
+    If a certain component can't fix the failure,
+    then it shouldn't be retrying at all;
+    immediately propagate the failure upstream instead.
