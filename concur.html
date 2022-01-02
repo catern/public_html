@@ -143,11 +143,11 @@ They have to resort to sleeping - exactly what we were trying to avoid.
 <h2>Prefer to propagate failures up</h2>
 It is not your responsibility, nor should you even try,
 to paper over every possible failure.
-
+<p>
 Be willing to just push a failure up instead of handling it.
 In doing so, you're including that failure
 as part of the (likely informal) specification of your component.
-
+<p>
 There are many ways to propagate failures up:
 <ul>
  <li>Allow exceptions to propagate rather than catching them
@@ -156,13 +156,13 @@ There are many ways to propagate failures up:
 </ul>
 This makes your system more responsive to failures
 and avoids getting things stuck in a failed state.
-
+<p>
 Each component should handle only one or a few kinds of failures;
 the rest should pass through and be propagated upstream towards the user.
 <h2>When handling a failure, don't just retry</h2>
 When you do handle a failure rather than propagating it upstream,
 handle it right.
-
+<p>
 Do something to fix the failure before retrying.
 Inside the body of your retry loop, do something like:
 <ul>
@@ -181,17 +181,17 @@ If you don't do anything to fix the failure,
 it may never be fixed.
 Worse, it may be fixed by others purely accidentally,
 which means your retries will mask serious failures and create unnecessary delays.
-
+<p>
 And busy looping wastes resources.
 Without busy looping, an idle process can be paused and paged out,
 so that it consumes no CPU time, memory, or energy
 until the operation it's waiting for completes.
-
+<p>
 And don't limit your number of retries.
 Either your fix will work eventually,
 or it's not a fix at all.
 Putting a limit on the number of retries is just setting an arbitrary timeout.
-
+<p>
 If a certain component can't fix the failure,
 then it shouldn't be retrying at all;
 it should immediately propagate the failure upstream instead.
