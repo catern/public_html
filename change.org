@@ -1,0 +1,148 @@
+* you can change the system
+y'know?
+
+you can change it.
+
+you should not be afraid of changing things.
+
+(and I said that was my unique thing that I add - diving deep and finding the root cause of an issue and fixing it there)
+
+right so like.
+
+you can change code
+
+if you have A and B fluid and C fixed,
+you can reinterpret that!
+C can be fluid and A fixed!
+they can be rearranged!
+
+geofft's paraphrase:
+"if you're having trouble making X fit into constraint Y, feel free to reshape X to solve your problem"
+
+my original title "You know you can actually change your code?"
+** title
+Code can be changed, not just worked around
+APIs can be changed, not just worked around
+
+You can change the API, you don't just have to work around it
+
+
+You can solve problems by changing code, not just writing new code
+
+Changing code is a valid way to solve your problems
+
+hmm but also, one of the key points is, like...
+re-evaluating your design.
+like with that tactic thing.
+the easiest way was... well, I guess he'd have to write some code too,
+specifically change the startup stuff so he can easily start it up.
+
+so like...
+you can change your design. it's possible!
+well, what was the issue there?
+I think it was a fixed notion of what's possible, not necessarily fear of changing the system...
+
+ummm.
+yeah.
+like with geofft's paraphrase, normally someone would just violate constraint Y
+** oh
+refactoring
+you can refactor things
+
+or something like that.
+it's not simply refactoring;
+it's changing how one component behaves,
+but that's an overall refactoring of internal stuff.
+
+like if you have two components with internal interfaces two each other,
+shifting how they interact is refactoring, I guess,
+since it's not externally visible.
+
+and you should be willing to do that!
+
+and also, when it's an open source library;
+you can still refactor them together!
+
+like you can use that same practice of...
+improving things at the root.
+** the system is fluid
+I like that "metaphor"
+inasmuch as calling something fluid is a metaphor...
+
+just that you can change things... anyway...
+** similar issue
+<adiabatic> oh, this isn't a complete solution. for pizza I stuff the whole box in (if I can)
+> good point about "stuff the whole box in"
+> I guess maybe my *real* issue is that I need a bigger refrigerator
+> too bad that's impossible since I have a small apartment
+> but wait!
+> my *real* issue is that I need a bigger apartment
+
+y'know? don't treat things as invariants.
+optimizing where things are invariants, not good.
+
+and discover when new things can vary!
+I didn't even think of growing the refrigerator so I can stick pizza boxes in
+e.g. I said "if it's other takeout it usually comes in something that can fit in my refrigerator"
+but did not think of growing the refrigerator.
+
+running an optimization where more things are free variables instead of fixed,
+allows forb etter outcomes
+** changing things
+title: You can change the world
+title: Have the courage to change things
+** writing it out fast
+
+title: Be willing to change anything to solve your problem
+
+When searching for a solution to a problem,
+the practical approach is to view some things (including the problem itself) as fixed and unchangeable constraints,
+and other things as "free variables" that you can set to whatever you want.
+But you should make sure to also perform a meta-search process
+where you consider: what if you did change those things that seem like fixed constraints?
+
+There are many forces that lead you to assume that something is a fixed and unchangeable constraint.
+
+- If changing it would require talking to other people
+- If changing it is outside your experience
+- If it seems like changing it would make other things worse
+- If changing it would be expensive or take a long time
+
+These might indeed still mean that the best solution doesn't involving changing these constraints;
+but you shouldn't let them prevent you from considering it as a possibility.
+
+Focusing on solving one specific problem,
+and constraining the solution space,
+makes the search for solutions easier,
+but you should remember that you need to optimize globally.
+Your goal is not just to solve one specific problem,
+it's to create an overall better situation.
+Consider continuously,
+when there's some issue caused by some constraint:
+What would happen if you just changed that constraint?
+
+In a hierarchical organization, people might say the following to dissuade you from thinking about global optimization:
+
+- Don't work on global optimizations outside of our periodic planning session
+- Global optimization is the responsibility of someone else, not you
+
+These have some merit,
+but in my experience,
+most people think too little about making the whole system better,
+not too much.
+Most people have a too-constrained search space,
+not a too-large space.
+
+And keep in mind,
+the symptom of having a too-large search space is not
+"they want to radically rework everything".
+Assuming that that's not the right solution,
+that's a symptom of an inability to evaluate the costs of solutions.
+
+The real symptom of too-big-search-space
+is spending an excessive amount of time on search.
+Balancing the cost of exploration to find better solutions,
+against exploiting the solutions you've already found,
+is a key skill.
+(one which can be improved by various concrete systems techniques,
+and explicit consideration of the value of information)
