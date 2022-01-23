@@ -204,7 +204,7 @@ and part of your time should be spent searching a broader space
 for solutions which require larger changes,
 but are overall better - cheaper, faster, easier to implement, easier to use, higher-quality, better long-term.
 
-One shfit in perspective is to remember that
+One shift in perspective is to remember that
 you always are acting within that broader space,
 and your goal in that broader space is not to solve a specific problem,
 but to make a better world.
