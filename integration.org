@@ -461,7 +461,7 @@ With those techniques,
 and with the open source libraries [[https://github.com/catern/rsyscall][rsyscall]] and [[https://trio.readthedocs.io/][trio]],
 anyone can write a single-program system.
 
-If you're interested in working on such systems at $DAYJOB, we're hiring; [[http://catern.com/][email and/or PM me]].
+If you're interested in working on such systems at $DAYJOB, we're hiring; [[./tsint_job.html][here's a job description]].
 * notes :noexport:
 ok so we want the big example section still,
 with the concrete code... hmmm....

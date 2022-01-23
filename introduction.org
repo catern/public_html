@@ -160,6 +160,43 @@ I guess I'd want to see a protocol where you're given a secret and a globally-ro
 SIP + sRTP, I'm told!
 
 nice.
+* titles
+hmmm
+
+something more like a paper title might be better
+
+"Introduction":
+
+Computers can introduce each other
+
+What is "introduction" in distributed systems?
+
+"Introduction" is when one server tells you about another server
+
+a common concept in systems
+* service discovery
+
+DHCP???
+
+Service discovery in general; a query to a service discovery server (B) can return a name, or address, or route to follow to reach someone providing that service (C)
+* feedback
+- maybe distinguish granting a capability versus redirecting?
+
+  because if you can just directly connect... then you don't need the introduction;
+  you can save the pointer
+
+saturn2: that's a great point, I'll think about it - indeed most of
+these (the first few) *aren't* secure capabilities, because it's
+possible to just scan IP addresses and URLs and access things without
+being explicitly introduced; but, still, if you're introduced, and you
+can save the key/password/capability and reuse it again later, that
+doesn't necessarily make it not a capability
+
+yeah so...
+some of these you can just IP scan...
+they aren't memory safe...
+
+
 * criticism
 why is it not just name resolution?
 
@@ -177,3 +214,14 @@ Introduction is not always simple to implement. In fact, it's more interesting w
 
 Introduction is not always a simple map from a query to one or more addresses.
 * alternative names and why they don't work?
+* explanation
+introduction is an interpretation of what's going on, and a productive one
+
+an alternative interpretation is just "i'm returning some data, an
+address or something, and that data can be resolved/dialed/whatever so
+the client can contact another server"
+
+the introduction interpretation is that what's going on is *putting
+the client in contact with the other server*, and the data is just an
+implementation detail
+** TODO include this
