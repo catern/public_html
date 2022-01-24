@@ -20,6 +20,11 @@ geofft's paraphrase:
 "if you're having trouble making X fit into constraint Y, feel free to reshape X to solve your problem"
 
 my original title "You know you can actually change your code?"
+** my concrete example
+it was, that the start scripts for the core trading system,
+leave behind orphan processes instead of being good
+
+and the launchpad project refused to just rewrite them to be good.
 ** title
 Code can be changed, not just worked around
 APIs can be changed, not just worked around
@@ -151,6 +156,99 @@ I think XY problem is more just,
 under-exploration even in the constrained space.
 
 which is basically just under-exploration
+** gwern's objection
+http://grognor.blogspot.com/2016/12/have-you-tried-solving-problem.html
+
+it's like "what if you solved the problem"
+
+which lists a long list of obvious things to try.
+
+which is charming and memorable.
+
+whereas... I'm just saying "try changing thing".
+
+> what do you think of my latest article #lesswrong https://catern.com/change.html
+<gwern> 'have you tried solving the problem?'
+> gwern: are you saying you think this is obvious advice? I'm not sure it's any more obvious than http://catern.com/reuse.html for example
+<gwern> https://grognor.blogspot.com/2016/12/have-you-tried-solving-problem.html
+> yeah I found that from google
+> or are you saying that that article has the same point?
+<gwern> I think it makes many of the same points in a much more entertaining and memorable way
+<gwern> maybe not as useful
+** OK!! Ok.
+the real issue here is:
+
+how do you pick the conventional solution search space?
+
+I mean, this is not how I actually think, right?
+
+well, it kind of is.
+I consider what's possible with the obvious approaches,
+using tools we have, etc.
+
+and then I also consider more radical ideas.
+
+but that's not what I'm trying to say here.
+I'm trying to say:
+change things, for god's sake!
+
+Basically:
+
+When you are thinking about how to solve a problem,
+you should spend some of that time thinking about radical changes that might solve the problem,
+rather than only thinking about conventional ideas.
+If you don't think about radical changes,
+you'll choose suboptimal solutions.
+** okay again
+so really I'm just saying:
+consder unusual solutions.
+
+um.
+
+so is "diving deep into some stack to fix it" an unusual solution???
+not for me!
+
+maybe I should separate
+"change what the problem is"
+from
+"make changes to other people's code"
+
+
+mmmm yeah...
+so the "get a bigger refrigerator" isn't *super* related...
+
+it's just the idea that you can change your code for god's sake.
+rewrite this thing to not be buggy instead of working around it,
+or delete the logs instead of filtering them out.
+
+both of those... I feel like a big issue is...
+being afraid of changing code produced by others,
+or code that you don't understand.
+
+mmmmmmmmmmmm
+
+I guess maybe I should focus on that.
+instead of the vague "change things to resolve your problem" frame.
+
+right and also:
+rewriting this is not an unusual change.
+deleting the logs is not an unusual change.
+
+it's just that people don't do those because they're afraid of changing code,
+because of all the issues:
+it's not their code, they don't understand it, they don't know if it's right, etc
+
+
+** also tangentially, yakshaving is good
+hmmm
+
+i mean it's related because the idea is:
+you can fix the issue that you see.
+
+i mean a correct yakshave is good;
+one which is just based on piles of workarounds is not good.
+
+so it goes back to, you can change the code.
 ** writing it out fast
 
 title: Be willing to change anything to resolve your problem
@@ -235,3 +333,66 @@ In my experience,
 most people spent too little time on broad search.
 Therefore, you should err on the side of broad search
 until you have a better understanding of the balance.
+
+* attempt 2, focusing on changing code
+ok ok ok
+** write it out
+title: Did you know you can actually change your code?
+
+I can't count how many times
+I've heard programmers talking about writing more code to work around an issue in some other code.
+You are a programmer - you are allowed to change code!
+In fact, it's your job!
+Just change the code to do what you want!
+Fix the bug! Change the behavior! Add the feature!
+
+- Log message that's noisy and useless?
+  Delete the logging code!
+- API that doesn't expose what you need?
+  Add a new parameter!
+- Library that does something horrible that all your software depends on?
+  Stop doing the horrible thing and add a shim for compatibility!
+- Open source software that's doing bad stuff?
+  Patch it locally and send the patch upstream!
+
+There are some basic technical excuses one might give for why you aren't able to change the code.
+For example:
+
+- But I'm not allowed to touch code owned by other teams!
+- But I don't know how to change it!
+- But I don't know where the source code is!
+- But I can't build this software!
+- But I can't run the tests!
+- But I can't deploy a modified version of this software to production!
+
+However, you shouldn't be using any software where any of these are an issue,
+and you should quit your job if they provide such poor developer tooling that those are real issues.
+
+There are some social/political excuses one might give for why you aren't able to change the code.
+For example:
+
+- But it means we have to talk to the team that owns this code!
+  So what?
+  They'll probably be happy that you're looking at their code and trying to improve it!
+  If they aren't happy, they maybe what you're trying to do is evil anyway,
+  and you should be thankful that they're stopping you!
+  If what you're doing is good, but they're still not happy,
+  then stop using their software!
+- But changing things will impact other users!
+  If what you are trying to do is good,
+  then the impact on other users will be good,
+  and you should embrace the costs and benefits of coordinating with them.
+  If what you are trying to do is bad,
+  then you should not do it.
+- But we haven't budgeted time to do it the right way!
+  Then you never will budget time to do it the right way.
+  Do it the right way now or you will suffer forever.
+- But this is supposed to be a quick experiment!
+  You can perfectly well do a quick experiment by modifying the original code;
+  indeed, it should be quicker to do it that way.
+
+Fear not!
+Just change the code!
+** this is so boring and corporate though
+maybe I should say things about...
+upstreaming?
