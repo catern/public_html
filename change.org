@@ -396,3 +396,251 @@ Just change the code!
 ** this is so boring and corporate though
 maybe I should say things about...
 upstreaming?
+** papua feedback
+<PapuaHardyNet> imo your article isn't enough to convince someone
+emotionally to do so. intellectually I am convinced, but is this
+getting me to open a new issue in optax about how their adam optimizer
+(a function) doesn't work with jax's (google's nn library) pmap
+(another function)? no
+<PapuaHardyNet> also I don't really care
+<PapuaHardyNet> on second thoughts, optax is also maintained by
+google, and helping optax get better is good for the jax ecosystem as
+a whole
+<PapuaHardyNet> hmm. maybe I will schedule some time to do this
+<gwern> 'the life you save may be your own'
+<gwern> btw if you notice on paperswithcode that you are no longer
+wasting a click on every paper page to read the abstract, that's
+because I whined at them
+> PapuaHardyNet: thank you for the feedback!
+<PapuaHardyNet> gwern: that's one significant positive change to paperswithcode, yeah
+** sm2n feedback
+#+begin_quote
+They'll probably be happy that you're looking at their code and trying to improve it!
+If they aren't happy, they maybe what you're trying to do is evil anyway,
+#+end_quote
+
+<sm2n> catern: "If what you are trying to do is good, then the impact on other users will be good" |
+I don't think this holds in general
+<sm2n> sometimes you can be in an adversarial relationship with other users in terms of advancing your goals
+<sm2n> what is good from your perspective may be bad from their perspective
+<sm2n> for example:
+<https://www.roguelazer.com/2020/07/etcd-or-why-modern-software-makes-me-sad/>
+
+some people doubt this
+e.g. https://www.roguelazer.com/2020/07/etcd-or-why-modern-software-makes-me-sad/
+
+okay...
+so yeah...
+thinking about it from the perspective of...
+"don't change my stuff! argh!"
+basically like what if I'm a guy who doesn't want my stuff changed...
+
+> sm2n: actually I don't think that article disproves my point - the
+googlers should have been stopped from making their terrible changes
+by the other users, because their terrible changes were terrible
+> sm2n: what do you think of that rebuttal? it's in essence: you
+should *hope* that people stop you from making bad changes, but
+sometimes they won't. doesn't matter to you either way though
+
+<sm2n> catern: I think the Googlers thought their changes were good, and maybe they were right /for them/
+<sm2n> catern: I don't think there is a "software goodness" axis you can crank up or down
+<sm2n> catern: At best, you can make better designed artifacts on some universal scales like "how
+well is the software understood/tested/etc", possibly "length of code". But many (most!)  other
+things involve tradeoffs, and the aforementioned Hyrum's law says that at scale there are users with
+an investment in every tradeoff your software makes
+
+hm well I kind of do actually think there's objectively good stuff.
+
+okay but what do I really mean?
+
+weellll
+hmmm
+
+so what if...
+you want to change something...
+or do something...
+
+but the people who want to do it don't agree...
+so... you...
+have to hack around them? huh? or what?
+
+okay I guess I should talk about that more.
+
+Differences of opinion about what is good.
+
+Forks?
+Running different instances?
+
+aha!
+
+forking!
+talk about forking.
+related to exit vs voice.
+
+I can link this to/from there.
+(in addition to linking this to/from "reuse abstractions")
+
+so yeah, forking.
+I won't worry about talking about running different instances,
+cuz that's something that would worry people, and everything should be a library anyway...
+
+forking!
+that's what you do when there are different opinions about what is good and what is bad.
+and that should be easy!
+
+like, yeah, that's what I think, right?
+if you can't do the thing upstream, that's okay,
+you should be able to do it in your fork without problems.
+
+and that's kind of the technical thing, that that should be easy:
+"But I can't deploy a modified version of this software!"
+
+let's s/deploy/use/.
+
+right so it should be easy for you to patch something and use a changed version.
+i guess i do think that.
+
+it doesn't really fit in with my.... daemon engine thoughts...
+or capabilities...
+or plan 9...
+
+it's suspiciously Nix-and-Two-Sigma-y...
+
+but still... I guess I do think it!
+I mean it's also pro-library anti-service, too.
+so that's good.
+
+okaaaaaaaaaaaaaaaaaaaaaay
+so
+forking.
+
+right...
+it's a technical issue...
+but it's only sometimes an issue.
+because sometimes, you don't need to fork, it will go upstream just fine.
+and also this is related to other users;
+maybe you can upstream it,
+but you have to upgrade early ahead of other users.
+again, easy enough.
+
+(and avoids talking about "running multiple instances")
+
+yeah really it's:
+use exit/voice/fork when the developer disagrees with you
+
+and then what about users?
+well, if it's upstream,
+just upgrade earlier.
+
+yeaahh yeah yeah.
+hmm.
+
+well okay.
+suppose you're trying to do something good,
+and upstream is cooperative,
+but you're worried about the impact on other users.
+
+well that's why we have versioning.
+
+so we should just implicitly talk about that.
+
+If what you are trying to do is good,
+then the impact on other users will be good,
+and they'll be happy to have the new features if and when they upgrade.
+and they'll be happy to have the new features if and when they switch to your version.
+If what you are trying to do is bad,
+then...
+
+then they don't have to use your new version.
+
+then your version may never be promoted to the master version.
+
+They don't have to use your new version.
+(this will sound bonkers to anyone working on services hmmm)
+
+They don't have to upgrade to the new behavior
+
+If what you are trying to do is good for them,
+they will be happy,
+and you should embrace the costs and benefits of coordinating with them.
+If what you are trying to do is bad for them,
+then you probably shouldn't do it,
+but if you do anyway,
+it's fine, they don't have to use your changed version.
+
+If what you are trying to do is bad for them,
+then you probably shouldn't do it,
+but if you do anyway,
+you can surely figure out a way that they don't have to use your changed version.
+
+
+be polite and don't push your changes to the version of the software they use.
+
+you just don't have to push your changes to the version of the software they use.
+
+** CalimeroTeknik feedback
+<CalimeroTeknik> catern, I see an issue you might have missed: I don't know how to fix this
+<CalimeroTeknik> perhaps the number one problem in the industry: I see a problem, and I don't have a solution,
+though I have many resources to devote to implementing any hypothetical solution if I only had one
+<CalimeroTeknik> maybe that's out of your scope
+
+hm. well, that's kinda dumb frankly.
+
+but, yes, it's an objection I should subtly avoid I guess
+
+so. hm.
+well okay so part of the issue is that I said,
+"work around an issue",
+not,
+"write more code to work around an issue".
+
+it's clearer that if i'm considering writing more code,
+i might as well target that code at the original code, kinda thing.
+
+but what if:
+1. i don't know even how to write more code to solve this, or
+2. i don't know how to make changes to the original thing to fix it
+
+it sounds like 2 is covered actually by "I don't know how to change it"
+
+yeah yeah. okay.
+
+so the other issue 1 is:
+what if I don't even know how to solve it in code of any kind,
+but I do know how to work around it?
+or, heck, do it manually??
+
+this relates to questions about, why not automate something!
+well, maybe I don't know how to automate something!
+
+so basically I do think it's better to write code than do something manually/change policies,
+but that's not what I'm saying here.
+
+i'm saying,
+changing the original code causing the issue,
+is better than adding new code on top
+
+> CalimeroTeknik: can you elaborate slightly? maybe just reword what you mean or how this might manifest
+> i'm just trying to be sure i understand what you mean
+<CalimeroTeknik> perhaps with an API, it's horrible to use but I can't think of a better one
+
+aha yeah.
+basically I'm talking about situations where you *do* know a solution,
+you're just implementing the solution in some additional layer of code on top,
+rather than changing the original code
+
+you just aren't implementing it in the original code
+
+<CalimeroTeknik> admittedly I almost always do the shim thing, especially in postgresql
+<CalimeroTeknik> I'll die before the standard can be fixed
+<CalimeroTeknik> (of old age, to be clear)
+
+OOPs I definitely want to stop saying that.
+yeah okay deleted
+** corbin
+<Corbin> catern: I read your article. The overall thrust is fine, but the only parts that survive scrutiny are either vacuous or fundamental.
+<Corbin> That's not to say that it's bad to remind people of one of the fundamentals of software engineering! The fact that we can change software is what defines it in contrast to hardware.
+> (as a side comment, this is also how you encode existentials in terms of universals.  which makes me uncertain that isekaijin's proposal of using existentials to allow f to escape will work)
+> Corbin: interesting feedback, please elaborate if you would
+<Corbin> catern: For example, there's a wide range of users that can be impacted by code changes. If the code change would cause a disaster or outage, then we have to definitionally consider whether those are social or technical.
+
