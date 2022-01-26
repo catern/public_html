@@ -1,12 +1,12 @@
 <html>
   <head>
-<title>Did you know you can actually change the code?</title>
+<title>Prefer to change the code rather than write a workaround</title>
 </head>
 <body>
-<h1>Did you know you can actually change the code?</h1>
+<h1>Prefer to change the code rather than write a workaround</h1>
 I can't count how many times
-I've heard programmers talking about working around an issue
-in some code which they don't want to change.
+I've heard programmers talking about writing some new piece of code
+to work around the behavior of some other code which they don't want to change.
 You are a programmer - you are allowed to change code!
 In fact, it's your job!
 Just change the code to do what you want!
@@ -18,10 +18,17 @@ Fix the bug! Change the behavior! Add the feature!
  <li>API that doesn't expose what you need?
   Add a new parameter!
  <li>Library that does something horrible that all your software depends on?
-  Stop doing the horrible thing and add a shim for compatibility!
+  Turn off the horrible behavior and remove your dependency on it!
  <li>Open source software that's doing bad stuff?
   Patch it locally and send the patch upstream!
 </ul>
+<p>
+I'm talking about situations where you know how to solve your problem,
+but you've chosen to implement that solution in some additional layer of code on top,
+rather than changing the original problematic code.
+As has been expressed many times before, code is a liability;
+the more code you have, the worse off you are.
+So just change the original problematic code instead!
 <p>
 There are some basic technical excuses one might give for why you aren't able to change the code.
 For example:
@@ -44,11 +51,11 @@ and quit your job in favor of work that has good developer tools.
 There are also some social/political excuses.
 For example:
 <ul>
- <li>But changing the code means we have to talk to the team that owns this code!
+ <li>But changing the code means we have to talk to the people who own this code!
    <p>
   So what?
   They'll probably be happy that you're looking at their code and trying to improve it!
-  If they aren't happy, they maybe what you're trying to do is evil anyway,
+  If they aren't happy, then maybe what you're trying to do is evil anyway,
   and you should be thankful that they're stopping you.
   If what you're doing is good, but they're still not happy,
   then <a href="http://catern.com/exitvoice.html">fork</a> and upstream later.
