@@ -1,0 +1,266 @@
+* Linux needs a formal description of the userspace API
+just make a post about this
+
+covering:
+formats
+resource lifetimes
+etc
+
+useful for:
+strace that wants to pretty-print syscall traces
+new languages that don't want to go through libc
+gvisor/WSL1/BSD Linuxulator reimplementations of Linux syscalls
+
+existing things:
+struct syscall_metadata in the kernel
+
+
+possible implementations:
+a full-on formal model of the behavior with Agda
+
+
+so...
+part of this is the userspace-visible stuff...
+part of it is the exact transports used... which... is relevant, I suppose
+
+right, so we want to model in detail,
+the bytes on the wire,
+and also the *meaning* of those bytes.
+
+** title
+The Linux userspace API is stable, yet undefined 
+
+The Linux stable userspace API has no (fixed/formal/concrete) definition 
+
+The Linux userspace stable API has no stable definition
+
+The definition of the Linux userspace stable API is unstable
+
+I like one of these two:
+
+The definition of the Linux stable API is unstable
+The Linux stable API has no stable definition
+
+Kai says this one:
+The Linux stable API has no stable definition
+
+I like it
+or maybe...
+
+The Linux stable API is unstable
+
+no that's too uninformative, despite being catchy
+and it's clickbait
+
+The Linux stable API has no stable definition
+
+is good
+
+** words
+formally specify
+
+formally specify the API
+
+** other relevant things
+I think a nice formal model is somehow tied into capability-security/type-safety...
+
+not defining this means...
+
+** post
+title: The Linux stable API has no stable definition
+
+The Linux API to userspace does not change in  ways that can break userspace.
+
+But there is no stable definition of which parts of the API can change and which parts cannot change.
+
+The Linux API to userspace is famously stable,
+
+The API that Linux exposes to userspace famously
+
+Linux does not change any part of its API which can break a userspace program.
+
+Linux cannot change any part
+Any part of the API that Linux exposes to userspace 
+This means the API is stable, but the definit
+
+Some parts of the API which Linux exposes to userspace are stable and cannot be changed;
+other parts of the API can be changed freely.
+The definition of which parts are stable and which parts are not, is itself unstable,
+because a part is only stable if there is a widely used userspace program which depends on that part.
+
+Linux provides a stable API to userspace,
+but the definition of that stable API is unstable:
+if there are few or no users for some part of the API, it's no it can be changed.
+
+If a part of the Linux userspace API has few or no users, as determined by ad-hoc surveys and testing, it can be changed in breaking ways.
+
+Linux provides a stability guarantee for parts of Linux userspace API which are widely used.
+If a part of the Linux userspace API has few or no users, it can be changed in breaking ways.
+Thus there is no stable, formal definition of what the Linux stable API actually is.
+Instead, the Linux API is informally specified through kernel headers and manpages.
+
+
+
+Linux only provides a stable API to userspace for 
+
+
+changing based on what parts of the API are actually being used.
+and dependent on what common userspace programs are doing.
+but there is no stable definition of what that stable API is.
+
+
+This is a result of the lack of an actual definition of what the userspace API is.
+
+
+Exactly what parts of the API fall in which category has no stable definition,
+because it depends on what parts of the API are in wide use,
+
+is famously "stable",
+but t
+but there is no stable definition of what exactly 
+
+
+But what exactly 
+The Linux API to userspace is [[https://lkml.org/lkml/2012/12/23/75][famously]] not supposed to ever change in a way that breaks a userspace program.
+But 
+The API that Linux provides to userspace is ,
+but 
+** thoughts
+okay so there are two points I want to make:
+1. there's no stability to the stability guarantee of the Linux API
+   the stability guarantee of the Linux API depends on what common practices are in use today.
+   if there's a behavior of the API which isn't used by anything widespread, then breaking changes can be made to that freely
+
+2. there's no formal spec for the Linux userspace API
+   it's just defined by headers and manpages
+
+So what's the relationship between these two things?
+
+well, it's convenient to have the requirements be specified by what people use.
+i mean, it's kinda like usertests, y'know?
+
+but anyway, as a separate point, it would be nice to have a formal specification of the Linux API.
+maybe we would need to change that when changing something, but if so, that might be fine.
+
+then we could use that to generate things.
+
+i mean it's a question of how detailed the spec is...
+
+I guess the spec serves as a test suite kinda thing, enforcing some behaviors...
+
+but, in reality, the stability-guarnateed parts of the API will always go beyond the spec.
+
+and I don't really care or want those to have a stability guarantee.
+
+
+maybe I should just say...
+
+Linux needs a formally specified API
+
+and then I can say that the reasons for that are:
+1. that helps with making the stability guarantee more concrete and clear (for the parts covered by the spec)
+2. all the other useful things
+** features
+- clarify the Linux stability guarantees,
+- make new syscalls available to userspace faster,
+- generate (rather than hand-write) debugging tools such as strace,
+- avoid having to write an FFI when implementing a new language
+- 
+** attempt again
+title: Linux needs a formally defined userspace API
+
+Linux guarantees the stability of its userspace API,
+but the API itself is only informally described, primarily with English prose.
+We should make a formal definition of the Linux userspace API.
+
+As background, note that the Linux userspace API is distinct from the C functions implemented by a libc, such as read(2).
+Under the hood, in a conventional libc like glibc, read(2) calls the Linux system call "sys_read",
+manually passing arguments in registers in an architecture-specific way according to the specific details of sys_read on the current architecture,
+in a way that is at best documented in manpages, and more usually is defined only by the implementation.
+Anyone else who wants to work with a sys_read syscall, in any way, needs to duplicate all those details.
+
+If we created a formal definition of the Linux userspace API,
+there would be numerous benefits:
+
+- The API definition could be automatically tested against the kernel and any deviation flagged.
+  A change to kernel behavior that implies a change in the API definition would deserve greater scrutiny,
+  since such a change might break userspace.
+  This certainly could never catch all possible API breaks,
+  but it would be one more way to prevent regressions.
+
+- It would speed up the process of making new syscalls available to userspace,
+  by making it easy to automatically generate new syscall wrappers,
+  whether part of libc or not.
+
+- Debugging tools which need to understand the format of syscalls and their arguments in great detail,
+  such as strace,
+  are currently primarily hand-written with great duplication of effort.
+  Even a basic definition would allow much of this code to be generated instead.
+
+- Implementers of new languages currently almost always make syscalls by going through libc.
+  Supporting interoperability with C in this way is a major burden,
+  and the resulting interfaces are typically highly unidiomatic for the new language.
+  With a definition of the Linux API,
+  it would be much easier for new languages to make syscalls directly
+  by automatically generating syscall wrappers which are idiomatic to the new language;
+  for example, wrappers which preserve memory-safety and type-safety in Rust.
+
+- Reimplementers of the Linux API, such as WSL1, Linuxulator, or gVisor,
+  would be able to generate stubs for the interfaces they need to implement automatically,
+  reducing duplicated code and making them conform better to the Linux API.
+
+- Any other tool which needs to understand much of the Linux API would benefit,
+  such as more esoteric projects to
+  batch syscalls, intercept and rewrite syscalls, [[https://github.com/catern/rsyscall][forward syscalls to remote hosts]],
+  or any other syscall manipulations in userspace.
+
+A basic API definition would simply describe valid combinations and formats of syscall arguments,
+something which is currently primarily described in manpages.
+More detailed API definitions could describe behaviors
+such as the requirement that a syscall be passed an open file descriptor rather than an arbitrary integer,
+which would require a description of how different syscalls affect the file descriptor table.
+
+To write this definition, a new Linux-specific format for the definition might need to be created.
+At a minimum, it will need to be able to describe
+bit-level data formats, complex pointer-based datastructures, tagged unions, "overloaded" syscalls such as ioctl,
+and architecture-specific divergences.
+Most existing formats and languages for describing interfaces of this
+unfortunately lack these capabilities.
+
+Ultimately, this definition must be upstream,
+which means that it needs to be maintainable by existing Linux developers.
+One way to achieve that might be to integrate it into the C code,
+possibly in combination with existing macros such as SYSCALL_DEFINE.
+The specification can then be automatically extracted from the C code into a more-easily-reusable format.
+
+One step in this direction is [[https://www.kernel.org/doc/Documentation/ABI/README][Documentation/ABI]],
+which specifies the stability guarantees for different userspace APIs in a semi-formal way.
+But it doesn't specify the actual content of those APIs,
+and it doesn't cover individual syscalls at all.
+
+I would love to collaborate with anyone interested in creating a formal definition of the Linux API,
+so [[http://catern.com/][contact me]] if you're interested.
+
+
+
+make it much easier for new languages to avoid libc and C FFIs in favor of making direct syscalls,
+
+implementers of syscall wrappers such as glibc could use it to 
+make new APIs available to userspace faster,
+implementers of debugging tools such as strace could use it to generate (rather than hand-write) syscall pretty-printing code,
+
+
+
+that would make the Linux stability guarantees more clear,
+make new APIs available to userspace faster,
+
+speed up of new Linux APIs,
+allow generating type-safe interfaces to new Linux APIs rather than waiting for glibc,
+supprt
+
+
+with a combination of English prose and C headers which contain only constants and carefully formatted structures to pass in-memory.
+with hardcoded syscall numbers and carefully formatted structures passed in-memory.
+This 
+This forces most users to go through libc instead,
+which provides a defined C interface.
