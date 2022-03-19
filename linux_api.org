@@ -174,9 +174,9 @@ but the API itself is only informally described, primarily with English prose.
 We should make a formal definition of the Linux userspace API.
 
 As background, note that the Linux userspace API is distinct from the C functions implemented by a libc, such as read(2).
-Under the hood, in a conventional libc like glibc, read(2) calls the Linux system call "sys_read",
-manually passing arguments in registers in an architecture-specific way according to the specific details of sys_read on the current architecture,
-in a way that is at best documented in manpages, and more usually is defined only by the implementation.
+Under the hood, in a conventional libc like glibc, read(2) calls the Linux system call "sys_read" (part of the Linux userspace API),
+manually passing arguments in registers in an architecture-specific way according to the specific details of sys_read on the current architecture.
+This is at best documented in manpages, and more usually is defined only by the implementation.
 Anyone else who wants to work with a sys_read syscall, in any way, needs to duplicate all those details.
 
 If we created a formal definition of the Linux userspace API,
@@ -240,27 +240,3 @@ and it doesn't cover individual syscalls at all.
 
 I would love to collaborate with anyone interested in creating a formal definition of the Linux API,
 so [[http://catern.com/][contact me]] if you're interested.
-
-
-
-make it much easier for new languages to avoid libc and C FFIs in favor of making direct syscalls,
-
-implementers of syscall wrappers such as glibc could use it to 
-make new APIs available to userspace faster,
-implementers of debugging tools such as strace could use it to generate (rather than hand-write) syscall pretty-printing code,
-
-
-
-that would make the Linux stability guarantees more clear,
-make new APIs available to userspace faster,
-
-speed up of new Linux APIs,
-allow generating type-safe interfaces to new Linux APIs rather than waiting for glibc,
-supprt
-
-
-with a combination of English prose and C headers which contain only constants and carefully formatted structures to pass in-memory.
-with hardcoded syscall numbers and carefully formatted structures passed in-memory.
-This 
-This forces most users to go through libc instead,
-which provides a defined C interface.
