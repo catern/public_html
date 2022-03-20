@@ -1,12 +1,12 @@
 <html>
   <head>
-<title>Linux needs a formally defined userspace API</title>
+<title>Linux needs a explicitly defined userspace API</title>
 </head>
 <body>
-<h1>Linux needs a formally defined userspace API</h1>
+<h1>Linux needs a explicitly defined userspace API</h1>
 Linux guarantees the stability of its userspace API,
 but the API itself is only informally described, primarily with English prose.
-We should write a formal definition of the Linux userspace API.
+We should write a explicit, authoritative definition of the Linux userspace API.
 <p>
 As background, note that the Linux userspace API (which consists of system calls, device files, various protocols, etc) is distinct from the C functions implemented by a libc, such as
 <a href="https://man7.org/linux/man-pages/man2/read.2.html">read(2)</a>.
@@ -15,7 +15,7 @@ manually passing arguments in registers in an architecture-specific way accordin
 This is at best documented in manpages, and more usually is defined only by the implementation.
 Anyone else who wants to work with a sys_read syscall, in any way, needs to duplicate all those details.
 <p>
-If we created a formal definition of the Linux userspace API,
+If we created a explicit definition of the Linux userspace API,
 there would be numerous benefits:
 <ul>
 <li>The API definition could be automatically tested against the kernel and any deviation flagged.
@@ -31,12 +31,12 @@ there would be numerous benefits:
 <li>Debugging tools which need to understand the format of syscalls and their arguments in great detail,
   such as strace,
   are currently primarily hand-written with great duplication of effort.
-  Even a basic formal description of syscalls would allow much of this code to be generated instead.
+  Even a basic description of syscalls would allow much of this code to be generated instead.
 
 <li>Implementers of new languages currently almost always make syscalls by going through libc.
   Supporting interoperability with C in this way is a major burden,
   and the resulting interfaces are typically highly unidiomatic for the new language.
-  With a formal definition of the Linux API,
+  With a explicit definition of the Linux API,
   it would be much easier for new languages to make syscalls directly
   by automatically generating syscall wrappers which are idiomatic to the new language;
   for example, wrappers which preserve memory-safety and type-safety in Rust.
@@ -61,13 +61,13 @@ To write this definition, a new Linux-specific format for the definition might n
 At a minimum, it will need to be able to describe
 bit-level data formats, complex pointer-based datastructures, tagged unions, "overloaded" syscalls such as ioctl,
 and architecture-specific divergences.
-Most existing formats and languages for describing interfaces of this
+Most existing formats and languages for describing interfaces like this
 unfortunately lack these capabilities.
 <p>
 Ultimately, this definition must be upstream,
 which means that it needs to be maintainable by existing Linux developers.
 One way to achieve that might be to integrate it into the C code,
-possibly in combination with existing macros such as SYSCALL_DEFINE.
+possibly in combination with existing Linux macros such as SYSCALL_DEFINE.
 The API description can then be automatically extracted from the C code into a more-easily-reusable format,
 which can be used as input for other tools.
 <p>
@@ -77,7 +77,7 @@ which specifies the stability guarantees for different userspace APIs in a semi-
 But it doesn't specify the actual content of those APIs,
 and it doesn't cover individual syscalls at all.
 <p>
-I would love to collaborate with anyone interested in creating a formal definition of the Linux API,
+I would love to collaborate with anyone interested in creating an explicit, authoritative definition of the Linux API,
 so
 <a href="http://catern.com/">contact me</a>
 if you're interested.

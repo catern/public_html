@@ -248,3 +248,9 @@ something like the C++ standard?
 or something written in a proof assistant?
 
 okay made some edits for that
+* more thoughts
+okay I need to remove the word "formal"
+
+oh maybe "authoritative"?
+
+explicitly!
