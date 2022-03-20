@@ -10,7 +10,7 @@ We should write a explicit, authoritative definition of the Linux userspace API.
 <p>
 As background, note that the Linux userspace API (which consists of system calls, device files, various protocols, etc) is distinct from the C functions implemented by a libc, such as
 <a href="https://man7.org/linux/man-pages/man2/read.2.html">read(2)</a>.
-Under the hood, in a conventional libc like glibc, read calls the Linux system call sys_read,
+Under the hood, in a conventional libc like glibc, read(2) calls the Linux system call sys_read,
 manually passing arguments in registers in an architecture-specific way according to the specific details of sys_read.
 This is at best documented in manpages, and more usually is defined only by the implementation.
 Anyone else who wants to work with a sys_read syscall, in any way, needs to duplicate all those details.
@@ -18,16 +18,6 @@ Anyone else who wants to work with a sys_read syscall, in any way, needs to dupl
 If we created a explicit definition of the Linux userspace API,
 there would be numerous benefits:
 <ul>
-<li>The API definition could be automatically tested against the kernel and any deviation flagged.
-  A change to kernel behavior that implies a change in the API definition would deserve greater scrutiny,
-  since such a change might break userspace.
-  This certainly could never catch all possible API breaks,
-  but it would be one more way to prevent regressions.
-
-<li>It would speed up the process of making new syscalls available to userspace,
-  by making it easy to automatically generate new syscall wrappers,
-  whether part of libc or not.
-
 <li>Debugging tools which need to understand the format of syscalls and their arguments in great detail,
   such as strace,
   are currently primarily hand-written with great duplication of effort.
@@ -38,12 +28,23 @@ there would be numerous benefits:
   and the resulting interfaces are typically highly unidiomatic for the new language.
   With a explicit definition of the Linux API,
   it would be much easier for new languages to make syscalls directly
-  by automatically generating syscall wrappers which are idiomatic to the new language;
-  for example, wrappers which preserve memory-safety and type-safety in Rust.
+  by automatically generating syscall functions which are idiomatic to the new language;
+  for example, functions which preserve memory-safety and type-safety in Rust.
+
+<li>It often takes a long time for newly-added syscalls to be usable in userspace.
+  With an explicit definition of the Linux userspace API,
+  it would be easy to automatically generate functions for new syscalls,
+  which could be deployed quickly either as part of libc or in a separate syscall library.
 
 <li>Reimplementers of the Linux API, such as Linuxulator, WSL1, and gVisor,
   would be able to generate stubs for the interfaces they need to implement automatically,
   reducing duplicated code and making them conform better to the Linux API.
+
+<li>The API definition could be automatically tested against the kernel and any deviation flagged.
+  A change to kernel behavior that implies a change in the API definition would deserve greater scrutiny,
+  since such a change might break userspace.
+  This certainly could never catch all possible API breaks,
+  but it would be one more way to prevent regressions.
 
 <li>Any other tool which needs to understand much of the Linux API would benefit,
   such as more esoteric projects to
