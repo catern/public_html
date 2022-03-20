@@ -240,3 +240,11 @@ and it doesn't cover individual syscalls at all.
 
 I would love to collaborate with anyone interested in creating a formal definition of the Linux API,
 so [[http://catern.com/][contact me]] if you're interested.
+* kai feedback
+it's not clear what kinda thing you mean by "formally specify":
+
+something like the C++ standard?
+
+or something written in a proof assistant?
+
+okay made some edits for that

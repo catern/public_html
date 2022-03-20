@@ -31,17 +31,17 @@ there would be numerous benefits:
 <li>Debugging tools which need to understand the format of syscalls and their arguments in great detail,
   such as strace,
   are currently primarily hand-written with great duplication of effort.
-  Even a basic definition would allow much of this code to be generated instead.
+  Even a basic formal description of syscalls would allow much of this code to be generated instead.
 
 <li>Implementers of new languages currently almost always make syscalls by going through libc.
   Supporting interoperability with C in this way is a major burden,
   and the resulting interfaces are typically highly unidiomatic for the new language.
-  With a definition of the Linux API,
+  With a formal definition of the Linux API,
   it would be much easier for new languages to make syscalls directly
   by automatically generating syscall wrappers which are idiomatic to the new language;
   for example, wrappers which preserve memory-safety and type-safety in Rust.
 
-<li>Reimplementers of the Linux API, such as WSL1, Linuxulator, or gVisor,
+<li>Reimplementers of the Linux API, such as Linuxulator, WSL1, and gVisor,
   would be able to generate stubs for the interfaces they need to implement automatically,
   reducing duplicated code and making them conform better to the Linux API.
 
@@ -49,7 +49,7 @@ there would be numerous benefits:
   such as more esoteric projects to
   batch syscalls, intercept and rewrite syscalls,
   <a href="https://github.com/catern/rsyscall">forward syscalls to remote hosts</a>,
-  or any other syscall manipulations in userspace.
+  or any other syscall manipulations.
 </ul>
 A basic API definition would simply describe valid combinations and formats of syscall arguments,
 something which is currently primarily described in manpages.
@@ -68,7 +68,8 @@ Ultimately, this definition must be upstream,
 which means that it needs to be maintainable by existing Linux developers.
 One way to achieve that might be to integrate it into the C code,
 possibly in combination with existing macros such as SYSCALL_DEFINE.
-The specification can then be automatically extracted from the C code into a more-easily-reusable format.
+The API description can then be automatically extracted from the C code into a more-easily-reusable format,
+which can be used as input for other tools.
 <p>
 One step in this direction is
 <a href="https://www.kernel.org/doc/Documentation/ABI/README">Documentation/ABI</a>,
