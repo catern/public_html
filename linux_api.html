@@ -33,6 +33,7 @@ there would be numerous benefits:
   and the resulting interfaces are typically highly unidiomatic for the new language.
   With a explicit definition of the Linux API,
   it would be much easier for new languages to make syscalls directly
+  (rather than through libc)
   by automatically generating syscall functions which are idiomatic to the new language;
   for example, functions which preserve memory-safety and type-safety in Rust.
 
@@ -45,7 +46,7 @@ there would be numerous benefits:
   This certainly could never catch all possible API breaks,
   but it would be one more way to prevent regressions.
 
-<li>Any other tool which needs to understand much of the Linux API would benefit,
+<li>Any other tool which needs to understand the Linux API would benefit,
   such as more esoteric projects to
   batch syscalls, intercept and rewrite syscalls,
   <a href="https://github.com/catern/rsyscall">forward syscalls to remote hosts</a>,
