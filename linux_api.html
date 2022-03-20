@@ -23,6 +23,11 @@ there would be numerous benefits:
   are currently primarily hand-written with great duplication of effort.
   Even a basic description of syscalls would allow much of this code to be generated instead.
 
+<li>It often takes a long time for newly-added syscalls to be usable in userspace.
+  With an explicit definition of the Linux userspace API,
+  it would be easy to automatically generate functions for new syscalls,
+  which could be deployed quickly either as part of libc or in a separate syscall library.
+
 <li>Implementers of new languages currently almost always make syscalls by going through libc.
   Supporting interoperability with C in this way is a major burden,
   and the resulting interfaces are typically highly unidiomatic for the new language.
@@ -31,17 +36,11 @@ there would be numerous benefits:
   by automatically generating syscall functions which are idiomatic to the new language;
   for example, functions which preserve memory-safety and type-safety in Rust.
 
-<li>It often takes a long time for newly-added syscalls to be usable in userspace.
-  With an explicit definition of the Linux userspace API,
-  it would be easy to automatically generate functions for new syscalls,
-  which could be deployed quickly either as part of libc or in a separate syscall library.
-
 <li>Reimplementers of the Linux API, such as Linuxulator, WSL1, and gVisor,
   would be able to generate stubs for the interfaces they need to implement automatically,
   reducing duplicated code and making them conform better to the Linux API.
 
-<li>The API definition could be automatically tested against the kernel and any deviation flagged.
-  A change to kernel behavior that implies a change in the API definition would deserve greater scrutiny,
+<li>Changes to Linux behavior that require a change in the API definition would deserve greater scrutiny by maintainers,
   since such a change might break userspace.
   This certainly could never catch all possible API breaks,
   but it would be one more way to prevent regressions.
@@ -52,8 +51,8 @@ there would be numerous benefits:
   <a href="https://github.com/catern/rsyscall">forward syscalls to remote hosts</a>,
   or any other syscall manipulations.
 </ul>
-A basic API definition would simply describe valid combinations and formats of syscall arguments,
-something which is currently primarily described in manpages.
+A basic API definition would simply describe valid combinations and formats of syscall arguments in a machine-parseable form,
+something which is currently primarily described in English-language manpages.
 More detailed API definitions could describe behaviors
 such as the requirement that a syscall be passed an open file descriptor rather than an arbitrary integer,
 which would require a description of how different syscalls affect the file descriptor table.
