@@ -1,0 +1,332 @@
+* the essence of distributed systems vs local systems is the single fault domain
+
+A single machine is a distributed system with one failure domain
+
+basically I just want to talk about all the things that are similar between the two
+
+because I'm tired of confusion around this
+
+similarities:
+
+- cores communicate via message passing over a network
+- latency between components is highly relevant for performance
+- components run concurrently
+- they don't have a single global clock ??? maybe??? buses are on different clocks right?
+
+https://en.wikipedia.org/wiki/Distributed_computing
+this is actually pretty good
+
+A PC is like a distributed system in every way except one
+
+A single computer is a distributed system in every way but one
+
+https://thume.ca/2020/05/17/pipes-kill-productivity/
+is a good article to debunk:
+
+- Fragile: The network connection or the other end can have hardware
+  failures, these have different implications but both manifest as
+  just a timeout. Everything needs to handle failure.
+
+  ah, but in hardware, we ultimately bottom out in "kill everything".
+  that is the primary difference.
+
+- Narrow: Bandwidth is limited so we need to carefully design
+  protocols to only send what they need.
+
+  yes...
+
+- Laggy: Network latency is noticeable so we need to carefully
+  minimize round-trips.
+
+  yes...
+
+- Asynchronous: Especially with >2 input sources (UIs count) all sorts
+  of races and edge cases can happen and need to be thought about and
+  handled.
+
+  yes...
+
+- Mismatched: It’s often not possible to upgrade all systems
+  atomically, so you need to handle different ends speaking different
+  protocol versions.
+
+  Same with hardware:
+  you have to be compatible with all kinds of various versions of protocols standards,
+  because usually the computer is made out of components from a lot of different vendors.
+  If a single vendor made everything,
+  then they could atomically upgrade inside a box,
+  the next time they brought down the whole box...
+  but you could do the same if you were willing to bring down your whole distributed system.
+
+- Untrusted: If you don’t want everything to be taken down by one
+  malfunction you need to defend against invalid inputs and being
+  overwhelmed. Sometimes you also need to defend against actual
+  attackers.
+
+  Same with a single machine: e.g. thunderbolt vulnerabilities
+
+Most programmers ignore all these things, basically completely,
+when writing software to run on a single machine.
+I reject the claim that these things cannot be ignored
+
+Indeed, I believe we cannot advance until we have figured out a way to abstract them away.
+
+"I am determined to move beyond this way of interacting with systems"
+https://twitter.com/rsnous
+** title
+The only difference between a distributed system and a single computer,
+is the number of failure domains
+
+There is no difference between a distributed system and a single computer
+
+(the fault domain distinction is something we have created...)
+
+yeah so let's dig into this fault domain thing
+
+is it actually more of a end-user UI thing?
+
+title: There is no essential difference between a distributed system and a single computer
+title: There is no fundamental difference between a distributed system and a single computer
+title: There is no fundamental difference between a distributed system and a single machine
+
+maybe there are multiple fault domains in a single machine?
+
+i guess it's just that...
+generally if there's some severe error we power off the whole machine?
+
+whereas...
+we can't cut power to two computers in different place?
+without blowing up the earth?
+
+on the other hand...
+multiple computers in a single datacenter, we can do exactly that...
+
+if some node gets locked up,
+we can just cut power...
+both in a computer and out of it....
+
+but how do we cut power?
+well, we use some oher part of hardware, which could also fail!
+maybe?
+
+which is equivalent to having an admin network that would let us cut power to things...
+
+yeah I just don't think there's any fundamental difference
+cuz.... hmmm....
+
+maybe I would emphasize this part as, the part that is most tricky to work with...
+
+title: There is no fundamental difference between a distributed system and a single machine as they actually exist
+title: Every computer has a distributed system inside it
+title: Your computer has a distributed system inside
+
+like I want to say, the reality of our machines, not in theory,
+is that they are distributed systems
+
+title: A single machine has all the same attributes of a distributed system, so why is the latter so much worse to program?
+
+i mean, what's my answer?
+we've been screwing up our approach to programming?
+
+i mean, i do think there is a simpler approach...
+
+I guess fault domains are something important here....
+or at least that's what I've thought
+
+okay. really I just want to say...
+
+title: There is a distributed system inside your single machine
+
+just like, basically...
+
+convey all these interesting "hey here's a distributed system problem that crops up when programming a single machine"
+
+the problems aren't *not real*, it's just that they're also in a single machine.
+
+(and I think that justifies abstracting over them in both cases - or, shows that it's viable in both cases)
+
+okay so yeah, basically, when programming a single machine you don't avoid it
+
+"all the same distributed systems problems show up when programming a single machine"
+
+"You cannot avoid distributed systems problems by sticking to a single machine"
+
+except you can because then it's permisssible to abstract over them...
+
+"Sticking to a single machine will not solve your distributed systems problems"
+
+"You can't avoid distributed systems problems by sticking to a single machine"
+
+"Distributed systems problems don't go away if you stick to a single machine"
+
+yes... this is moving in the right direction...
+
+the real point I want to make is about how sticking to a single machine is not the solution,
+accepting more abstraction is the solution,
+and we just already do that with single-machines.
+
+but I want to make that indirectly.
+
+"Single machines are just abstracted distributed systems"
+
+oohh now this is a good line.
+
+"A single machine is just an abstracted distributed system"
+
+yes... this is good. and really this is what I want to say...
+
+"A single machine is just an abstraction layered over a distributed system"
+"A single machine is just an abstraction layered on top of a distributed system"
+
+nah, this is pithier:
+
+"A single machine is just an abstracted distributed system"
+
+"A so-called single machine is just an abstracted distributed system"
+"A single computer is just an abstracted distributed system"
+"A single computer is an abstracted distributed system"
+"A 'single' computer is actually an abstracted distributed system"
+"A single computer is actually an abstracted distributed system"
+"A PC or server is actually an abstracted distributed system"
+"A typical single computer is actually an abstracted distributed system"
+"A typical single computer is just an abstracted distributed system"
+
+I like "just" over "actually"...
+and "typical" is not necessary but maybe *something* replacing the subject...
+
+"A single computer is just an abstracted distributed system"
+
+Every machine is actually an abstracted distributed system
+
+Each machine is actually an abstracted distributed system
+
+Every machine is an abstracted distributed system
+
+A "single machine" is an abstraction on top of a distributed system
+
+Linux is a distributed system
+
+(Can I just spit out the point?)
+
+When you're writing a program that just runs on one machine to avoid the complexity of running on a distributed system,
+you're actually still writing on top of a distributed system,
+just one that's behind an abstraction.
+
+A single machine is actually an abstracted distributed system
+
+Each single computer is actually an abstracted distributed system
+
+again, what's the point?
+
+Inside every computer is a hidden distributed system
+Inside every computer is an abstracted-over distributed system
+
+https://barrelfish.org/publications/barrelfish_hotos09.pdf
+lol
+
+Your computer is already a distributed system. Why isn’t your OS?
+
+okay so the intro here is saying exactly what I want to say
+
+likely because i was inspired by it
+
+Your computer is already a distributed system. Why isn't your distributed system a computer?
+
+
+maybe I should just do another paper summary
+
+Your computer is a distributed system
+
+yes. that will be the title and we will summarize/extract most of it from the paper.
+
+
+then... a followup that is:
+
+Why isn't your distributed system a computer?
+
+nah
+
+Your computer is a distributed system,
+so abstracting over distributed systems to create a programming model is viable,
+and we can ignore all the horrible details of distributed systems.
+
+
+hey isn't the original mostly appropriate for my PL iceberg list? hm
+
+okay so the followup article is just...
+We have proof that it's possible to create a productive programming environment
+as an abstraction over a distributed system
+that mostly removes having to worry about any of the distributed system details.
+I reject the claim that abstracting over a distributed system will fail in all cases;
+(e.g. "don't make rpcs look like local calls);
+we have proof that it can work sometimes.
+
+So let's find other ways to do it.
+Distributed shared memory is an idea that has been tried but has failed,
+so we need knew ideas.
+
+I don't believe the coherent-shared-memory-multiprocessor
+is the only model for abstracting over a distributed system that works.
+Surely there are others; we just need to find them.
+
+We have an existence proof that one can make a productive abstraction
+on top of a distributed system
+that saves programmers from having to wrestle distributed system problems:
+the shared-memory-multiprocessor.
+So I think we can make more.
+
+We need to make an abstraction on top of large-scale distributed systems
+which provides the ability to program that without caring about distributed systems issues.
+We should completely abstract away the fact that it's a distributed system.
+This is an old research area that is often condemned as a false idol,
+given the many failures of attempts to do this.
+But we've succeeded once:
+the shared-memory-multiprocessor.
+I think we can succeed again with a new model.
+
+There are two directions one can go from there:
+Scale up the shared-memory-multiprocessor,
+or make a new model entirely.
+
+I think we need a new model because I don't like the shared-memory-multiprocessor.
+
+Honestly I think a good new distributed programming model
+*also* will help us replace the shared-memory-multiprocessor in the small scale.
+
+Yeah there's two conclusions you can draw from "your computer is a distributed system":
+- your large-scale distributed system can be a computer (be abstracted)
+- your computer abstractions in a small-scale distributed system,
+  can be optimized with large-scale distributed system techniques;
+  like message passing etc
+
+So one is to add new abstractions,
+and the other is to replace PC abstractions with distsys abstractions.
+remove abstractions, in other words...
+
+Yeah so:
+the PC is an abstracted distributed system.
+that suggests:
+- we can add abstractions to other distributed systems to make it easier to program like the PC
+
+- we can remove abstractions from the PC to make it more like other distributed systems
+  (e.g. use message passing - link to flexsc.html)
+
+SMP is the acronym we should use
+
+yeah we can put this all in one article.
+
+
+add abstractions to distsys,
+remove abstractions from SMP
+
+um okay. I just need to... write it now.
+** just writing it
+title: Your computer is a distributed system
+
+Most computers today are fundamentally distributed systems under the hood;
+they deal with latency, partial failure, incompatibilities, and other such details.
+The simple-to-program non-distributed experience that they provide is an abstraction over this,
+which allow programmers to ignore the distributed details.
+This suggests two interesting directions:
+exposing the distributed details inside individual computers,
+and abstracting over the distributed details of larger distributed systems.
