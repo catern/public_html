@@ -323,10 +323,86 @@ um okay. I just need to... write it now.
 ** just writing it
 title: Your computer is a distributed system
 
-Most computers today are fundamentally distributed systems under the hood;
-they deal with latency, partial failure, incompatibilities, and other such details.
-The simple-to-program non-distributed experience that they provide is an abstraction over this,
-which allow programmers to ignore the distributed details.
-This suggests two interesting directions:
-exposing the distributed details inside individual computers,
-and abstracting over the distributed details of larger distributed systems.
+Most computers are essentially a distributed system internally,
+and provide their more familiar programming interface as an abstraction on top of that.
+Piercing through these abstractions can yield greater performance,
+but most programmers do not need to do so.
+This shows that it is possible to successfully abstract away the distributed nature of a system.
+# put this at the end actually? not in the intro? just stop intro here?
+Perhaps we can develop new abstractions which are suitable both for individual computers
+and for much larger distributed systems.
+
+Many have observed that today's computers are distributed systems
+implementing the abstraction of the shared-memory multiprocessor.
+The wording in the title is from the 2009 paper
+"[[https://barrelfish.org/publications/barrelfish_hotos09.pdf][Your computer is already a distributed system. Why isn’t your OS?]]".
+
+Some points from that and oher sources:
+- The latency between the CPU and main memory and other components is highly relevant.
+  For example, rather than sending all communications through a central point,
+  different components can use DMA to communicate directly.
+- To reduce these latencies, we put caches in the middle to reduce the load on main memory.
+- Those caches themselves are sophisticated distributed systems,
+  implemented with [[https://en.wikipedia.org/wiki/Cache_coherence#Coherence_mechanisms][message passing]] between individual cores.
+  # leases? have more of an analogy to HTTP?
+- There's multiple cores running concurrently,
+  e.g. graphics cards, storage devices, network cards,
+  all running their own firmware running concurrently with the main CPU,
+  and communicating over the internal network (e.g. a PCI bus).
+- Components can appear and disappear and fail independently,
+  and other components have to [[https://linux.die.net/man/8/hotplug][deal with this]].
+- Components can be malicious and send adversarial inputs;
+  e.g., plugging in a malicious [[https://en.wikipedia.org/wiki/PlayStation_3_Jailbreak][USB]] or [[https://en.wikipedia.org/wiki/Thunderspy][Thunderbolt]] device
+  is not supposed to give the attacker root.
+
+# what about "network partitions"
+# simultaneous updates? nah
+# there's many different programs
+
+But by reasoning explicitly and using distributed systems techniques,
+we can get better performance.
+- Message-passing instead of communicating via shared memory is [[https://catern.com/flexsc.html][faster]].
+
+# um what else...
+# I guess we just need to break that down
+
+It is also commonly said that you can't abstract over the network.
+
+https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing
+
+oh this is relevant:
+https://en.wikipedia.org/wiki/PACELC_theorem
+cause it talks about how consistency has a latency cost
+
+In distributed systems,
+it is often supposed that you cannot abstract away the issues of distributed programming.
+One classic and representative [[https://www.win.tue.nl/~johanl/educ/2II45/2010/Lit/Tanenbaum%20RPC%2088.pdf][quote]]:
+
+#+begin_quote
+It is our contention that
+a large number of things may now go wrong
+due to the fact that
+RPC tries to make remote procedure calls look exactly like local ones,
+but is unable to do it perfectly.
+#+end_quote
+
+Nevertheless, today, essentially all programs are written
+in an environment that abstracts away the issues of distributed systems.
+They are filled with RPCs which appear as if they're local operations.
+Accesses to memory and disk are synchronous RPCs to relatively distant hardware,
+which block the execution of the program while waiting for a response.
+Indeed, it's essentially impossible on current architectures to write a program
+which explicitly sends and receives data from memory in an asynchronous style.
+
+This offers hope that we can develop abstractions
+which can scale up to larger distributed systems.
+
+Perhaps we can develop an abstraction which is suitable both for individual computers
+and for much larger distributed systems,
+and explicitly and formally use the same techniques in both places.
+One [[http://www.cs.cmu.edu/~tom7/papers/modal-types-for-mobile-code.pdf][possibility]] is to build a notion of "location" explicitly into our programming languages,
+and statically track where each expression "is located".
+Computation in different locations, and communication of data between those locations,
+could be explicitly described with a single program.
+This would be a powerful abstraction both for the lowest-level hardware implementation
+and the highest-level globe-spanning distributed system.
