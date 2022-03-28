@@ -1,0 +1,120 @@
+<html>
+<head><title>Your computer is a distributed system</title></head>
+<body>
+<h1>Your computer is a distributed system</h1>
+Most computers are essentially a distributed system internally,
+and provide their more familiar programming interface as an abstraction on top of that.
+Piercing through these abstractions can yield greater performance,
+but most programmers do not need to do so.
+This is something unique:
+an abstraction that hides the distributed nature of a system
+and actually succeeds.
+<p>
+Many have observed that today's computers are distributed systems
+implementing the abstraction of the shared-memory multiprocessor (SMP).
+The wording in the title is from the 2009 paper
+"<a href="https://barrelfish.org/publications/barrelfish_hotos09.pdf">Your computer is already a distributed system. Why isn't your OS?</a>".
+Some points from that and other sources:
+<ul>
+<li>There's many components running concurrently,
+  e.g. graphics cards, storage devices, network cards,
+  all running their own programs ("firmware") on their own cores
+  independent of the main CPU
+  and communicating over the internal network (e.g. a PCI bus).
+<li>Components can appear and disappear and fail independently,
+  and other components have to
+  <a href="https://linux.die.net/man/8/hotplug">deal with this</a>.
+  Much like on larger-scale unreliable networks,
+  <a href="https://elixir.bootlin.com/linux/latest/source/include/linux/usb.h#L1843">timeouts</a>
+  are used to detect communication failures.
+<li>Components can be malicious and send adversarial inputs;
+  e.g., a malicious USB or Thunderbolt device
+  can try to exploit vulnerabilities in other hardware components in the system,
+  <a href="https://en.wikipedia.org/wiki/PlayStation_3_Jailbreak">sometimes</a>
+  <a href="https://en.wikipedia.org/wiki/Thunderspy">successfully</a>.
+  The system should be robust to such attacks,
+  just as with larger-scale distributed systems.
+<li>The
+  <a href="http://norvig.com/21-days.html#answers">latency</a>
+  between different components of a computer is highly relevant;
+  e.g., the latency of communication between the CPU and main memory or storage devices
+  is huge compared to communication within the CPU.
+<li>To reduce these latencies, we put caches in the middle,
+  just as we use caches and CDNs in larger-scale distributed systems.
+<li>Those caches themselves are sophisticated distributed systems,
+  implemented with
+  <a href="https://en.wikipedia.org/wiki/Cache_coherence#Coherence_mechanisms">message passing</a>
+  between individual cores.
+  Providing this consistency has a latency
+  <a href="https://en.wikipedia.org/wiki/PACELC_theorem">cost</a>
+  just as it does in distributed systems.
+</ul>
+As the shared-memory multiprocessor is actually a distributed system underneath,
+we can, if necessary, reason explicitly about that underlying system
+and use the same techniques that larger-scale distributed systems use:
+<ul>
+<li>Performing operations closer to the data,
+  e.g. through compute elements embedded into
+  <a href="https://www.usenix.org/conference/osdi14/technical-sessions/presentation/seshadri">storage devices</a>
+  and
+  <a href="https://www.netronome.com/products/agilio-software/agilio-ebpf-software/">network interfaces</a>,
+  is faster.
+<li>Offloading heavy computations to a remote service can be faster,
+  both because the service can run with
+  <a href="https://en.wikipedia.org/wiki/Computation_offloading">better resources</a>,
+  and because the service will have
+  <a href="https://catern.com/flexsc.html">better locality</a>.
+<li><a href="https://lwn.net/Articles/767281/">Communicating directly between devices</a>
+  rather than going through the CPU and main memory
+  reduces load on the CPU and improves latency.
+<li>Message passing directly between components
+  instead of going through a centralized locking service is
+  <a href="https://www.seltzer.com/margo/teaching/CS508-generic/papers-a1/roghanchi17.pdf">faster</a>.
+</ul>
+But most programs do not do such things;
+the abstraction of the shared-memory multiprocessor
+is sufficient for most programs.
+<p>
+That this abstraction is successful is surprising.
+In distributed systems,
+it is often supposed that you cannot abstract away
+the issues of distributed programming.
+One classic and representative quote:
+<p>
+<blockquote cite="https://www.win.tue.nl/~johanl/educ/2II45/2010/Lit/Tanenbaum%20RPC%2088.pdf">
+  It is our contention that
+  a large number of things may now go wrong
+  due to the fact that
+  RPC tries to make remote procedure calls look exactly like local ones,
+  but is unable to do it perfectly.
+  <footer>
+    - <cite>Section 1,
+      <a href="https://www.win.tue.nl/~johanl/educ/2II45/2010/Lit/Tanenbaum%20RPC%2088.pdf">A Critique of the Remote Procedure Call Paradigm</a>
+    </cite>
+  </footer>
+</blockquote>
+<p>
+Nevertheless, today, essentially all programs are written
+in an environment that abstracts away the issues of distributed systems.
+They are filled with RPCs which appear as if they're local operations.
+Accesses to memory and disk are synchronous RPCs to relatively distant hardware,
+which block the execution of the program while waiting for a response.
+Indeed, it's essentially impossible on current architectures to write a program
+which explicitly sends and receives data from memory in an asynchronous style.
+<p>
+This offers hope that we can develop abstractions
+which can work for larger distributed systems.
+Perhaps we can even use the same abstraction for both individual computers
+and for larger systems.
+<p>
+One
+<a href="http://www.cs.cmu.edu/~tom7/papers/modal-types-for-mobile-code.pdf">possibility</a>
+is to build a notion of "location"
+explicitly into our programming languages,
+and statically track where each expression "is located".
+Computation in different locations, and communication of data between those locations,
+could be explicitly described with a single program.
+This would be a powerful abstraction both for the lowest-level hardware implementation
+and the highest-level globe-spanning distributed system.
+</body>
+</html>
