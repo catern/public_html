@@ -327,39 +327,43 @@ Most computers are essentially a distributed system internally,
 and provide their more familiar programming interface as an abstraction on top of that.
 Piercing through these abstractions can yield greater performance,
 but most programmers do not need to do so.
-This shows that it is possible to successfully abstract away the distributed nature of a system.
-# put this at the end actually? not in the intro? just stop intro here?
-Perhaps we can develop new abstractions which are suitable both for individual computers
-and for much larger distributed systems.
+This is something unique:
+an abstraction that hides the distributed nature of a system
+and actually succeeds.
 
 Many have observed that today's computers are distributed systems
-implementing the abstraction of the shared-memory multiprocessor.
+implementing the abstraction of the shared-memory multiprocessor (SMP).
 The wording in the title is from the 2009 paper
 "[[https://barrelfish.org/publications/barrelfish_hotos09.pdf][Your computer is already a distributed system. Why isn’t your OS?]]".
 
-Some points from that and oher sources:
-- The latency between the CPU and main memory and other components is highly relevant.
-  For example, rather than sending all communications through a central point,
-  different components can use DMA to communicate directly.
-- To reduce these latencies, we put caches in the middle to reduce the load on main memory.
+Some points from that and other sources:
+- The [[http://norvig.com/21-days.html#answers][latency]] between different components of a computer is highly relevant;
+  e.g., the latency of communication between the CPU and main memory or storage devices
+  is huge compared to communication within the CPU.
+- To reduce these latencies, we put caches in the middle,
+  just as we use caches and CDNs in larger-scale distributed systems.
 - Those caches themselves are sophisticated distributed systems,
   implemented with [[https://en.wikipedia.org/wiki/Cache_coherence#Coherence_mechanisms][message passing]] between individual cores.
-  # leases? have more of an analogy to HTTP?
   Providing this consistency has a latency [[https://en.wikipedia.org/wiki/PACELC_theorem][cost]] just as it does in distributed systems.
-- There's multiple cores running concurrently,
+- There's many components running concurrently,
   e.g. graphics cards, storage devices, network cards,
-  all running their own firmware running concurrently with the main CPU,
+  all running their own programs ("firmware") on their own cores
+  independent of the main CPU
   and communicating over the internal network (e.g. a PCI bus).
 - Components can appear and disappear and fail independently,
   and other components have to [[https://linux.die.net/man/8/hotplug][deal with this]].
   Much like on larger-scale unreliable networks,
   [[https://elixir.bootlin.com/linux/latest/source/include/linux/usb.h#L1843][timeouts]] are used to detect communication failures.
 - Components can be malicious and send adversarial inputs;
-  e.g., plugging in a malicious [[https://en.wikipedia.org/wiki/PlayStation_3_Jailbreak][USB]] or [[https://en.wikipedia.org/wiki/Thunderspy][Thunderbolt]] device
-  is not supposed to give the attacker root.
+  e.g., a malicious USB or Thunderbolt device
+  can try to exploit vulnerabilities in other hardware components in the system,
+  [[https://en.wikipedia.org/wiki/PlayStation_3_Jailbreak][sometimes]] [[https://en.wikipedia.org/wiki/Thunderspy][successfully]].
+  The system should be robust to such attacks,
+  just as with larger-scale distributed systems.
 
-But by reasoning explicitly and using distributed systems techniques,
-we can get better performance.
+As the shared-memory multiprocessor is actually a distributed system underneath,
+we can, if necessary, reason explicitly about that underlying system
+and use the same techniques that larger-scale distributed systems use.
 # 2. message-passing between cores...
 - [[https://lwn.net/Articles/767281/][Communicating directly between devices]]
   rather than going through the CPU and main memory
@@ -376,10 +380,14 @@ we can get better performance.
 - Message passing directly between components
   instead of going through a centralized locking service is [[https://www.seltzer.com/margo/teaching/CS508-generic/papers-a1/roghanchi17.pdf][faster]].
 
-https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing
+But most programs do not do such things;
+the abstraction of the shared-memory multiprocessor
+is sufficient for most programs.
 
+That this abstraction is successful is surprising.
 In distributed systems,
-it is often supposed that you cannot abstract away the issues of distributed programming.
+it is often supposed that you cannot abstract away
+the issues of distributed programming.
 One classic and representative [[https://www.win.tue.nl/~johanl/educ/2II45/2010/Lit/Tanenbaum%20RPC%2088.pdf][quote]]:
 
 #+begin_quote
@@ -404,7 +412,8 @@ which can scale up to larger distributed systems.
 Perhaps we can develop an abstraction which is suitable both for individual computers
 and for much larger distributed systems,
 and explicitly and formally use the same techniques in both places.
-One [[http://www.cs.cmu.edu/~tom7/papers/modal-types-for-mobile-code.pdf][possibility]] is to build a notion of "location" explicitly into our programming languages,
+One [[http://www.cs.cmu.edu/~tom7/papers/modal-types-for-mobile-code.pdf][possibility]] is to build a notion of "location"
+explicitly into our programming languages,
 and statically track where each expression "is located".
 Computation in different locations, and communication of data between those locations,
 could be explicitly described with a single program.
