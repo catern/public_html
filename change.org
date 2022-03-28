@@ -637,6 +637,121 @@ you just aren't implementing it in the original code
 
 OOPs I definitely want to stop saying that.
 yeah okay deleted
+
+** STANDARDS
+> what I mean is, postgresql isn't standardized, so what's this about a SQL committee?
+> if it's a horrible SQL function, can't you avoid it by using a good postgresql extension?
+<CalimeroTeknik> I mean for the SQL standard, but maybe I could convince the developers to introduce
+an extra function that's out of standard
+
+WOAH but this is a reason to use a shim,
+because then you're portable over broken things
+
+WOAH good point!!!
+this is why I disdain portability!
+
+** unnecesary patching
+um well also
+i don't like unnecessary changes
+
+that creates a nightmare of maintenance and stuff...
+so how can I recommend that?
+
+well I guess I prefer:
+
+upstream the code > change the code and have it locally > make new abstraction layer
+
+yeah hmm
+
+i guess this is related to abstraction reuse.
+
+like, not wanting to make your own abstraction is good.
+and having local changes is basically making your own abstraction
+
+but... less bad, maybe?
+
+which is better/worse, making a new layer, or modifying an existing layer?
+
+
+no both point in the same direction: don't write new code
+
+don't make new abstractions
+don't make shims
+
+but what if "not writing new code" is in conflict with...
+um, a second part of "don't make new abstractions",
+which is: don't... um... don't write new code that changes existing code, kinda thing.
+
+i mean, yeah, they're both "don't write new code",
+but...
+
+i mean, if you're already changing the code you want to change it upstreamable ways.
+otherwise you might want to have a workaround... to reduce maintenance purden...
+
+** portability + unnecessary patching
+are these actually the same point?
+
+that is:
+don't worry about portability,
+don't worry about cost of maintaining a fork,
+just do it.
+
+i mean... hm.
+
+I guess I do think this is a key advantage of open source maybe...
+even if sometimes I would rather people don't use it...
+since they can misuse it...
+
+but that's more on the layer of not doing your own insane abstraction thing;
+you should have the ability to do your own insane thing at least...
+
+hmm no i can't use that excuse, the two things are directly in contrast;
+here i say change the code, there i say reuse the code. hm.
+
+well! I guess the point is that you should change the code.
+and the easiest way to change the code is to upstream it!
+
+so in terms of easiness:
+
+change the code upstream > local hack > change the code locally
+
+I mean... I do think this is true, probably...
+but, I guess, I'm suggesting upstream!
+
+** constructive proof!
+demonstrating you have working code is better
+
+but, y'know, that's mentioned also in fork,
+so maybe I don't need to repeat it?
+
+** exitvoice
+"contribute" is also a name for "fork"!
+should say that!
+
+what I'm going for here is just,
+fork instead of exiting!
+contribute back instead of building your own thing on top!
+
+it's *better* to contribute than to exit!
+
+yes, that's the key here!
+this article is arguing for voice/fork over exit!
+
+and that's why we're concerned about the cost of maintaining a fork;
+we should choose software where that is easy.
+
+and that's why portability is not a concern;
+we're retaining the ability to fork.
+
+yeah okay, sure, vague, but possibly good.
+** titles
+Did you know you can actually change the code?
+
+Remember that you can actually change the code
+
+Prefer to change the code rather than write a workaround
+
+
 ** corbin
 <Corbin> catern: I read your article. The overall thrust is fine, but the only parts that survive scrutiny are either vacuous or fundamental.
 <Corbin> That's not to say that it's bad to remind people of one of the fundamentals of software engineering! The fact that we can change software is what defines it in contrast to hardware.
