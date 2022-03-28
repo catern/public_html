@@ -345,34 +345,38 @@ Some points from that and oher sources:
 - Those caches themselves are sophisticated distributed systems,
   implemented with [[https://en.wikipedia.org/wiki/Cache_coherence#Coherence_mechanisms][message passing]] between individual cores.
   # leases? have more of an analogy to HTTP?
+  Providing this consistency has a latency [[https://en.wikipedia.org/wiki/PACELC_theorem][cost]] just as it does in distributed systems.
 - There's multiple cores running concurrently,
   e.g. graphics cards, storage devices, network cards,
   all running their own firmware running concurrently with the main CPU,
   and communicating over the internal network (e.g. a PCI bus).
 - Components can appear and disappear and fail independently,
   and other components have to [[https://linux.die.net/man/8/hotplug][deal with this]].
+  Much like on larger-scale unreliable networks,
+  [[https://elixir.bootlin.com/linux/latest/source/include/linux/usb.h#L1843][timeouts]] are used to detect communication failures.
 - Components can be malicious and send adversarial inputs;
   e.g., plugging in a malicious [[https://en.wikipedia.org/wiki/PlayStation_3_Jailbreak][USB]] or [[https://en.wikipedia.org/wiki/Thunderspy][Thunderbolt]] device
   is not supposed to give the attacker root.
 
-# what about "network partitions"
-# simultaneous updates? nah
-# there's many different programs
-
 But by reasoning explicitly and using distributed systems techniques,
 we can get better performance.
-- Message-passing instead of communicating via shared memory is [[https://catern.com/flexsc.html][faster]].
-
-# um what else...
-# I guess we just need to break that down
-
-It is also commonly said that you can't abstract over the network.
+# 2. message-passing between cores...
+- [[https://lwn.net/Articles/767281/][Communicating directly between devices]]
+  rather than going through the CPU and main memory
+  reduces load on the CPU and improves latency.
+# 1. being aware of latencies to disk...
+- Performing operations closer to the data,
+  e.g. through compute elements embedded into [[https://www.usenix.org/conference/osdi14/technical-sessions/presentation/seshadri][storage devices]] and [[https://www.netronome.com/products/agilio-software/agilio-ebpf-software/][network interfaces]],
+  is faster.
+# this is a fairly insane description of flexsc but it's fine
+- Offloading heavy computations to a remote service can be faster,
+  both because the service can run with [[https://en.wikipedia.org/wiki/Computation_offloading][better resources]],
+  and because the service will have [[https://catern.com/flexsc.html][better locality]].
+# 3. locks are costly, delegation is better
+- Message passing directly between components
+  instead of going through a centralized locking service is [[https://www.seltzer.com/margo/teaching/CS508-generic/papers-a1/roghanchi17.pdf][faster]].
 
 https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing
-
-oh this is relevant:
-https://en.wikipedia.org/wiki/PACELC_theorem
-cause it talks about how consistency has a latency cost
 
 In distributed systems,
 it is often supposed that you cannot abstract away the issues of distributed programming.
