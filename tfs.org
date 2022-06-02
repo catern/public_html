@@ -1,5 +1,5 @@
 #+title: Write code, not compilers
-#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; } body{ max-width:70em; margin-left:auto; margin-right:auto; }</style>
+#+HTML_HEAD: <style type="text/css">pre.src {background-color: #303030; color: #ffffff;} pre.src-python:before { color: #000000; } </style>
 
 * Explanation
   :PROPERTIES:
@@ -110,9 +110,6 @@ One which just writes to the filesystem.
 class StrData(Data):
     "Some data, specifically a string"
     content: str
-
-    def serialize(self) -> str:
-        return self.content
 
 @dataclass
 class IODirectory(Directory):
@@ -306,7 +303,7 @@ class PPDirectory(Directory):
         return file
 
     def for_each_file(self, f: t.Callable[[File], None]) -> None:
-        "Render the passed function as a function definition, then write a line of code to call .for_each_file with it."
+        "Write a function definition for `f`, then a line of code to calling .for_each_file passing that function."
         file = PPFile(self.program, self.program.var("file"))
         with self.program.def_function('f', [file.variable_name]) as func_name:
             f(file)
@@ -532,7 +529,7 @@ def typechecking_main():
     prog(TypecheckingDirectory(), Data(), Data())
     try:
         badprog(TypecheckingDirectory())
-    except Exception:
+    except AssertionError:
         pass
 #+end_src
 
