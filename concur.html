@@ -12,7 +12,8 @@ which will return an EPIPE or other error if you read or write when there's no-o
 <p>
 Not having a built-in failure detection system can cause deadlocks and issues, on both the sender and receiver side.
 <p>
-Consider, for example, "writer creates a file in a directory, reader waits for it to show up".
+Consider, as an example of the wrong thing,
+"writer creates a file in a directory, reader waits for it to show up".
 This gives the writer no indication if the reader is dead and will never receive the file,
 and the reader no indication if the writer is dead and will never send the file.
 <p>
@@ -64,6 +65,7 @@ For example, you wait until you receive a notification telling you that there ar
 and then you send a separate request to allocate that resource.
 <p>
 A readiness interface requires the implementer to spend less resources on tracking outstanding requests,
+<!-- which is why Unix uses it -->
 but it's harder for the user to use correctly.
 In particular, in a completion interface,
 waiting and operating are coupled together,
@@ -132,7 +134,7 @@ you need status updates based on the state of the service you're actually intera
 not just the proxy.
 <h3>When implementing readiness interfaces, don't send ready-notifications too soon</h3>
 Make sure that when you say "X is ready",
-that means any requests for X which come *instantaneously* at that point will succeed.
+that means any requests for X which come <em>instantaneously</em> at that point will succeed.
 Don't say "X is ready" until that's true.
 <p>
 It's always better to delay a ready-notification,
@@ -159,7 +161,7 @@ and avoids getting things stuck in a failed state.
 <p>
 Each component should handle only one or a few kinds of failures;
 the rest should pass through and be propagated upstream towards the user.
-<h2>When handling a failure, don't just retry</h2>
+<h2>When handling a failure, don't <em>just</em> retry</h2>
 When you do handle a failure rather than propagating it upstream,
 handle it right.
 <p>
@@ -195,5 +197,6 @@ Putting a limit on the number of retries is just setting an arbitrary timeout.
 If a certain component can't fix the failure,
 then it shouldn't be retrying at all;
 it should immediately propagate the failure upstream instead.
+Eventually the failure will reach a level where it can be dealt with properly.
 </body>
 </html>
