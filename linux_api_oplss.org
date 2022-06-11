@@ -79,37 +79,44 @@ Hi, I'm Spencer Baugh.
 I'm an independent researcher right now, working at Jane Street in 2023.
 I'm interested in operating systems, distributed programming, and open source.
 *** project intro
-So this is a project to,
-basically,
-add rich types to the Linux kernel syscall API,
-in a way that's useful for a bunch of other downstream uses.
+I'm going to talk a little bit about a project I've just started working on.
 
-Currently the API is essentially untyped.
-I'll explain some background about the Linux syscall API now,
-followed by an explanation of what exactly people want to do but can't really today,
-and how adding richer types to it will help with that.
+So this is a project to
+add rich type information to the Linux kernel syscall API,
+in a way that's practically useful for users calling those APIs.
+Currently the API is mostly untyped and unsafe,
+and I'd like to fix that.
 
-Then, some discussion of the requirements and hard parts in typing the Linux syscall API.
+So now,
+I'll explain some background about the Linux syscall API,
+starting with what the heck that even is,
+followed by an explanation of what's painful about the current untyped state,
+and how adding richer types will help.
+
+Then, some discussion of the requirements and hard parts in adding types to the Linux syscall API.
 
 I don't think I'll take up all the time,
 so feel free to ask questions throughout,
 and if there are any suggestions or ideas I'd love to hear them.
+Like I said, this project is really just at the start.
 *** Linux syscall API
 OK, so starting from the top:
 When I say Linux, I'm referring to the Linux kernel.
-Most programs run on top of a kernel,
-and interact it via "system calls".
+Most programs that run on computers, run on top of a kernel,
+and interact with it via "system calls", also called a "syscall".
 In some sense, a system call is just a function call:
 You pass some arguments, which might include pointers to buffers or values in memory,
 and receive back a return value.
 
-# This may be excessive information;
-# I think the IO safety parts are the most interesting and important...
-How exactly these arguments are encoded,
-and how exactly they're transmitted to the kernel,
-depends on the specific system call and the specific architecture.
+Suppose you want to make system calls available to programmers in some language.
+There are two questions:
+Typing: What is the type of a system call?  How can it be made type-safe?
+Calling convention: How, exactly, is a system call performed?  What's the "protocol" we speak to the kernel?
 
-It may be useful to clarify that this:
+Both of these questions about syscalls are important and necessary to answer,
+but I'll ignore the calling convention question for a bit.
+
+If we ignore the calling convention, we can assume we have something like:
 #+begin_quote
 NAME
        read - read from a file descriptor
@@ -119,105 +126,142 @@ SYNOPSIS
 
        ssize_t read(int fd, void *buf, size_t count);
 #+end_quote
-is not a system call.
-This is a *wrapper* for a system call,
-usable by C programs.
-In the implementation of this wrapper,
-there are some hand-coded details about how to invoke the underlying sys_read Linux system call.
-
-Currently, all such wrappers have to be hand-coded,
-because the details of the system call are at best documented in manpages,
-and more usually only defined by the implementation.
-**** new focus: two issues
-- making this type safe
-- the mechanical details of making the system call; basically, the calling convention
+which is a wrapper for a system call.
+Given this (which is a C function provided by the C standard library),
+we've already made some progress on answering the typing question,
+by at least knowing the arity.
+But: the C types on this wrapper are decidedly not type-safe.
 *** safety
-OK, so beyond actually calling the system call,
-which requires a bunch of hand-coding,
-there's a ton of safety issues here.
+The integer "fd" is supposed to point to an open file descriptor.
+"buf" and "count" are essentially a pointer to a writable buffer,
+along with its length.
 
-We'll use the read system call as a running example,
-and from this point on I won't be too picky about distinguishing it from the wrapper.
-
-read takes three arguments:
-an integer "fd", which is supposed to point to an open file descriptor;
-a void pointer "buf", which is supposed to point to a buffer in memory that the system call can write data to;
-and another integer "count", which is the maximum amount of data the syscall should write to "buf",
-and therefore should be less than the size of "buf".
-
-OK, so obviously "buf" and "count" are extremely memory-unsafe.
-
-Most of the time, higher-level languages wrap =read= in an interface that abstracts those buffers
+Most of the time, type-safe languages wrap =read= in an interface that abstracts the "buf" and "count" arguments away
 in an effort to make =read= memory-safe.
 
-But =read= is still unsafe in that case,
-because the integer "fd" argument is also type-unsafe!
+But that's not all we need.
+For true safety,
+we need to ensure that an open file descriptor is passed to "fd"
+rather than just an arbitrary integer.
 
+To justify this a bit:
 File descriptors are used for almost every kind of resource in the Linux API.
 A library will frequently internally use some file descriptors for some purpose:
 for example, to set a timer, or wait for events, or store data.
 
-If "fd" is passed as just a raw int,
+If "fd" is passed as just a raw integer,
 any part of the program can call any system call on any file descriptor,
 or make a system call with a file descriptor which isn't open,
 or has been reused,
 and get all kinds of unexpected corruption.
+In exactly the same way that a lack of memory safety can corrupt your program and lead to security vulnerabilities.
 
-You want a guarantee that whatever "fd" argument is passed to the "read" syscall,
-it's an open file descriptor,
-which hasn't been fabricated,
-in the same way that memory-safety provides similar guarantees for the "buf" argument.
-
-The Rust community has called this "I/O safety".
+So, for safety's sake,
+=fd= needs to be passed as an abstract data type which guarantees
+(either statically or dynamically)
+that =fd= refers to an open file descriptor.
+The Rust community has called this property,
+of it not being possible to pass invalid or forged handles,
+"IO safety"
 https://rust-lang.github.io/rfcs/3128-io-safety.html
 
-Note that safety here is very distinct from adding types to user-defined data,
-such as might be stored in files or flow through pipes.
-That will still be raw bytes even if the OS interface is safe.
+So then we have a safer wrapper for this system call.
+We could go even further, to improve safety.
+For example, we could look at the return value,
+and use that to make access to the output buffer safer.
+But we'll stop here.
 
-We need to abstract over the system calls even more
-and create an abstract type which represents an open file descriptor.
+Unfortunately, there's an issue:
+The reasoning we just did,
+we did informally and by hand.
 
-Most high-level languages indeed do this;
-but their abstractions are all hand-written.
-Not only is this a burden for new languages with new safe interfaces,
-it also means most languages only have safe APIs for a small subset of the Linux syscall API.
-Using more advanced features require venturing outside the safely-wrapped subset.
+And that's how it's always done:
+Such abstractions are always hand-written,
+based on a human reasoning about the system calls
+based on information from the documentation and the implementation.
 
+Hand-writing an abstraction for interacting with memory is fine;
+there's a small number of primitive operations on memory.
+So it's very possible to do.
+
+But the system call API is extremely large,
+and for most of it, there is *no* type-safe wrapper in *any* language,
+let alone a type-safe wrapper in my language of choice.
+
+This is bad because:
+- It means programmers concerned with correctness,
+  can't use advanced systems features that could simplify their programs.
+- It means systems programmers who must use those features,
+  are getting much less correctness in their programs.
+**** old
 (In many cases this gives up portability, but we want to do that)
 *** a spec
-So the main goal here is to have safe interfaces for the entire Linux syscall API,
-without having to rewrite that by hand in every new language.
+So the goal here is to have safe interfaces for the entire Linux syscall API,
+in every language,
+without having to write those by hand.
 
-This suggests, to me, having rich type information about the behavior of syscalls
-in some format,
-which can be used to generate the type-safe interfaces specific to individual languages.
+To me, this suggests a two-step process:
+1. Write down rich type information about system calls at least *once*, preferably in a language-independent way
+2. Use that to generate idiomatic type-safe interfaces in many languages.
 
-As well, this would:
-- Allow new languages to easily do IO without a C FFI (by generating syscall wrappers)
+Step 1 is this project.
+Step 2 is basically trivial if step 1 is completed well, so I'm ignoring it.
+
+So our goal is to write down rich type information about system calls.
+
+In addition to enabling safe interfaces for the entire Linux syscall API, doing this would:
+- Allow new languages to easily do IO without needing to add a C FFI
 - Improve the state of debugging tools (such as strace) which also handwrite a bunch of knowledge about system calls
-- Similar benefits for the many other projects which intersect with the Linux syscall API
+- Make it easier to systematically test and fuzz the Linux API
+- Provide similar benefits for the many many other projects which intersect with the Linux syscall API
 *** issues
-So, what exactly do we need?
+OK!
+So, what type information exactly do we need?
 
-There are some desiderata:
-- We need to describe the effects that syscalls have on what file descriptors are valid, what memory is mapped, etc.
-- Some level of dependent types, for buffers and return values that are sized based on an argument
-- The type information must be maintainable by the non-expert C programmers that currently write the Linux kernel;
-  without this it will be quickly useless.
-  (This suggests maybe embedding it as macros into the existing C code - distasteful, but not uncommon for Linux)
-- Support for various technical details about syscalls, such as:
-  - Overloaded system calls such as ioctl, where the argument types are dependent on which constant enum value is passed
-  - Complex pointer-based datastructures that exist in memory
-  - Bit-level data formats
-  - Tagged unions
-  - Architecture-specific divergences from a mostly-common core
+There are some clear things we want:
+- We need to represent that some syscalls return open file descriptors and others close open file descriptors,
+  some syscalls map memory and others unmap memory.
+  Otherwise, we can't express what it means to pass an "open file descriptor" to a system call.
+- We need some level of dependent types, for buffers and return values that are sized based on an argument.
+  We may be able to get away with a constrained version only for buffer sizes.
+- All this type information has to be maintainable by the expert C programmers that currently write the Linux kernel.
+  Without this these types will not be maintained for each new syscall change and they'll become useless.
+  One weird but maybe workable way to do this would be to embed these types as macros into the existing C code,
+  and scrape them out.
+  Somewhat similar things already exist in Linux.
 
-There's (so and so formal model of posix paper)
-but it has these issues:
+Additionally, to really do this,
+we also need to solve the calling convention question that I mentioned before:
+Dealing with the concrete specifics of how a system call is invoked.
+This requires support for lots of fine-grained details of memory layout, such as:
+- Complex pointer-based datastructures that exist in memory
+- Bit-level data formats
+- Tagged unions
+- Overloaded system calls such as ioctl, where the argument types are dependent on which constant enum value is passed
+- Architecture-specific divergences from a mostly-common core
+
+The system call interface has to be described *without* changing how it works,
+so this is also a somewhat novel problem of protocol description,
+describing an existing protocol without changing its format.
+
+So those are the things that are necessary for this project.
+Rich typing information that covers the effects that functions have on 
+*** related work
+There are a number of papers that have presented formal models of POSIX APIs.
+
+These formal models could in theory be used to automatically generate type-safe interfaces to modeled functions.
+But there are a few issues:
+
+- Most obviously, these papers don't specify the details of the calling convention,
+  but instead abstract over it,
+  so you wouldn't be able to actually get far.
+- More fundamentally, these papers cover only a very small part of the syscall API,
+  which is our whole problem.
+  Extending them would be difficult,
+  because they contain much more information, because they're targeted at a harder problem
+  than we're trying to solve.
 
 
-now for discussion
 *** misc
 Such information would be useful for other things too:
 
