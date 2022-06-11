@@ -1,0 +1,133 @@
+...It's true that none of these findings will last forever, but this
+constant overturning of old ideas by new discoveries is just part of
+what makes this such a dynamic time in the field of haruspicy. Many
+scholars will even tell you that their favorite part of being a
+haruspex is the frequency with which a new sacrifice over-turns
+everything they thought they knew about reading the future from a
+sheep's liver! We are very excited about the renewed interest on the
+part of policy-makers in the recommendations of the mantic arts...
+- http://vserver1.cscs.lsa.umich.edu/~crshalizi/weblog/698.html
+
+To see the gods dispelled in mid-air and dissolve like clouds is one
+of the great human experiences. It is not as if they had gone over the
+horizon to disappear for a time; nor as if they had been overcome by
+other gods of greater power and profounder knowledge. It is simply
+that they came to nothing.
+- Wallace Stevens
+
+Personally, I've been hearing all my life about the Serious
+Philosophical Issues posed by life extension, and my attitude has
+always been that I'm willing to grapple with those issues for as many
+centuries as it takes.
+- Patrick Nielsen Hayden (unknown source)
+http://lesswrong.com/lw/jlq/best_of_rationality_quotes_2013_edition/
+https://www.lesswrong.com/posts/TZsXNaJwETWvJPLCE/rationality-quotes-august-2010?commentId=nboCCze5EjRxwHYzn
+         
+The question of whether Machines Can Think... is about as relevant as
+the question of whether Submarines Can Swim.
+- Edsger W. Dijkstra
+
+The possibility that we are living in a false vacuum has never been a
+cheering one to contemplate. Vacuum decay is the ultimate ecological
+catastrophe; in the new vacuum there are new constants of nature;
+after vacuum decay, not only is life as we know it impossible, so is
+chemistry as we know it. However, one could always draw stoic comfort
+from the possibility that perhaps in the course of time the new vacuum
+would sustain, if not life as we know it, at least some structures
+capable of knowing joy. This possibility has now been eliminated.
+- Sidney Coleman & F. de Luccia, "Gravitational effects on and of vacuum decay"
+
+Reason and justice tell me there's more love for humanity in
+electricity and steam than in chastity and vegetarianism.
+- Anton Chekhov
+
+Before you read this, please understand that I never wanted to write
+this document, being grossly under-qualified, but I always wanted to
+read it, and this was the only way.
+- Paul ``Rusty'' Russel, "Unreliable Guide To Hacking The Linux Kernel"
+
+One man's modus ponens is another man's modus tollens.
+- Fred Dretske
+
+Banzen made an ink painting, to lift his heart in hard times.
+NOTHING IS FOREVER, said the painting. It gave him no joy.
+One day the painting was stolen—
+Now Banzen looks at the empty place, and smiles.
+- Qi's poem, http://thecodelesscode.com/case/186
+
+emacs outshines all other editing software in approximately the same
+way that the noonday sun does the stars. It is not just bigger and
+brighter; it simply makes everything else vanish.
+- Neal Stephenson, In the Beginning was the Command Line (1998)
+
+This is printk. It can be called from any context. We want it to work.
+- Andrew Morton, kernel/printk.c
+
+HAMLET
+Good Ghost, as one who dwells beyond the veil,
+you know things that we mortals scarce conceive.
+Tell me: is there some philter or device,
+outside nature's ken but not outside her means,
+by which death itself may be escap'd?
+
+Ghost
+You seek to evade Hell?
+
+HAMLET
+I seek to deny Hell to everyone!
+and Heaven too, for I suspect the Heaven of our mad God
+might be a paltry thing, next to the Heaven I will make of Earth,
+when I am its immortal king.
+- Rationalist Hamlet, http://hpmor.com/chapter/64
+
+The success of UNIX lies not so much in new inventions but rather in
+the full exploitation of a carefully selected set of fertile ideas,
+and especially in showing that they can be keys to the implementation
+of a small yet powerful operating system.
+- Ritchie and Thompson, The UNIX Time-Sharing System (1974)
+
+ZEUS: Know your sin, abhor it, and tear it from you as one tears out a
+rotten, noisome tooth. Or else - beware lest the very seas shrink back
+at your approach, springs dry up when you pass by, stones and rocks
+roll from your path, and the earth crumbles under your feet.
+ORESTES: Let it crumble! Let the rocks revile me, and flowers wilt at
+my coming. Your whole universe is not enough to prove me wrong. You
+are the king of gods, king of stones and stars, king of the waves of
+the sea. But you are not the king of man.
+ZEUS:  Impudent spawn! So I am not your king? Who, then, made you?
+ORESTES:  You. But you blundered; you should not have made me free.
+- Les Mouches, Jean-Paul Sartre (found from
+  http://www.anarchyishyperbole.com/2015/12/significant-digits-chapter-thirty-two_20.html)
+
+Psychologists had always been wont to build, in what Bleuler calls
+"autistic ways," that is through methods in no wise supported by
+evidence, some attractive hypothesis, which sprung from their brain,
+like Minerva from Jove's brain, fully armed. After which, they would
+stretch upon that unyielding frame the hide of a reality which they
+had previously killed.
+- Introduction to Freud's "Dream Psychology: Psychoanalysis for Beginners", André Tridon,
+  https://www.bartleby.com/288/10.html
+
+And the last enemy to be destroyed is death.
+- 1 Corinthians 15:26
+
+If a mortal honestly wishes to change patrons, then the new deity may,
+with the mortal's agreement, change the truth written on his heart.
+Thus, the old allegiances are severed and the new are forged into
+truth.
+- Two Year Emperor, Chapter 42
+  (I just like this wording of self-editing)
+
+If the real radical finds that having long hair sets up psychological
+barriers to communication and organization, he cuts his hair.
+- Saul Alinsky, Rules for Radicals
+
+Here's a health to the ship's designers, and the welders of her seams,
+And all who man the radar-scan to watch our dawning dreams.
+For all the unknown heroes, sing out to every shore:
+"What makes one step a giant leap is all the steps before"
+- Leslie Fish, Toast for Unsung Heroes
+
+
+[all of it]
+- Hymn Of Breaking Strain, Rudyard Kipling
