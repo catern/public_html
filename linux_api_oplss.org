@@ -193,8 +193,6 @@ This is bad because:
   can't use advanced systems features that could simplify their programs.
 - It means systems programmers who must use those features,
   are getting much less correctness in their programs.
-**** old
-(In many cases this gives up portability, but we want to do that)
 *** a spec
 So the goal here is to have safe interfaces for the entire Linux syscall API,
 in every language,
@@ -254,7 +252,7 @@ But there are a few issues:
 
 - Most obviously, these papers don't specify the details of the calling convention,
   but instead abstract over it,
-  so you wouldn't be able to actually get far.
+  so you wouldn't be able to actually generate much useful stuff just with them.
 - More fundamentally, these papers cover only a very small part of the syscall API,
   which is our whole problem.
   Extending them would be difficult,
@@ -262,78 +260,16 @@ But there are a few issues:
   than we're trying to solve.
 
 
+**** papers
+https://mgree.github.io/papers/popl2020_smoosh.pdf
+https://6826.csail.mit.edu/2017/papers/sibylfs.pdf
 *** misc
-Such information would be useful for other things too:
 
+**** portability
+(In many cases this gives up portability, but we want to do that)
 
-
+**** not checked against implementation
 But it's somewhat meaningful to note that this type information wouldn't necessarily be *checked*
 against the implementation.
 We just want a language to express the invariants,
-which maybe is mainta
-
-That information could also be useful for other things.
-
-So, the fundamental issue here, in my view,
-is that there is no description of what is *safe*
-
-
-
-
-
-
-any part of the program can tamper
-
-The Rust community has 
-
-
-
-The most obvious is:
-The 
-
-
-Let's be clear:
-This is not a system call.
-This is a *wrapper* for a system call.
-Internally,
-this calls the Linux system call sys_read in an architecture-specific way,
-in a way specific to sys_read.
-
-How exactly that works.
-
-
-
-This is the C function signature for a function implemented in glibc,
-which *wraps* the underlying system calls to make them available to C.
-Calling this function is what most people think of as "calling a system call",
-but it's different.
-
-The actual system call interface is sometimes very similar to the C interface,
-and sometimes very different.
-
-The actual system call interface, at least on the x86 architecture,
-consists of setting some registers to appropriate values,
-then invoking a dedicated syscall instruction.
-
-That being said,
-for common system calls the arguments passed to the C wrappers
-and the arguments taken by the underlying system call are usually the same.
-
-
-
-the basic C library that most C programs running on Linux
-
-To call a system call, you need to execute some specifi
-
-
-However, the calling convention for a system call
-(that is, the exact instructions used to execute it)
-
-The actual implementation
-
-In practice, a system call 
-*** [other]
-The goal is not to benefit the Linux kernel itself, but rather userspace users
-*** papers
-https://mgree.github.io/papers/popl2020_smoosh.pdf
-https://6826.csail.mit.edu/2017/papers/sibylfs.pdf
+which maybe is maintained by hand.
