@@ -136,6 +136,11 @@ along with its size.
 Most of the time, type-safe languages wrap =read= in an interface that abstracts the "buf" and "count" arguments away
 in an effort to make =read= memory-safe.
 
+Something like this:
+#+begin_src python
+ssize_t read(int fd, Array<uint8_t> buf);
+#+end_src
+
 But that's not all we need.
 For true safety,
 we need to ensure that an open file descriptor is passed to "fd"
@@ -164,13 +169,17 @@ rather than being forged out of thin air.
 This is sometimes called "capability safety" or "I/O safety".
 https://rust-lang.github.io/rfcs/3128-io-safety.html
 
-So then we have a safer wrapper for this system call.
-We could go even further, to improve safety.
+So then we have a slightly safer wrapper for this system call,
+something like this:
+#+begin_src python
+ssize_t read(FileDescriptor fd, Array<uint8_t> buf);
+#+end_src
+
+We could go even further and make this wrapper even safer.
 For example, we could look at the return value,
 and use that to make access to the output buffer safer.
-But we'll stop here.
+But we'll stop here, because there's a more fundamental problem.
 
-Unfortunately, there's an issue:
 The reasoning we just did,
 we did informally and by hand.
 
@@ -186,10 +195,13 @@ So it's very possible to do.
 But the system call API is extremely large,
 and for most of it, there is *no* type-safe wrapper in *any* language,
 let alone a type-safe wrapper in my language of choice.
+Just to list a few examples:
+namespace manipulation, netlink, ioctls.
 
-This is bad because:
+The lack of such type safe wrappers is bad because:
 - It means programmers concerned with correctness,
-  can't use advanced systems features that could simplify their programs.
+  can't use advanced systems features that could simplify their programs,
+  since they are hugely unsafe.
 - It means systems programmers who must use those features,
   are getting much less correctness in their programs.
 *** a spec
@@ -199,11 +211,11 @@ without having to write those by hand.
 This will make Linux features both more accessible and easier to use correctly.
 
 To me, this suggests a two-step process:
-1. Write down rich type information about system calls at least *once*, preferably in a language-independent way
-2. Use that to generate idiomatic type-safe interfaces in many languages.
+Step 1. Write down rich type information about system calls at least *once*, preferably in a language-independent way
+Step 2. Use that to generate idiomatic type-safe interfaces in many languages.
 
 Step 1 is this project.
-Step 2 is basically trivial if step 1 is completed well, so I'm ignoring it.
+Step 2, actual generation, is not a novel problem, and should be straightforward if step 1 is completed well, so I'm ignoring it for now.
 
 So our goal is to write down rich type information about system calls.
 
@@ -214,6 +226,8 @@ In addition to enabling safe interfaces for the entire Linux syscall API, doing 
 - Provide similar benefits for the many many other projects which intersect with the Linux syscall API
 *** issues
 OK!
+So now the problem is,
+how exactly to write down this type information and in what language.
 So, what type information exactly do we need?
 
 There are some clear things we want:
@@ -268,6 +282,11 @@ But there are a few issues:
 **** papers
 https://mgree.github.io/papers/popl2020_smoosh.pdf
 https://6826.csail.mit.edu/2017/papers/sibylfs.pdf
+
+this is the one that has the nice fd preconditions and postconditions thing:
+https://www.doc.ic.ac.uk/~pmd09/research/publications/2018/ecoop/a-concurrent-specification-of-posix-file-systems.pdf
+
+https://www.doc.ic.ac.uk/~pg/publications/Ntzik2017Reasoning.pdf
 *** misc
 
 **** portability
