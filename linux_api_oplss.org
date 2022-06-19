@@ -92,7 +92,7 @@ Talk outline:
 1. What "the Linux kernel syscall API" even is
 2. How it's unsafe
 3. How "add rich static types" helps
-4. The requirements and hard parts of "add rich static types"
+4. How to "add rich static types"
 5. Related work
 
 This will not take the full time, so please ask questions throughout.
